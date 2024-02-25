@@ -8,7 +8,7 @@ import (
 
 // global variables
 const (
-	verbose    bool   = false
+	verbose    bool   = true
 	netType    string = "tcp"
 	address    string = "127.0.0.1:4600"
 	bufferSize int    = 2048
@@ -72,18 +72,17 @@ func handleConnection(conn net.Conn) {
 		}
 
 		hexBytesHeader := hexBytes[:headerSize] // Extract first 40 bytes
-		// hexBytesBody := hexBytes[headerSize:]    // Extract the rest of the bytes
+		hexBytesBody := hexBytes[headerSize:]   // Extract the rest of the bytes
 
 		if verbose {
-			fmt.Printf(">> Received data (hex): %s\n", hexData) // print the received data in hexadecimal format
-			fmt.Printf(">> Received header (hex): %s\n", hex.EncodeToString(hexBytesHeader))
-			charactersCount := len(hexData) // count characters
-			fmt.Printf("- Number of characters: %d\n", charactersCount)
-			bytesCount := len(hexBytes) // count bytes
-			fmt.Printf("- Number of bytes: %d\n", bytesCount)
+			fmt.Printf(">> Received data (hex): %s\n", hexData)      // print the received data in hexadecimal format
+			fmt.Printf("- Number of characters: %d\n", len(hexData)) // count characters
+			fmt.Printf("- Number of bytes: %d\n", len(hexBytes))     // count bytes
 		}
 
-		values := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
-		fmt.Println(">> Decoded Header values:", values)
+		headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
+		fmt.Println(">> Decoded Header values:", headerValues)
+		bodyValues := decodeBody(hexBytesBody)
+		fmt.Println(">> Decoded Body values:", bodyValues)
 	}
 }
