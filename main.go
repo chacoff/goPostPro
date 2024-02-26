@@ -8,7 +8,7 @@ import (
 
 // global variables
 const (
-	verbose    bool   = true
+	verbose    bool   = false
 	netType    string = "tcp"
 	address    string = "127.0.0.1:4600"
 	bufferSize int    = 2048
@@ -82,7 +82,17 @@ func handleConnection(conn net.Conn) {
 
 		headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
 		fmt.Println(">> Decoded Header values:", headerValues)
-		bodyValues := decodeBody(hexBytesBody)
-		fmt.Println(">> Decoded Body values:", bodyValues)
+
+		response := []byte("Hello from server!")
+		_, err = conn.Write(response)
+		if err != nil {
+			fmt.Println("Error writing:", err)
+			return
+		}
+		fmt.Println("Sent response to client")
+
+		messageType := int(headerValues[1]) // message type on the header
+		bodyValuesStatic, bodyValueDynamic := decodeBody(hexBytesBody, messageType)
+		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 	}
 }
