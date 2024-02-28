@@ -10,7 +10,7 @@ import (
 const (
 	verbose    bool   = false
 	netType    string = "tcp"
-	address    string = "127.0.0.1:4600"
+	address    string = "127.0.0.1:4600" // 10.28.114.89
 	bufferSize int    = 2048
 	headerSize int    = 40
 )
@@ -92,7 +92,9 @@ func handleConnection(conn net.Conn) {
 		fmt.Println("Sent response to client")
 
 		messageType := int(headerValues[1]) // message type on the header
-		bodyValuesStatic, bodyValueDynamic := decodeBody(hexBytesBody, messageType)
-		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		if messageType != 4701 {            // 4701 it is watchdog, there isn't body to decode
+			bodyValuesStatic, bodyValueDynamic := decodeBody(hexBytesBody, messageType)
+			fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		}
 	}
 }
