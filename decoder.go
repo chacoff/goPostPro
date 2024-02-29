@@ -103,7 +103,7 @@ func decodePasses(data []byte, passes int) []interface{} {
 	// Pass Date	format 	timestamp	BytesGap	14
 	// Dummy		format 	HEX			BytesGap	2
 
-	var byteGaps = []int{4, 14, 2} // every pass is 20bytes
+	var byteGaps = []int{4, 14, 2} // every pass is 20bytes: pattern of byte gaps to decode specific messages
 	var index int
 	var _values []interface{}
 	var value uint32
@@ -147,7 +147,7 @@ func decodeLTC(data []byte) []interface{} {
 	// j=7	temp_ltc_482	format HEX	BytesGap	4
 
 	var _values []interface{}
-	var byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4}
+	var byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4} // pattern of byte gaps to decode specific messages
 	var index int
 	var value uint32
 

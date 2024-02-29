@@ -8,11 +8,11 @@ import (
 
 // global variables
 const (
-	verbose    bool   = false
-	netType    string = "tcp"
-	address    string = "127.0.0.1:4600" // 10.28.114.89
-	bufferSize int    = 2048
-	headerSize int    = 40
+	verbose       bool   = false
+	netType       string = "tcp"
+	address       string = "10.28.114.89:4600" // 10.28.114.89
+	MaxBufferSize int    = 2048
+	headerSize    int    = 40
 )
 
 func main() {
@@ -54,7 +54,7 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Accepted connection from", conn.RemoteAddr())
 
-	buffer := make([]byte, bufferSize) // buffer to hold incoming data
+	buffer := make([]byte, MaxBufferSize) // buffer to hold incoming data
 
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
@@ -83,18 +83,44 @@ func handleConnection(conn net.Conn) {
 		headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
 		fmt.Println(">> Decoded Header values:", headerValues)
 
-		response := []byte("Hello from server!")
-		_, err = conn.Write(response)
+		go handleAnswer(conn, headerValues, hexBytesBody)
+	}
+}
+
+func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
+
+	var echo bool = false
+	var response []byte
+	messageType := int(_headerValues[1]) // message type on the header
+	messageCounter := _headerValues[2]   // already in uint32
+	messageTypeAns := uint32(messageType - 100)
+
+	switch messageType {
+	case 4701: // watchdog, not a body to decode
+		response = encodeUint32(headerType(40, messageTypeAns, messageCounter))
+		echo = true
+
+	case 4702: // process message
+		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
+		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		response = encodeProcess(processType(messageTypeAns, messageCounter, bodyValuesStatic, bodyValueDynamic))
+		echo = false
+
+	case 4703: // acknowledge data message
+		fmt.Println("MES received data properly")
+		echo = false
+
+	default:
+		fmt.Println("Unknown message:", messageCounter)
+		echo = false
+	}
+
+	if echo {
+		_, err := conn.Write(response)
 		if err != nil {
 			fmt.Println("Error writing:", err)
 			return
 		}
-		fmt.Println("Sent response to client")
-
-		messageType := int(headerValues[1]) // message type on the header
-		if messageType != 4701 {            // 4701 it is watchdog, there isn't body to decode
-			bodyValuesStatic, bodyValueDynamic := decodeBody(hexBytesBody, messageType)
-			fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
-		}
+		fmt.Println("Response sent to client for message", messageCounter)
 	}
 }
