@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
-	"io"
 	"net"
 )
 
@@ -16,8 +14,8 @@ const (
 	headerSize    int    = 40
 )
 
-var buffer []byte = make([]byte, MaxBufferSize) // buffer to hold incoming data
-var allHexBytes []byte = make([]byte, MaxBufferSize)
+var buffer = make([]byte, MaxBufferSize)         // buffer to hold incoming data
+var allHexBytes = make([]byte, 0, MaxBufferSize) // variable: from 0 to maxBufferSize. Data will be appended on arrival
 
 func main() {
 	listener, err := net.Listen(netType, address) // listen on port 4600
@@ -59,41 +57,33 @@ func handleConnection(conn net.Conn) {
 
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
-		if err != nil {
-			if err != io.EOF {
-				fmt.Println("[INFO] Waiting the end of the stream")
-			}
+		if err != nil {             // && err != io.EOF
 			fmt.Println("[WARNING] Error reading or Client disconnected:", err)
 			break
 		}
-		allHexBytes = buffer[:n]
+		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
-		hexBytesHeader := allHexBytes[:headerSize]         // Extract first 40 bytes
-		headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
-		fmt.Println(">> Decoded Header values:", headerValues)
+		for len(allHexBytes) >= headerSize {
+			hexBytesHeader := allHexBytes[:headerSize]         // Extract first 40 bytes, only header
+			headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
+			fmt.Println(">> Decoded Header values:", headerValues)
 
-		hexBytesBody := allHexBytes[headerSize:] // Extract the rest of the bytes
+			FullLength := int(headerValues[0])
 
-		go handleAnswer(conn, headerValues, hexBytesBody)
-
-		if verbose {
-			hexData := hex.EncodeToString(allHexBytes) // convert binary data to hexadecimal representation
-			hexBytes, err := hex.DecodeString(hexData) // back to bytes
-			if err != nil {
-				fmt.Println("[WARNING] Error decoding hex string:", err)
-				return
+			if len(allHexBytes) >= FullLength {
+				hexBytesBody := allHexBytes[headerSize:FullLength] // Extract the rest of the bytes
+				allHexBytes = make([]byte, 0, MaxBufferSize)       // reset variable before handling answer
+				go handleAnswer(conn, headerValues, hexBytesBody)
+			} else {
+				break
 			}
-
-			fmt.Printf(">> Received data (hex): %s\n", hexData)      // print the received data in hexadecimal format
-			fmt.Printf("- Number of characters: %d\n", len(hexData)) // count characters
-			fmt.Printf("- Number of bytes: %d\n", len(hexBytes))     // count bytes
 		}
 	}
 }
 
 func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
-	var echo bool = false
+	var echo = false
 	var response []byte
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
