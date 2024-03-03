@@ -6,7 +6,7 @@ import (
 )
 
 func encodeUint32(_values []interface{}) []byte {
-	buffer := make([]byte, 0, MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
+	_buffer := make([]byte, 0, MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
 	for _, value := range _values {
@@ -16,20 +16,20 @@ func encodeUint32(_values []interface{}) []byte {
 		} else {
 			binary.LittleEndian.PutUint32(binaryValue, value.(uint32))
 		}
-		buffer = append(buffer, binaryValue...) // slice, element to unpack
+		_buffer = append(_buffer, binaryValue...) // slice, element to unpack
 		j += 1
 	}
 
 	if verbose {
-		fmt.Printf("Length of buffer: %d\n", len(buffer))
-		fmt.Printf("Capacity of buffer: %d\n", cap(buffer))
+		fmt.Printf("Length of buffer: %d\n", len(_buffer))
+		fmt.Printf("Capacity of buffer: %d\n", cap(_buffer))
 	}
 
-	return buffer
+	return _buffer
 }
 
 func encodeProcess(_values []interface{}) []byte {
-	buffer := make([]byte, 0, MaxBufferSize)
+	_buffer := make([]byte, 0, MaxBufferSize)
 
-	return buffer
+	return _buffer
 }
