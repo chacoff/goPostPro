@@ -55,6 +55,10 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Accepted connection from", conn.RemoteAddr())
 
+	var isHeaderOk = false
+	var headerValues []uint32
+	var FullLength int
+
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {             // && err != io.EOF
@@ -63,20 +67,19 @@ func handleConnection(conn net.Conn) {
 		}
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
-		for len(allHexBytes) >= headerSize {
-			hexBytesHeader := allHexBytes[:headerSize]         // Extract first 40 bytes, only header
-			headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
+		if len(allHexBytes) >= headerSize && isHeaderOk == false {
+			hexBytesHeader := allHexBytes[:headerSize]        // Extract first 40 bytes, only header
+			headerValues = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
+			isHeaderOk = true
+			FullLength = int(headerValues[0])
 			fmt.Println(">> Decoded Header values:", headerValues)
+		}
 
-			FullLength := int(headerValues[0])
-
-			if len(allHexBytes) >= FullLength {
-				hexBytesBody := allHexBytes[headerSize:FullLength] // Extract the rest of the bytes
-				allHexBytes = make([]byte, 0, MaxBufferSize)       // reset variable before handling answer
-				go handleAnswer(conn, headerValues, hexBytesBody)
-			} else {
-				break
-			}
+		if len(allHexBytes) >= FullLength && isHeaderOk == true { // TODO attention with the '>='
+			hexBytesBody := allHexBytes[headerSize:FullLength] // Extract the rest of the bytes
+			allHexBytes = make([]byte, 0, MaxBufferSize)       // reset variable before handling answer
+			isHeaderOk = false                                 // reset variables before handling answer
+			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
 	}
 }
