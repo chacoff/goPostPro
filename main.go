@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 	"net"
 )
 
@@ -40,7 +41,6 @@ func main() {
 			fmt.Println("[WARNING] Error accepting connection:", err)
 			break
 		}
-
 		go handleConnection(conn) // handle the connection in a goroutine
 	}
 }
@@ -57,38 +57,38 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Accepted connection from", conn.RemoteAddr())
 
-	bytesRead := 0
-	for bytesRead <= headerSize {
-		n, err := conn.Read(buffer[bytesRead:]) // read data from the connection
+	for {
+		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {
+			if err != io.EOF {
+				fmt.Println("[INFO] Waiting the end of the stream")
+			}
 			fmt.Println("[WARNING] Error reading or Client disconnected:", err)
 			break
 		}
-		bytesRead += n
-	}
+		allHexBytes = buffer[:n]
 
-	allHexBytes = buffer[:bytesRead]
+		hexBytesHeader := allHexBytes[:headerSize]         // Extract first 40 bytes
+		headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
+		fmt.Println(">> Decoded Header values:", headerValues)
 
-	hexBytesHeader := allHexBytes[:headerSize]         // Extract first 40 bytes
-	headerValues := decodeHeaderUint32(hexBytesHeader) // decode little-endian uint16 values
-	fmt.Println(">> Decoded Header values:", headerValues)
+		hexBytesBody := allHexBytes[headerSize:] // Extract the rest of the bytes
 
-	hexBytesBody := allHexBytes[headerSize:] // Extract the rest of the bytes
+		go handleAnswer(conn, headerValues, hexBytesBody)
 
-	if verbose {
-		hexData := hex.EncodeToString(buffer[:bytesRead]) // convert binary data to hexadecimal representation
-		hexBytes, err := hex.DecodeString(hexData)        // back to bytes
-		if err != nil {
-			fmt.Println("[WARNING] Error decoding hex string:", err)
-			return
+		if verbose {
+			hexData := hex.EncodeToString(allHexBytes) // convert binary data to hexadecimal representation
+			hexBytes, err := hex.DecodeString(hexData) // back to bytes
+			if err != nil {
+				fmt.Println("[WARNING] Error decoding hex string:", err)
+				return
+			}
+
+			fmt.Printf(">> Received data (hex): %s\n", hexData)      // print the received data in hexadecimal format
+			fmt.Printf("- Number of characters: %d\n", len(hexData)) // count characters
+			fmt.Printf("- Number of bytes: %d\n", len(hexBytes))     // count bytes
 		}
-
-		fmt.Printf(">> Received data (hex): %s\n", hexData)      // print the received data in hexadecimal format
-		fmt.Printf("- Number of characters: %d\n", len(hexData)) // count characters
-		fmt.Printf("- Number of bytes: %d\n", len(hexBytes))     // count bytes
 	}
-
-	go handleAnswer(conn, headerValues, hexBytesBody)
 }
 
 func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
