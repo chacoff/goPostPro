@@ -12,7 +12,7 @@ const (
 	staticBodySize int = 20
 )
 
-func decodeHeaderUint32(data []byte) []uint32 {
+func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 	// Total Length			format	HEX		BytesGap	4
 	// Identification		format	HEX		BytesGap	4
 	// Message Counter		format	HEX		BytesGap	4
@@ -45,7 +45,7 @@ func decodeHeaderUint32(data []byte) []uint32 {
 		_values = append(_values, value)
 	}
 
-	return _values
+	return _values, true
 }
 
 func decodeBody(data []byte, messageType int) ([]interface{}, []interface{}) {

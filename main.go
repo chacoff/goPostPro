@@ -68,9 +68,8 @@ func handleConnection(conn net.Conn) {
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
 		if len(allHexBytes) >= headerSize && isHeaderOk == false {
-			hexBytesHeader := allHexBytes[:headerSize]        // Extract first 40 bytes, only header
-			headerValues = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
-			isHeaderOk = true
+			hexBytesHeader := allHexBytes[:headerSize]                    // Extract first 40 bytes, only header
+			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
 			fmt.Println(">> Decoded Header values:", headerValues)
 		}
