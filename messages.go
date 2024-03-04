@@ -1,3 +1,14 @@
+/*
+ * File:    messages.go
+ * Date:    March 04, 2024
+ * Author:  J.
+ * Email:   jaime.gomez@usach.cl
+ * Project: goPostPro
+ * Description:
+ *   Gathers data from thermal cameras at Train2 and cross-match with timestamps coming from MES to
+ *	 to outcome post processes data.
+ */
+
 package main
 
 import (
