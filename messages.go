@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+type postProData struct {
+	passNumber   uint32
+	passDate     string
+	dummy        string
+	maxTempMill3 uint32
+	avgTempMill3 uint32
+	maxTempMill1 uint32
+	avgTempMill1 uint32
+	minTempWeb   uint32
+	avgTempWeb   uint32
+	avgStdTemp   uint32
+	pixWidth     uint32
+}
+
 func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	var _values []interface{} // interface, even though all are uint32 due to body being interface{}
 
@@ -39,16 +53,45 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	return _values
 }
 
-func processType(_id uint32, _counter uint32, _bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
-	var _values []interface{}
-	// var _header []interface{}
+func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
+	var _bodyAns []interface{}
 
-	_values = append(_values, _bodyStatic[0]) // unique product ID
-	_values = append(_values, _bodyStatic[1]) // rolling campaign profile
-	_values = append(_values, _bodyStatic[2]) // rolling campaign number
-	_values = append(_values, _bodyStatic[3]) // roll stand number
-	_values = append(_values, _bodyStatic[4]) // pass counter
+	passCounter := _bodyStatic[4].(uint32) /// pass counter
 
-	// _header = headerType(40, _id, _counter) // add the length after
-	return _values
+	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
+	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
+	_bodyAns = append(_bodyAns, _bodyStatic[2]) // rolling campaign number
+	_bodyAns = append(_bodyAns, _bodyStatic[3]) // roll stand number
+	_bodyAns = append(_bodyAns, _bodyStatic[4]) // pass counter
+
+	for i := 0; i < int(passCounter); i++ {
+		pass := i + 1
+		newData := postProData{
+			passNumber:   uint32(pass),
+			passDate:     _bodyDynamic[pass+(i*2)].(string), // time.Now().Format("20060102150405"),
+			dummy:        "du",
+			maxTempMill3: 8,
+			avgTempMill3: 0,
+			maxTempMill1: 0,
+			avgTempMill1: 0,
+			minTempWeb:   0,
+			avgTempWeb:   0,
+			avgStdTemp:   0,
+			pixWidth:     5,
+		}
+
+		_bodyAns = append(_bodyAns, newData.passNumber)
+		_bodyAns = append(_bodyAns, newData.passDate)
+		_bodyAns = append(_bodyAns, newData.dummy)
+		_bodyAns = append(_bodyAns, newData.maxTempMill3)
+		_bodyAns = append(_bodyAns, newData.avgTempMill3)
+		_bodyAns = append(_bodyAns, newData.maxTempMill1)
+		_bodyAns = append(_bodyAns, newData.avgTempMill1)
+		_bodyAns = append(_bodyAns, newData.minTempWeb)
+		_bodyAns = append(_bodyAns, newData.avgTempWeb)
+		_bodyAns = append(_bodyAns, newData.avgStdTemp)
+		_bodyAns = append(_bodyAns, newData.pixWidth)
+	}
+
+	return _bodyAns
 }

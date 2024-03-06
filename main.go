@@ -21,7 +21,7 @@ import (
 const (
 	verbose       bool   = false
 	netType       string = "tcp"
-	address       string = "10.28.114.89:4600" // 10.28.114.89
+	address       string = "127.0.0.1:4600" // 10.28.114.89
 	MaxBufferSize int    = 2048
 	headerSize    int    = 40
 )
@@ -33,18 +33,20 @@ func main() {
 	listener, err := net.Listen(netType, address) // listen on port 4600
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
-		return
+		// return
+		os.Exit(1)
 	}
-
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-
 	fmt.Printf("Server is listening on port %s\n", address)
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("[WARNING] Error accepting connection:", err)
 			os.Exit(1)
+			// break
 		}
+
 		fmt.Println("Accepted connection from", conn.RemoteAddr())
 		go handleConnection(conn)
 	}
@@ -52,7 +54,7 @@ func main() {
 
 func handleConnection(conn net.Conn) {
 
-	// defer conn.Close()
+	defer conn.Close()
 
 	var isHeaderOk = false
 	var headerValues []uint32
@@ -100,8 +102,15 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	case 4702: // process message: header + body
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
-		// response = encodeProcess(processType(messageTypeAns, messageCounter, bodyValuesStatic, bodyValueDynamic))
-		response = []byte("dur process")
+
+		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic))
+		_length := uint32(40 + len(_bodyAns))
+		_headerAns := encodeUint32(headerType(_length, messageTypeAns, messageCounter))
+
+		_response := make([]byte, 0, len(_headerAns)+len(_bodyAns))
+		_response = append(_response, _headerAns...)
+		_response = append(_response, _bodyAns...)
+
 		echo = true
 
 	case 4703: // acknowledge data message
@@ -114,15 +123,11 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	}
 
 	if echo == true {
-		go responseWriter(conn, response, messageCounter)
+		_, err := conn.Write(response)
+		if err != nil {
+			fmt.Println("Error writing:", err)
+			return
+		}
+		fmt.Println("Response sent to client for message", messageCounter)
 	}
-}
-
-func responseWriter(conn net.Conn, _response []byte, _messageCounter uint32) {
-	_, err := conn.Write(_response)
-	if err != nil {
-		fmt.Println("Error writing:", err)
-		return
-	}
-	fmt.Println("Response sent to client for message", _messageCounter)
 }
