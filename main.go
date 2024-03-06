@@ -111,6 +111,8 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		_response = append(_response, _headerAns...)
 		_response = append(_response, _bodyAns...)
 
+		response = _response
+
 		echo = true
 
 	case 4703: // acknowledge data message
