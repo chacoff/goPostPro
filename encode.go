@@ -17,7 +17,7 @@ import (
 )
 
 func encodeUint32(_values []interface{}) []byte {
-	_buffer := make([]byte, 0, MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
+	_buffer := make([]byte, 0, config.MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
 	for _, value := range _values {
@@ -31,7 +31,7 @@ func encodeUint32(_values []interface{}) []byte {
 		j += 1
 	}
 
-	if verbose {
+	if config.Verbose {
 		fmt.Printf("Length of buffer: %d\n", len(_buffer))
 		fmt.Printf("Capacity of buffer: %d\n", cap(_buffer))
 	}
@@ -40,7 +40,7 @@ func encodeUint32(_values []interface{}) []byte {
 }
 
 func encodeProcess(_values []interface{}) []byte {
-	_buffer := make([]byte, 0, MaxBufferSize)
+	_buffer := make([]byte, 0, config.MaxBufferSize)
 
 	var rawWrite = []int{1, 2, 6, 7, 17, 18, 28, 29, 39, 40, 50, 51, 61, 62, 72, 73, 83, 84, 94, 95}
 

@@ -49,7 +49,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 			value = binary.BigEndian.Uint32(data[i : i+bytesGap])
 		}
 
-		if verbose {
+		if config.Verbose {
 			fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 		}
 		j += 1
@@ -97,7 +97,7 @@ func decodeBodyStatic(data []byte) []interface{} {
 			_values = append(_values, valueUtf)
 		}
 
-		if verbose {
+		if config.Verbose {
 			if j == 0 || j == 3 || j == 4 {
 				fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 			} else {
