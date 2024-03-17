@@ -64,6 +64,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interf
 	_bodyAns = append(_bodyAns, _bodyStatic[3]) // roll stand number
 	_bodyAns = append(_bodyAns, _bodyStatic[4]) // pass counter
 
+	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	for i := 0; i < int(passCounter); i++ {
 		pass := i + 1
 		newData := postProData{
