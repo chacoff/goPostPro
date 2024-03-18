@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	_file, err := os.Open("D:\\00_Dev\\RD_AM\\PostProTrain2\\testing_data\\DUO01-02_0891_half.txt")
+	_file, err := os.Open("C:\\Users\\gomezja\\OneDrive - ArcelorMittal\\Documents\\00_Dev\\DIAS_Mill2_PostpPoPY\\testing_data\\DUO01-02_0891.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,48 +32,29 @@ func main() {
 
 func createDataFrame(scanner *bufio.Scanner) dataframe.DataFrame {
 	var stamps []string
-	var temps [][]float64
+	var temps []string
 	var _stamps string
 	var _dataLine []string
 	var _dataLineConcat string
 
 	for scanner.Scan() {
 		_line := strings.ReplaceAll(scanner.Text(), ",", ".") // Replace commas with periods, sometimes!
-		line := strings.Fields(_line)                         // like str.join.(' ')
+		line := strings.Fields(_line)                         // like str.split.(' ')
 
 		_stamps = line[0] + " " + line[1]
 		_dataLine = line[7 : len(line)-4] // extract temperature data, elements from 7 to (total-4)
 
 		_dataLineConcat = strings.Join(_dataLine, " ")
-		_tempsArray := dataFormatter(_dataLineConcat)
 		stamps = append(stamps, _stamps)
-		temps = append(temps, _tempsArray)
+		temps = append(temps, _dataLineConcat)
 	}
-
-	tempsStrings := arrayFloatToString(temps)
 
 	df := dataframe.New(
 		series.New(stamps, series.String, "TimeStamps"),
-		series.New(tempsStrings, series.String, "Temperatures"),
+		series.New(temps, series.String, "Temperatures"),
 	)
 
 	return df
-}
-
-func arrayFloatToString(temps [][]float64) []string {
-	var tempsStrings []string
-	for _, t := range temps {
-		tempsStrings = append(tempsStrings, arrayToString(t))
-	}
-	return tempsStrings
-}
-
-func arrayToString(arr []float64) string {
-	strArr := make([]string, len(arr))
-	for i, v := range arr {
-		strArr[i] = fmt.Sprintf("%f", v)
-	}
-	return strings.Join(strArr, " ")
 }
 
 func timeFormatter(s string) time.Time {
