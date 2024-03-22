@@ -95,11 +95,11 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	messageTypeAns := uint32(messageType - 100)
 
 	switch messageType {
-	case 4701, 4711: // watchdog: only header
+	case 4701, 4711, 4721: // watchdog: only header
 		response = encodeUint32(headerType(40, messageTypeAns, messageCounter))
 		echo = true
 
-	case 4702, 4712: // process message: header + body
+	case 4702, 4712, 4722: // process message: header + body
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
@@ -115,7 +115,13 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 		echo = true
 
-	case 4703, 4713: // acknowledge data message
+	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
+		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+
+		echo = false
+
+	case 4703, 4713, 4723: // acknowledge data message
 		fmt.Println("MES received data properly")
 		echo = false
 
