@@ -2,7 +2,7 @@
 * go get -u github.com/go-gota/gota/...
  */
 
-package main
+package dataBuilder
 
 import (
 	"bufio"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func fileReader() {
+func FileReader() {
 	_file, err := os.Open("C:\\Users\\gomezja\\OneDrive - ArcelorMittal\\Documents\\00_Dev\\DIAS_Mill2_PostpPoPY\\testing_data\\DUO01-02_0891.txt")
 	if err != nil {
 		log.Fatal(err)
