@@ -31,8 +31,10 @@ func main() {
 	config = loadConfig()
 	setConsoleTitle(config.Cage)
 
-	go dias.LTCServer()
+	// dias-Server
+	go dias.LTCServer(config.NetType, config.AddressDias)
 
+	// MES-Server
 	listener, err := net.Listen(config.NetType, config.Address) // listen on port 4600
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
@@ -40,7 +42,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	fmt.Printf("Server is listening on port %s\n", config.Address)
+	fmt.Printf("Listening MES on port %s\n", config.Address)
 
 	for {
 		conn, err := listener.Accept()
@@ -50,7 +52,7 @@ func main() {
 			// break
 		}
 
-		fmt.Println("Accepted connection from", conn.RemoteAddr())
+		fmt.Println("Accepted MES-client from", conn.RemoteAddr())
 		go handleConnection(conn)
 	}
 }

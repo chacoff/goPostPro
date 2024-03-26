@@ -10,13 +10,14 @@ import (
 
 var buffer = make([]byte, 24)
 
-func DiasServer() {
-	ln, err := net.Listen("tcp", "127.0.0.1:2002")
+// LTCServer opens socket communication with DIAS software. Objective is to pass the LTC value
+func LTCServer(netType string, address string) {
+	ln, err := net.Listen(netType, address)
 	if err != nil {
 		log.Fatal("problems listening: ", err)
 	}
 	defer ln.Close()
-	fmt.Println("Listen on port: 127.0.0.1:2002")
+	fmt.Println("Listening DIAS on port: 127.0.0.1:2002")
 
 	for {
 		conn, err := ln.Accept()
@@ -24,7 +25,7 @@ func DiasServer() {
 			log.Println("error accepting connection: ", err)
 			continue
 		}
-		fmt.Println("Accepted connection on port")
+		fmt.Println("Accepted DIAS-client")
 		go handleDiasConnection(conn)
 	}
 }
