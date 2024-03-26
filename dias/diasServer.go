@@ -1,24 +1,28 @@
 package dias
 
 import (
-	"bufio"
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net"
-	"strings"
 )
 
-func diasServer() {
-	ln, err := net.Listen("tcp", "127.0.0.1:5603")
+var buffer = make([]byte, 24)
+
+func DiasServer() {
+	ln, err := net.Listen("tcp", "127.0.0.1:2002")
 	if err != nil {
-		fmt.Println("problems listening")
+		log.Fatal("problems listening: ", err)
 	}
-	fmt.Println("Listen on port: 127.0.0.1:5603")
+	defer ln.Close()
+	fmt.Println("Listen on port: 127.0.0.1:2002")
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println("error accepting connection: ", err)
+			continue
 		}
 		fmt.Println("Accepted connection on port")
 		go handleDiasConnection(conn)
@@ -26,26 +30,34 @@ func diasServer() {
 }
 
 func handleDiasConnection(conn net.Conn) {
-	defer func(conn net.Conn) {
-		err := conn.Close()
-		if err != nil {
-			fmt.Println("disconnection ...")
-		}
-	}(conn)
-
-	var newMessage string
 
 	for {
-		message, er := bufio.NewReader(conn).ReadString('\n')
-		if er != nil {
-			fmt.Println("disconnection error")
+		n, err := conn.Read(buffer)
+		if err != nil {
+			fmt.Println("error reading from connection: ", err)
 			break
 		}
 
-		fmt.Println("Message Received:", message)
-		newMessage = strings.ToUpper("from the Server")
+		message := hex.EncodeToString(buffer[:n])
+		fmt.Println("Message Received: ", message)
+
+		answer := make([]byte, 0)
+		values := []uint16{1501, 605, 706, 808, 609, 753, 855, 1165}
+		for _, val := range values {
+			binaryValue := make([]byte, 2)
+			binary.LittleEndian.PutUint16(binaryValue, val)
+			answer = append(answer, binaryValue...)
+		}
+
+		_, err = conn.Write(answer)
+		if err != nil {
+			fmt.Println("error writing response: ", err)
+			break
+		} else {
+			_length := len(answer)
+			fmt.Printf("Sent %q with length: %d\n", hex.EncodeToString(answer), _length)
+		}
 	}
 
-	conn.Write([]byte(newMessage))
-
+	conn.Close()
 }
