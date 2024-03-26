@@ -11,6 +11,7 @@ type Config struct {
 	Cage          string   `xml:"cage"`
 	NetType       string   `xml:"netType"`
 	Address       string   `xml:"address"`
+	AddressDias   string   `xml:"addressDias"`
 	MaxBufferSize int      `xml:"maxBufferSize"`
 	HeaderSize    int      `xml:"headerSize"`
 	Verbose       bool     `xml:"verbose"`
