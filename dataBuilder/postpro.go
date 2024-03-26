@@ -13,7 +13,7 @@
  *   go test gonum.org/v1/gonum
  */
 
-package main
+package dataBuilder
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 	"math/rand/v2"
 )
 
-func calculus() {
+func Calculus() {
 
 	var (
 		xs      = make([]float64, 100)
