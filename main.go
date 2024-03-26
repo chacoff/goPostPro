@@ -13,6 +13,7 @@ package main
 
 import (
 	"fmt"
+	"goPostPro/dias"
 	"net"
 	"os"
 	"syscall"
@@ -29,6 +30,8 @@ var (
 func main() {
 	config = loadConfig()
 	setConsoleTitle(config.Cage)
+
+	go dias.LTCServer()
 
 	listener, err := net.Listen(config.NetType, config.Address) // listen on port 4600
 	if err != nil {
