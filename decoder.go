@@ -15,6 +15,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"log"
 )
 
 // global variables specific for decoding
@@ -92,7 +93,10 @@ func decodeBodyStatic(data []byte) []interface{} {
 			value = binary.LittleEndian.Uint32(data[i : i+bytesGap])
 			_values = append(_values, value)
 		} else {
-			hexBytes, _ := hex.DecodeString(hex.EncodeToString(data[i : i+bytesGap]))
+			hexBytes, err := hex.DecodeString(hex.EncodeToString(data[i : i+bytesGap]))
+			if err != nil {
+				log.Fatal(err)
+			}
 			valueUtf = string(hexBytes)
 			_values = append(_values, valueUtf)
 		}
@@ -134,7 +138,10 @@ func decodePasses(data []byte, passes int) []interface{} {
 				value = binary.LittleEndian.Uint32(_data)
 				_values = append(_values, value)
 			case gap == 14: // pass date
-				hexBytes, _ := hex.DecodeString(hex.EncodeToString(_data))
+				hexBytes, err := hex.DecodeString(hex.EncodeToString(_data))
+				if err != nil {
+					log.Fatal(err)
+				}
 				timestamp = string(hexBytes)
 				_values = append(_values, timestamp)
 			case gap == 2: // dummy
@@ -174,7 +181,10 @@ func decodeLTC(data []byte) []interface{} {
 			value = binary.LittleEndian.Uint32(_data)
 			_values = append(_values, value)
 		} else {
-			hexBytes, _ := hex.DecodeString(hex.EncodeToString(_data))
+			hexBytes, err := hex.DecodeString(hex.EncodeToString(_data))
+			if err != nil {
+				log.Fatal(err)
+			}
 			_values = append(_values, string(hexBytes))
 		}
 
