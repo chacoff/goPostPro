@@ -30,6 +30,7 @@ type postProData struct {
 	pixWidth     uint32
 }
 
+// headerType return the values of header, at this stage nothing is encoded, it is a vector with the real values
 func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	var _values []interface{} // interface, even though all are uint32 due to body being interface{}
 
@@ -53,6 +54,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	return _values
 }
 
+// processType return the real values to answer process message according the number of passes
 func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
 	var _bodyAns []interface{}
 

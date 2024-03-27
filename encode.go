@@ -16,6 +16,7 @@ import (
 	"fmt"
 )
 
+// encodeUint32 function encoding Header data, it is common for all message types
 func encodeUint32(_values []interface{}) []byte {
 	_buffer := make([]byte, 0, config.MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
 
@@ -39,6 +40,7 @@ func encodeUint32(_values []interface{}) []byte {
 	return _buffer
 }
 
+// encodeProcess encode process data containing passes, it is only to encode Body
 func encodeProcess(_values []interface{}) []byte {
 	_buffer := make([]byte, 0, config.MaxBufferSize)
 
