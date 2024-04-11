@@ -7,13 +7,14 @@ package dataBuilder
 import (
 	"bufio"
 	"fmt"
-	"github.com/go-gota/gota/dataframe"
-	"github.com/go-gota/gota/series"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-gota/gota/dataframe"
+	"github.com/go-gota/gota/series"
 )
 
 func FileReader() {
@@ -27,7 +28,13 @@ func FileReader() {
 	scanner.Scan() // skip first line
 
 	df := createDataFrame(scanner)
-	fmt.Println(df)
+	fmt.Println(df.Types())
+	fmt.Println(df.Names())
+	fmt.Println(df.Ncol(), df.Nrow())
+
+	temp := df.Col("Temperatures")
+	one_row := dataFormatter(temp.Records()[0])
+	fmt.Println(one_row)
 }
 
 func createDataFrame(scanner *bufio.Scanner) dataframe.DataFrame {
