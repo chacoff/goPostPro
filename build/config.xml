@@ -8,10 +8,11 @@ cage 4      10.28.100.0:4604
 -->
 
 <config>
-    <cage>goPostPro - Cage3</cage>
+    <cage>goPostPro - TestCage</cage>
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <maxBufferSize>2048</maxBufferSize>
     <headerSize>40</headerSize>
     <verbose>false</verbose>
+    <addressDias>127.0.0.1:2002</addressDias>
 </config>

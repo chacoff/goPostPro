@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 var buffer = make([]byte, 24)
@@ -51,6 +52,7 @@ func handleDiasConnection(conn net.Conn) {
 		}
 
 		_, err = conn.Write(answer)
+		time.Sleep(1600 * time.Millisecond)
 		if err != nil {
 			fmt.Println("error writing response: ", err)
 			break
