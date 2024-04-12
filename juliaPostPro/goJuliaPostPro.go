@@ -1,7 +1,7 @@
 package main
 
-// #cgo CFLAGS: -fPIC -DJULIA_INIT_DIR="C:/Users/gomezja/scoop/apps/julia/1.10.1/lib" -IC:\Users\gomezja\scoop\apps\julia\current\share\julia -I.
-// #cgo LDFLAGS: -LC:\Users\gomezja\scoop\apps\julia\current\share\julia  -LC:/Users/gomezja/scoop/apps/julia/1.10.1/lib -Wl,-rpath,C:/Users/gomezja/scoop/apps/julia/1.10.1/lib -ljulia
+// #cgo CFLAGS: -fPIC -DJULIA_INIT_DIR="C:/Users/gomezja/scoop/apps/julia/1.10.1/lib" -IC:/Users/gomezja/scoop/apps/julia/1.10.1/include/julia -I.
+// #cgo LDFLAGS: -LC:/Users/gomezja/scoop/apps/julia/1.10.1/lib/julia -LC:/Users/gomezja/scoop/apps/julia/1.10.1/lib -Wl,-rpath,C:/Users/gomezja/scoop/apps/julia/1.10.1/lib -ljulia -Wl,--allow-multiple-definition
 // #include <julia.h>
 import "C"
 
