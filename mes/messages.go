@@ -9,7 +9,7 @@
  *	 to outcome post processes data.
  */
 
-package main
+package mes
 
 import (
 	"fmt"
@@ -47,7 +47,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	_values = append(_values, uint32(_now.Second()))              // seconds
 	_values = append(_values, uint32(_now.Nanosecond()/10000000)) // hundreds of seconds
 
-	if config.Verbose {
+	if appconfig.Verbose {
 		fmt.Println("Header to encode:", _values)
 	}
 

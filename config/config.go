@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/xml"
@@ -17,7 +17,7 @@ type Config struct {
 	Verbose       bool     `xml:"verbose"`
 }
 
-func loadConfig() Config {
+func LoadConfig() Config {
 	file, err := os.Open("./config.xml")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
