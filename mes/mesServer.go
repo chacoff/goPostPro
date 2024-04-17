@@ -126,7 +126,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = false
 	}
 
-	if echo == true {
+	if echo {
 		_, err := conn.Write(response)
 		if err != nil {
 			fmt.Println("Error writing:", err)
