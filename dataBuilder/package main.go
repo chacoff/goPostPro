@@ -24,10 +24,11 @@ var PROCESSED_LINES []KeyValues
 var NUMBER_FIRST_MEASURES_REMOVED int = 5
 var TIME_FORMAT string = "2006-01-02 15:04:05,999"
 var TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
-var TEMPERATURE_THRESHOLD float64 = 400
+var TEMPERATURE_THRESHOLD float64 = 650
 var GRADIENT_LIMIT_FACTOR float64 = 3
 var WIDTH_LIMIT int32 = 2
 
+// Contains the important value of a line
 type KeyValues struct{
     Timestamp time.Time
     Max_Tr1 float64
@@ -39,15 +40,18 @@ type KeyValues struct{
     Width int32
 }
 
+// Overwrite the printing function
 func (values KeyValues) String() string{
     return fmt.Sprint(math.Round(values.Max_Tr1), math.Round(values.Mean_Tr1), math.Round(values.Mean_Web), math.Round(values.Min_Web), math.Round(values.Max_Tr3), math.Round(values.Mean_Tr3), math.Round(float64(values.Width)))
     //return fmt.Sprint(values.Timestamp.Format("15:04:05.000 "),values.Max_Tr1, values.Mean_Tr1, values.Mean_Web, values.Min_Web, values.Max_Tr3, values.Mean_Tr3, values.Width)
 }
 
+// To reset the list of KeyValues 
 func reset_dataframe(){
     PROCESSED_LINES = []KeyValues{}
 }
 
+// Returns the indexs to use based on the timestamps given
 func find_index_timestamps(begin_timestamp time.Time, end_timestamp time.Time)(int32, int32, error){
     begin_index := int32(0)
     end_index := int32(-1)
@@ -60,12 +64,14 @@ func find_index_timestamps(begin_timestamp time.Time, end_timestamp time.Time)(i
         }
     }
     if ((int(begin_index)>=len(PROCESSED_LINES))||(end_index==-1)){
-        return -1, -1, errors.New("One or two timestamps are not inside datas")
+        return -1, -1, errors.New("one or two timestamps are not inside datas")
     }
     return begin_index, end_index, nil
 }
 
+// Compute the global values between two timestamps given
 func compute_values(begin_string_timestamp string, end_string_timestamp string)error{
+    // Convert the timestamps into indexes 
     begin_timestamp, parsing_error := time.Parse(TIME_FORMAT_REQUESTS, begin_string_timestamp)
     if (parsing_error != nil){
         return parsing_error
@@ -79,6 +85,7 @@ func compute_values(begin_string_timestamp string, end_string_timestamp string)e
         return timestamps_error
     }
 
+    // Initialise local variables
     global_max_Tr1 := float64(0)
     global_sum_Tr1 := float64(0)
     global_sum_Web := float64(0)
@@ -86,6 +93,8 @@ func compute_values(begin_string_timestamp string, end_string_timestamp string)e
     global_max_Tr3 := float64(0)
     global_sum_Tr3 := float64(0)
     global_sum_Width := int64(0)
+
+    // Iterate on all the KeyValues of the lines
     for index:=begin_index; index<=end_index; index++{
         line_values := PROCESSED_LINES[index]
         global_max_Tr1 = math.Max(global_max_Tr1, line_values.Max_Tr1)
@@ -119,7 +128,7 @@ func compute_values(begin_string_timestamp string, end_string_timestamp string)e
     return nil
 }
 
-
+// function to test a txt file
 func test(file_path string){
 	file, err := os.Open(file_path)
     if err != nil {
@@ -127,47 +136,37 @@ func test(file_path string){
     }
     defer file.Close()
 
-    // Créer un scanner pour lire le fichier ligne par ligne
     scanner := bufio.NewScanner(file)
     scanner.Scan()
-    // Initialiser un compteur pour suivre le numéro de ligne
     lineCount := 0
 
-    // Lire chaque ligne du fichier jusqu'à ce que nous atteignons la ligne souhaitée
+    // Read and process each line
     for scanner.Scan() {
         lineCount++
-        // Récupérer la ligne
         line := scanner.Text()
-
         process_line(line)
-        
     }
 
-    // Vérifier les erreurs de scanner
+    // Scanner error
     if err := scanner.Err(); err != nil {
         fmt.Println("Erreur lors de la lecture du fichier:", err)
     }
-	
-    for index, key_value := range PROCESSED_LINES {
-        fmt.Println(index, ":", key_value)
-    }
 
-
+    // Save the image in .png
     fichierImage, err := os.Create("image.png")
     if err != nil {
         panic(err)
     }
     defer fichierImage.Close()
-
-    // Encoder l'image au format PNG et enregistrer dans le fichier
     err = png.Encode(fichierImage, FINAL_IMAGE)
     if err != nil {
         panic(err)
     }
 }
 
-func threshold_crop_line(measurement_string_array []string)([]float64, error){// Working
-    LINE_COUNT ++
+// Threshold the values then crop 
+func threshold_crop_line(measurement_string_array []string)([]float64, error){
+    LINE_COUNT ++ // For image
 
     thresholded_temperatures_array := make([]float64, len(measurement_string_array))
     if len(measurement_string_array)<1{ // Case : empty string array
@@ -184,6 +183,7 @@ func threshold_crop_line(measurement_string_array []string)([]float64, error){//
             return thresholded_temperatures_array, parse_error
         }
         thresholded_float := math.Max(TEMPERATURE_THRESHOLD, temperature_float)
+        // Draw on image
         FINAL_IMAGE.Set(index, LINE_COUNT, color.RGBA{255, 255-uint8((thresholded_float-TEMPERATURE_THRESHOLD)*255/float64(SEUIL_MAX_IMAGE-int(TEMPERATURE_THRESHOLD))), 255-uint8((thresholded_float-TEMPERATURE_THRESHOLD)*255/float64(SEUIL_MAX_IMAGE-int(TEMPERATURE_THRESHOLD))), 255})
         thresholded_temperatures_array[index] = thresholded_float
         // Prepare the gradient array by the same time and find the max gradient
@@ -205,12 +205,15 @@ func threshold_crop_line(measurement_string_array []string)([]float64, error){//
             higher_index_crop = index
         }
     }
+
+    // For image
     FINAL_IMAGE.Set(lower_index_crop, LINE_COUNT, color.RGBA{0, 0, 0, 255})
     FINAL_IMAGE.Set(higher_index_crop, LINE_COUNT, color.RGBA{0, 0, 0, 255})
     return thresholded_temperatures_array[lower_index_crop:higher_index_crop+1], nil
 }
 
-func write_values (timestamp time.Time, filtered_temperature_array []float64)error{ //Working
+func write_values (timestamp time.Time, filtered_temperature_array []float64)error{
+    // Initialise local vaariables
     width := len(filtered_temperature_array)
     half_index := (width+1)/2-1 // round up the index
     max_index_tr1 := int32(0)
@@ -224,8 +227,8 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
     if width < int(WIDTH_LIMIT){ //Case : empty array
         return nil
     }
-    //Max, Sum of Tr1
 
+    //Max, Sum of Tr1
     for index:=0; index <= half_index; index++{
         temperature_float := filtered_temperature_array[index]
         sum_tr1 += temperature_float
@@ -234,8 +237,8 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
             max_index_tr1 = int32(index)
         }
     }
-    //Max, Sum of Tr3
 
+    //Max, Sum of Tr3
     for index:=half_index+1; index < len(filtered_temperature_array); index++{
         temperature_float := filtered_temperature_array[index]
         sum_tr3 += temperature_float
@@ -244,9 +247,9 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
             max_index_tr3 = int32(index)
         }
     }
+
     min_web := filtered_temperature_array[max_index_tr1]
     //Mean, Min Web
-
     for index:=max_index_tr1; index<=max_index_tr3; index++{
         temperature_float := filtered_temperature_array[index]
         sum_web += temperature_float
@@ -256,6 +259,7 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
         }
     }
     
+    // Write in the list of KeyValues
     mean_tr1 := sum_tr1/float64(half_index+1)
     mean_web := sum_web/float64(width)
     mean_tr3 := sum_tr3/float64(len(filtered_temperature_array) - half_index)
@@ -273,18 +277,22 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
     return nil
 }
 
+// Function to automatically process a string line
 func process_line(line_string string)error{
     splited_line := strings.Split(line_string, "\t")
+    // Parse the timestamp
     timestamp, parsing_error := time.Parse(TIME_FORMAT, splited_line[0])
     if (parsing_error != nil){
         return parsing_error
     }
-    //measures := splited_line[1+NUMBER_FIRST_MEASURES_REMOVED:len(splited_line)-4]
+    // Remove the columns we don't use
     measures := append(splited_line[1+NUMBER_FIRST_MEASURES_REMOVED:495], splited_line[506:len(splited_line)-4]...)
+    // Do the thresholding and the crop of the measures
     thresholded_temperatures, threshold_crop_error := threshold_crop_line(measures)
     if (threshold_crop_error != nil){
         return threshold_crop_error
     }
+    // Write the KeyValues of the line
     writing_error := write_values(timestamp, thresholded_temperatures)
     if (writing_error != nil){
         return writing_error
@@ -292,44 +300,9 @@ func process_line(line_string string)error{
     return nil
 }
 
-func read_line(file_path string, line_number int)string{
-	file, err := os.Open(file_path)
-    if err != nil {
-        fmt.Println("Erreur lors de l'ouverture du fichier:", err)
-        return ""
-    }
-    defer file.Close()
-
-    // Créer un scanner pour lire le fichier ligne par ligne
-    scanner := bufio.NewScanner(file)
-
-    // Initialiser un compteur pour suivre le numéro de ligne
-    lineCount := 0
-
-    // Lire chaque ligne du fichier jusqu'à ce que nous atteignons la ligne souhaitée
-    for scanner.Scan() {
-        lineCount++
-
-        // Vérifier si nous avons atteint la ligne souhaitée
-        if lineCount == line_number {
-            // Récupérer la ligne
-            line := scanner.Text()
-
-            return line
-        }
-    }
-
-    // Vérifier les erreurs de scanner
-    if err := scanner.Err(); err != nil {
-        fmt.Println("Erreur lors de la lecture du fichier:", err)
-        return ""
-    }
-    return ""
-	
-}
-
 func main() {
     reset_dataframe()
+    // Test on different txt files
     test("DUO01-02_0891.txt")
     test("DUO01-02_0892.txt")
     test("DUO01-02_0894.txt")
@@ -339,6 +312,7 @@ func main() {
     test("DUO01-02_0898.txt")
     test("DUO01-02_0899.txt")
     test("DUO01-02_0900.txt")
+    // Test the result on asking the values
     compute_values("2024-02-13 11:05:06", "2024-02-13 11:05:14")
     
 }
