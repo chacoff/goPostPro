@@ -31,7 +31,7 @@ func main() {
 	// dias-Server
 	go func(){
 		defer wg.Done()
-		dias.LTCServer()
+		dias.DiasServer()
 	}()
 	
 	// MES-Server

@@ -13,13 +13,13 @@ import (
 var buffer = make([]byte, 24)
 
 // LTCServer opens socket communication with DIAS software. Objective is to pass the LTC value
-func LTCServer() {
+func DiasServer() {
 	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
 		log.Fatal("problems listening: ", err)
 	}
 	defer ln.Close()
-	fmt.Println("Listening DIAS on port: 127.0.0.1:2002")
+	fmt.Printf("Listening DIAS on port: %s\n", global.Appconfig.AddressDias)
 
 	for {
 		conn, err := ln.Accept()
