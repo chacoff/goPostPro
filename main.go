@@ -31,7 +31,7 @@ func main() {
 	// dias-Server
 	go func(){
 		defer wg.Done()
-		dias.LTCServer(global.Appconfig.NetType, global.Appconfig.AddressDias)
+		dias.LTCServer()
 	}()
 	
 	// MES-Server

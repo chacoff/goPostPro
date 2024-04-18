@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"goPostPro/global"
 	"log"
 	"net"
 	"time"
@@ -12,8 +13,8 @@ import (
 var buffer = make([]byte, 24)
 
 // LTCServer opens socket communication with DIAS software. Objective is to pass the LTC value
-func LTCServer(netType string, address string) {
-	ln, err := net.Listen(netType, address)
+func LTCServer() {
+	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
 		log.Fatal("problems listening: ", err)
 	}
