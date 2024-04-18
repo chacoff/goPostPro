@@ -33,14 +33,14 @@ func main() {
 	// dias-Server
 	go func(){
 		defer wg.Done()
-		go dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
+		dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
 	}()
 	
 
 	// MES-Server
 	go func(){
 		defer wg.Done()
-		go mes.MESserver()
+		mes.MESserver()
 	}()
 	
 	// PLC-client

@@ -26,12 +26,7 @@ var (
 var appconfig config.Config = config.LoadConfig()
 
 func MESserver() {
-	fmt.Println(appconfig.NetType, appconfig.Address)
-
-	fmt.Println("entering MES server ")
 	listener, err := net.Listen(appconfig.NetType, appconfig.Address) // listen on port 4600
-	fmt.Println(listener.Addr().Network())
-	fmt.Println("listening LTC server ")
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
 		// return
