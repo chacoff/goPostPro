@@ -15,8 +15,6 @@ var buffer = make([]byte, 24)
 // DiasServer opens socket communication with DIAS software. Objective is to pass the LTC value
 func DiasServer(valuesToDias <-chan []uint16) {
 
-	data := <-valuesToDias
-
 	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
 		log.Fatal("problems listening: ", err)
@@ -31,6 +29,8 @@ func DiasServer(valuesToDias <-chan []uint16) {
 			continue
 		}
 		fmt.Println("Accepted DIAS-client")
+
+		data := <-valuesToDias
 		go handleDiasConnection(conn, data)
 	}
 }

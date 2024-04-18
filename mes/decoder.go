@@ -62,6 +62,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 	return _values, true
 }
 
+// decodeBody returns _valuesStatic and _valuesDynamic. For LTC messages there are only _valuesStatics.
 func decodeBody(data []byte, messageType int) ([]interface{}, []interface{}) {
 	var _valuesStatic []interface{}
 	var _valuesDynamic []interface{}

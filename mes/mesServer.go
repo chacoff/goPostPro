@@ -24,10 +24,8 @@ var (
 	allHexBytes = make([]byte, 0, 2048) // variable: from 0 to maxBufferSize. Data will be appended on arrival
 )
 
+// MESserver to receive the messages from MES
 func MESserver(valuesToDias chan<- []uint16) {
-
-	data := []uint16{1501, 605, 706, 808, 609, 753, 855, 1165}
-	valuesToDias <- data
 
 	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
@@ -38,6 +36,8 @@ func MESserver(valuesToDias chan<- []uint16) {
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
 	fmt.Printf("Listening MES on port %s\n", global.Appconfig.Address)
 
+	valuesFromMes := make(chan []uint16)
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -45,13 +45,17 @@ func MESserver(valuesToDias chan<- []uint16) {
 			os.Exit(1)
 			// break
 		}
-
 		fmt.Println("Accepted MES-client from", conn.RemoteAddr())
-		go handleConnection(conn)
+		go handleConnection(conn, valuesFromMes)
+
+		dataFromMes := <-valuesFromMes // data channel from LTC
+		valuesToDias <- dataFromMes    // data to dias Channel
+
+		close(valuesFromMes)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, valuesFromMes chan<- []uint16) {
 
 	defer conn.Close()
 
@@ -80,12 +84,12 @@ func handleConnection(conn net.Conn) {
 			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
 			isHeaderOk = false                                                  // reset variables before handling answer
-			go handleAnswer(conn, headerValues, hexBytesBody)
+			go handleAnswer(conn, headerValues, hexBytesBody, valuesFromMes)
 		}
 	}
 }
 
-func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
+func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, valuesFromMes chan<- []uint16) {
 
 	var echo = false
 	var response []byte
@@ -115,8 +119,11 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = true
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
-		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+		fmt.Println("LTC received")
+		data := []uint16{809, 605, 745, 810, 690, 750, 850, 999}
+		valuesFromMes <- data
 
 		echo = false
 
