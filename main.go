@@ -12,8 +12,9 @@
 package main
 
 import (
-	"goPostPro/config"
+	// "goPostPro/config"
 	"goPostPro/dias"
+	"goPostPro/global"
 	"goPostPro/mes"
 	"sync"
 	"syscall"
@@ -21,11 +22,8 @@ import (
 	"unsafe"
 )
 
-var appconfig config.Config
-
 func main() {
-	appconfig = config.LoadConfig()
-	setConsoleTitle(appconfig.Cage)
+	setConsoleTitle(global.Appconfig.Cage)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -33,10 +31,9 @@ func main() {
 	// dias-Server
 	go func(){
 		defer wg.Done()
-		dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
+		dias.LTCServer(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	}()
 	
-
 	// MES-Server
 	go func(){
 		defer wg.Done()

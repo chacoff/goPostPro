@@ -13,9 +13,10 @@ package mes
 
 import (
 	"fmt"
-	"goPostPro/config"
 	"net"
 	"os"
+
+	"goPostPro/global"
 )
 
 var (
@@ -23,17 +24,15 @@ var (
 	allHexBytes = make([]byte, 0, 2048) // variable: from 0 to maxBufferSize. Data will be appended on arrival
 )
 
-var appconfig config.Config = config.LoadConfig()
-
 func MESserver() {
-	listener, err := net.Listen(appconfig.NetType, appconfig.Address) // listen on port 4600
+	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
 		// return
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	fmt.Printf("Listening MES on port %s\n", appconfig.Address)
+	fmt.Printf("Listening MES on port %s\n", global.Appconfig.Address)
 
 	for {
 		conn, err := listener.Accept()
@@ -60,22 +59,22 @@ func handleConnection(conn net.Conn) {
 		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {             // && err != io.EOF
 			fmt.Println("[WARNING] Error reading or Client disconnected:", err)
-			allHexBytes = make([]byte, 0, appconfig.MaxBufferSize) // reset variable before handling answer
+			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize) // reset variable before handling answer
 			isHeaderOk = false                                     // reset variables before handling answer
 			break
 		}
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
-		if len(allHexBytes) >= appconfig.HeaderSize && !isHeaderOk {
-			hexBytesHeader := allHexBytes[:appconfig.HeaderSize]          // Extract first 40 bytes, only header
+		if len(allHexBytes) >= global.Appconfig.HeaderSize && !isHeaderOk {
+			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]          // Extract first 40 bytes, only header
 			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
 			fmt.Println(">> Decoded Header values:", headerValues)
 		}
 
 		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
-			hexBytesBody := allHexBytes[appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
-			allHexBytes = make([]byte, 0, appconfig.MaxBufferSize)       // reset variable before handling answer
+			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
+			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
 			isHeaderOk = false                                           // reset variables before handling answer
 			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
