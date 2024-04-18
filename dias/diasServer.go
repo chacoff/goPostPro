@@ -12,8 +12,11 @@ import (
 
 var buffer = make([]byte, 24)
 
-// LTCServer opens socket communication with DIAS software. Objective is to pass the LTC value
-func DiasServer() {
+// DiasServer opens socket communication with DIAS software. Objective is to pass the LTC value
+func DiasServer(valuesToDias <-chan []uint16) {
+
+	data := <-valuesToDias
+
 	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
 		log.Fatal("problems listening: ", err)
@@ -28,11 +31,11 @@ func DiasServer() {
 			continue
 		}
 		fmt.Println("Accepted DIAS-client")
-		go handleDiasConnection(conn)
+		go handleDiasConnection(conn, data)
 	}
 }
 
-func handleDiasConnection(conn net.Conn) {
+func handleDiasConnection(conn net.Conn, values []uint16) {
 
 	for {
 		n, err := conn.Read(buffer)
@@ -45,7 +48,6 @@ func handleDiasConnection(conn net.Conn) {
 		fmt.Println("Message Received: ", message)
 
 		answer := make([]byte, 0)
-		values := []uint16{1501, 605, 706, 808, 609, 753, 855, 1165}
 		for _, val := range values {
 			binaryValue := make([]byte, 2)
 			binary.LittleEndian.PutUint16(binaryValue, val)

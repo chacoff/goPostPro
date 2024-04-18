@@ -24,7 +24,11 @@ var (
 	allHexBytes = make([]byte, 0, 2048) // variable: from 0 to maxBufferSize. Data will be appended on arrival
 )
 
-func MESserver() {
+func MESserver(valuesToDias chan<- []uint16) {
+
+	data := []uint16{1501, 605, 706, 808, 609, 753, 855, 1165}
+	valuesToDias <- data
+
 	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
@@ -60,13 +64,13 @@ func handleConnection(conn net.Conn) {
 		if err != nil {             // && err != io.EOF
 			fmt.Println("[WARNING] Error reading or Client disconnected:", err)
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize) // reset variable before handling answer
-			isHeaderOk = false                                     // reset variables before handling answer
+			isHeaderOk = false                                            // reset variables before handling answer
 			break
 		}
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
 		if len(allHexBytes) >= global.Appconfig.HeaderSize && !isHeaderOk {
-			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]          // Extract first 40 bytes, only header
+			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]   // Extract first 40 bytes, only header
 			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
 			fmt.Println(">> Decoded Header values:", headerValues)
@@ -75,7 +79,7 @@ func handleConnection(conn net.Conn) {
 		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
 			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
-			isHeaderOk = false                                           // reset variables before handling answer
+			isHeaderOk = false                                                  // reset variables before handling answer
 			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
 	}

@@ -12,7 +12,6 @@
 package main
 
 import (
-	// "goPostPro/config"
 	"goPostPro/dias"
 	"goPostPro/global"
 	"goPostPro/mes"
@@ -28,22 +27,26 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
+	valuesToDias := make(chan []uint16)
+
 	// dias-Server
-	go func(){
+	go func() {
 		defer wg.Done()
-		dias.DiasServer()
+		dias.DiasServer(valuesToDias)
 	}()
-	
+
 	// MES-Server
-	go func(){
+	go func() {
 		defer wg.Done()
-		mes.MESserver()
+		mes.MESserver(valuesToDias)
 	}()
-	
+
 	// PLC-client
 	// go plc.SiemensClient()
 
 	wg.Wait()
+
+	close(valuesToDias)
 
 }
 
