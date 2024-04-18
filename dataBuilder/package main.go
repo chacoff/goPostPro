@@ -1,4 +1,4 @@
-package main
+package postpro
 
 import (
 	"bufio"
@@ -300,7 +300,8 @@ func process_line(line_string string)error{
     return nil
 }
 
-func main() {
+//lint:ignore U1000 Ignore unused function temporarily for debugging
+func PostPro() {
     reset_dataframe()
     // Test on different txt files
     test("DUO01-02_0891.txt")

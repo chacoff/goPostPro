@@ -12,9 +12,10 @@
 package main
 
 import (
+	"goPostPro/config"
 	"goPostPro/dias"
 	"goPostPro/mes"
-	"goPostPro/config"
+	"sync"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
@@ -26,12 +27,27 @@ func main() {
 	appconfig = config.LoadConfig()
 	setConsoleTitle(appconfig.Cage)
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	// dias-Server
-	go dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
+	go func(){
+		defer wg.Done()
+		go dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
+	}()
+	
+
 	// MES-Server
-	go mes.MESserver(appconfig.NetType, appconfig.Address)
+	go func(){
+		defer wg.Done()
+		go mes.MESserver()
+	}()
+	
 	// PLC-client
 	// go plc.SiemensClient()
+
+	wg.Wait()
+
 }
 
 func setConsoleTitle(title string) {

@@ -13,7 +13,10 @@ var buffer = make([]byte, 24)
 
 // LTCServer opens socket communication with DIAS software. Objective is to pass the LTC value
 func LTCServer(netType string, address string) {
+	fmt.Println("entering LTC server ")
+
 	ln, err := net.Listen(netType, address)
+	fmt.Println("listening  LTC server ")
 	if err != nil {
 		log.Fatal("problems listening: ", err)
 	}
