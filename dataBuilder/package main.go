@@ -16,17 +16,23 @@ import (
 	"strings"
 	"time"
 )
-var SEUIL_MAX_IMAGE = 1200
-var LINE_COUNT int = -1
-var FINAL_IMAGE *image.RGBA = image.NewRGBA(image.Rect(0, 0, 1000, 1000))
+// Variables used to print the image
+var(
+    SEUIL_MAX_IMAGE = 1200
+    LINE_COUNT int = -1
+    FINAL_IMAGE *image.RGBA = image.NewRGBA(image.Rect(0, 0, 1200, 1200))
+    local_lower_index int = 0
+)
 
-var PROCESSED_LINES []KeyValues
-var NUMBER_FIRST_MEASURES_REMOVED int = 5
-var TIME_FORMAT string = "2006-01-02 15:04:05,999"
-var TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
-var TEMPERATURE_THRESHOLD float64 = 650
-var GRADIENT_LIMIT_FACTOR float64 = 3
-var WIDTH_LIMIT int32 = 2
+var(
+    PROCESSED_LINES []KeyValues
+    NUMBER_FIRST_MEASURES_REMOVED int = 5
+    TIME_FORMAT string = "2006-01-02 15:04:05,999"
+    TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
+    TEMPERATURE_THRESHOLD float64 = 800
+    GRADIENT_LIMIT_FACTOR float64 = 3
+    WIDTH_LIMIT int32 = 2
+)
 
 // Contains the important value of a line
 type KeyValues struct{
@@ -167,6 +173,7 @@ func test(file_path string){
 // Threshold the values then crop 
 func threshold_crop_line(measurement_string_array []string)([]float64, error){
     LINE_COUNT ++ // For image
+    fmt.Println("Size : ", len(measurement_string_array))
 
     thresholded_temperatures_array := make([]float64, len(measurement_string_array))
     if len(measurement_string_array)<1{ // Case : empty string array
@@ -208,6 +215,7 @@ func threshold_crop_line(measurement_string_array []string)([]float64, error){
 
     // For image
     FINAL_IMAGE.Set(lower_index_crop, LINE_COUNT, color.RGBA{0, 0, 0, 255})
+    local_lower_index = lower_index_crop
     FINAL_IMAGE.Set(higher_index_crop, LINE_COUNT, color.RGBA{0, 0, 0, 255})
     return thresholded_temperatures_array[lower_index_crop:higher_index_crop+1], nil
 }
@@ -216,6 +224,7 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
     // Initialise local vaariables
     width := len(filtered_temperature_array)
     half_index := (width+1)/2-1 // round up the index
+    FINAL_IMAGE.Set(local_lower_index+half_index, LINE_COUNT, color.RGBA{0, 255, 255, 255})
     max_index_tr1 := int32(0)
     max_index_tr3 := int32(0)
     sum_tr1 := float64(0)
@@ -273,6 +282,10 @@ func write_values (timestamp time.Time, filtered_temperature_array []float64)err
         Mean_Tr3: mean_tr3,
         Width: int32(width),
     })
+
+    // For final image 
+    FINAL_IMAGE.Set(int(max_index_tr1)+local_lower_index, LINE_COUNT, color.RGBA{0, 255, 0, 255})
+    FINAL_IMAGE.Set(int(max_index_tr3)+local_lower_index, LINE_COUNT, color.RGBA{0, 255, 0, 255})
     
     return nil
 }
@@ -286,7 +299,7 @@ func process_line(line_string string)error{
         return parsing_error
     }
     // Remove the columns we don't use
-    measures := append(splited_line[1+NUMBER_FIRST_MEASURES_REMOVED:495], splited_line[506:len(splited_line)-4]...)
+    measures := append(splited_line[1+NUMBER_FIRST_MEASURES_REMOVED:500], splited_line[510:len(splited_line)-4]...)
     // Do the thresholding and the crop of the measures
     thresholded_temperatures, threshold_crop_error := threshold_crop_line(measures)
     if (threshold_crop_error != nil){
