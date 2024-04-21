@@ -5,6 +5,7 @@ go 1.22.1
 require gonum.org/v1/gonum v0.15.0
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-gota/gota v0.12.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/guptarohit/asciigraph v0.5.6 // indirect
@@ -16,4 +17,5 @@ require (
 	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
 )

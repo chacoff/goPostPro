@@ -15,6 +15,7 @@ type Config struct {
 	MaxBufferSize int      `xml:"maxBufferSize"`
 	HeaderSize    int      `xml:"headerSize"`
 	Verbose       bool     `xml:"verbose"`
+	DataFolders   string   `xml:"jsonFolders"`
 }
 
 func LoadConfig() Config {

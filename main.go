@@ -15,6 +15,7 @@ import (
 	"goPostPro/dias"
 	"goPostPro/global"
 	"goPostPro/mes"
+	"goPostPro/watcher"
 	"sync"
 	"syscall"
 	"unicode/utf16"
@@ -25,7 +26,7 @@ func main() {
 	setConsoleTitle(global.Appconfig.Cage)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	valuesToDias := make(chan []uint16)
 
@@ -43,6 +44,12 @@ func main() {
 
 	// PLC-client
 	// go plc.SiemensClient()
+
+	// File-Watcher
+	go func() {
+		defer wg.Done()
+		watcher.Watcher()
+	}()
 
 	wg.Wait()
 
