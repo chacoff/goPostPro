@@ -66,5 +66,8 @@ func setConsole(title string) {
 
 	titleUTF16 := utf16.Encode([]rune(title + "\x00"))
 
-	proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
+	_, _, err := proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
+	if err != nil {
+		return
+	}
 }
