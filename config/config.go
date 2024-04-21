@@ -32,7 +32,7 @@ func LoadConfig() Config {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Parameters Ok.\n")
+	fmt.Printf("[Parameters Ok]\n")
 
 	return _config
 }

@@ -7,6 +7,9 @@
  * Description:
  *   Gathers data from thermal cameras at Train2 and cross-match with timestamps coming from MES to
  *	 to outcome post processes data.
+ *
+ * Build:
+ * go build -o ./Build/goPostPro.exe
  */
 
 package main
@@ -30,6 +33,12 @@ func main() {
 
 	valuesToDias := make(chan []uint16)
 
+	// File-Watcher
+	go func() {
+		defer wg.Done()
+		watcher.Watcher()
+	}()
+
 	// dias-Server
 	go func() {
 		defer wg.Done()
@@ -44,12 +53,6 @@ func main() {
 
 	// PLC-client
 	// go plc.SiemensClient()
-
-	// File-Watcher
-	go func() {
-		defer wg.Done()
-		watcher.Watcher()
-	}()
 
 	wg.Wait()
 

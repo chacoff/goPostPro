@@ -59,7 +59,7 @@ func Watcher() {
 			fmt.Println("watcher.Add error: ", err)
 		}
 	}
-	fmt.Println("Observing folders")
+	fmt.Printf("Observing folders in: %s\n", global.Appconfig.DataFolders)
 	// Block main goroutine forever.
 	<-make(chan struct{})
 }

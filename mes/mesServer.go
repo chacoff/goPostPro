@@ -34,7 +34,7 @@ func MESserver(valuesToDias chan<- []uint16) {
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	fmt.Printf("Listening MES on port %s\n", global.Appconfig.Address)
+	fmt.Printf("Listening MES on port: %s\n", global.Appconfig.Address)
 
 	valuesFromMes := make(chan []uint16)
 

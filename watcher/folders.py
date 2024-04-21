@@ -14,7 +14,7 @@ def generate_folders(start_date, end_date):
 
 def main():
     start_date = datetime(2024, 4, 21)
-    end_date = datetime(2024, 6, 30)
+    end_date = datetime(2024, 5, 30)
     folders = generate_folders(start_date, end_date)
     with open("folders.json", "w") as json_file:
         json.dump(folders, json_file, indent=4)
