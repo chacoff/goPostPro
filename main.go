@@ -26,7 +26,7 @@ import (
 )
 
 func main() {
-	setConsoleTitle(global.Appconfig.Cage)
+	setConsole(global.Appconfig.Cage)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -60,7 +60,7 @@ func main() {
 
 }
 
-func setConsoleTitle(title string) {
+func setConsole(title string) {
 	kernel32 := syscall.NewLazyDLL("kernel32.dll")
 	proc := kernel32.NewProc("SetConsoleTitleW")
 
