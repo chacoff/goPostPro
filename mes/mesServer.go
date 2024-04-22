@@ -38,6 +38,22 @@ func MESserver(valuesToDias chan<- []uint16) {
 
 	valuesFromMes := make(chan []uint16)
 
+	go func() {
+		for {
+			select {
+			case dataFromMes, ok := <-valuesFromMes: // data channel from LTC
+				if !ok {
+					return
+				}
+				valuesToDias <- dataFromMes // data to dias Channel
+			}
+		}
+	}()
+
+	// dataFromMes := <-valuesFromMes
+	// valuesToDias <- dataFromMes
+	// close(valuesFromMes) // TODO
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -45,13 +61,9 @@ func MESserver(valuesToDias chan<- []uint16) {
 			os.Exit(1)
 			// break
 		}
+
 		fmt.Println("Accepted MES-client from", conn.RemoteAddr())
 		go handleConnection(conn, valuesFromMes)
-
-		dataFromMes := <-valuesFromMes // data channel from LTC
-		valuesToDias <- dataFromMes    // data to dias Channel
-
-		close(valuesFromMes)
 	}
 }
 
@@ -122,7 +134,8 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
 		fmt.Println("LTC received")
-		data := []uint16{809, 605, 745, 810, 690, 750, 850, 999}
+		data := []uint16{809, uint16(_headerValues[1]), uint16(_headerValues[3]), uint16(_headerValues[4]), uint16(_headerValues[5]), 750, 850, 999}
+
 		valuesFromMes <- data
 
 		echo = false

@@ -45,7 +45,8 @@ func handleDiasConnection(conn net.Conn, values []uint16) {
 		}
 
 		message := hex.EncodeToString(buffer[:n])
-		fmt.Println("Message Received: ", message)
+		fmt.Println("Message Received from Dias: ", message)
+		fmt.Println("Updating Dias:", values)
 
 		answer := make([]byte, 0)
 		for _, val := range values {
@@ -55,13 +56,13 @@ func handleDiasConnection(conn net.Conn, values []uint16) {
 		}
 
 		_, err = conn.Write(answer)
-		time.Sleep(1600 * time.Millisecond)
+		time.Sleep(6600 * time.Millisecond)
 		if err != nil {
 			fmt.Println("error writing response: ", err)
 			break
 		} else {
 			_length := len(answer)
-			fmt.Printf("Sent %q with length: %d\n", hex.EncodeToString(answer), _length)
+			fmt.Printf("Sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
 		}
 	}
 
