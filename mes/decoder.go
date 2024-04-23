@@ -119,14 +119,14 @@ func decodeBodyStatic(data []byte) []interface{} {
 func decodePasses(data []byte, passes int) []interface{} {
 	// Pass Number	format	HEX			BytesGap	4
 	// Pass Date	format 	timestamp	BytesGap	14
-	// Dummy		format 	HEX			BytesGap	2
+	// Dummy		format 	CHAR		BytesGap	2
 
 	var byteGaps = []int{4, 14, 2} // every pass is 20bytes: pattern of byte gaps to decode specific messages
 	var index int
 	var _values []interface{}
 	var value uint32
 	var timestamp string
-	var dummy uint16
+	var dummy string
 
 	for i := 1; i <= passes; i++ { // i acts as pass numbers
 		for _, gap := range byteGaps {
@@ -148,7 +148,12 @@ func decodePasses(data []byte, passes int) []interface{} {
 				timestamp = string(hexBytes)
 				_values = append(_values, timestamp)
 			case gap == 2: // dummy
-				dummy = binary.LittleEndian.Uint16(_data)
+				// dummy = binary.LittleEndian.Uint16(_data)
+				dumm, err := hex.DecodeString(hex.EncodeToString(_data))
+				if err != nil{
+					log.Fatal(err)
+				}
+				dummy = string(dumm)
 				_values = append(_values, dummy)
 			}
 			index = endIndex
