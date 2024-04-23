@@ -131,11 +131,11 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 		echo = true
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
-		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
-		fmt.Println("LTC received")
-		data := []uint16{809, uint16(_headerValues[1]), uint16(_headerValues[3]), uint16(_headerValues[4]), uint16(_headerValues[5]), 750, 850, 999}
-
+		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+		// fmt.Println("LTC received")
+		data := []uint16{809, 1234, 5678, 7891, 7895, 750, 850, 999}
+		
 		valuesFromMes <- data
 
 		echo = false
