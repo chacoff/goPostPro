@@ -105,6 +105,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 
 	var echo = false
 	var response []byte
+	var data []uint16
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
 	messageTypeAns := uint32(messageType - 100)
@@ -133,10 +134,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
-		// fmt.Println("LTC received")
-		data := []uint16{809, 1234, 5678, 7891, 7895, 750, 850, 999}
-		
-		valuesFromMes <- data
+		data = []uint16{809, 1234, 5678, 7891, 7895, 750, 850, 999}
 
 		echo = false
 
@@ -148,6 +146,8 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 		fmt.Println("Unknown message:", messageType, messageCounter)
 		echo = false
 	}
+
+	valuesFromMes <- data
 
 	if echo {
 		_, err := conn.Write(response)
