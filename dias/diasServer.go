@@ -45,7 +45,9 @@ func handleDiasConnection(conn net.Conn, values []uint16) {
 		}
 
 		message := hex.EncodeToString(buffer[:n])
-		fmt.Println("Message Received from Dias: ", message)
+		if global.Appconfig.Verbose {
+			fmt.Println("Message Received from Dias: ", message)
+		}
 		fmt.Println("Updating Dias:", values)
 
 		answer := make([]byte, 0)
@@ -56,7 +58,7 @@ func handleDiasConnection(conn net.Conn, values []uint16) {
 		}
 
 		_, err = conn.Write(answer)
-		time.Sleep(6600 * time.Millisecond)
+		time.Sleep(1200 * time.Millisecond)
 		if err != nil {
 			fmt.Println("error writing response: ", err)
 			break

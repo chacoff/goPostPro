@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 
 	"goPostPro/global"
 )
@@ -27,6 +28,9 @@ var (
 // MESserver to receive the messages from MES
 func MESserver(valuesToDias chan<- []uint16) {
 
+	var resultDias []uint16
+	var wg1 sync.WaitGroup
+
 	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
 		fmt.Println("[WARNING] Error listening:", err)
@@ -35,24 +39,6 @@ func MESserver(valuesToDias chan<- []uint16) {
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
 	fmt.Printf("Listening MES on port: %s\n", global.Appconfig.Address)
-
-	valuesFromMes := make(chan []uint16)
-
-	go func() {
-		for {
-			select {
-			case dataFromMes, ok := <-valuesFromMes: // data channel from LTC
-				if !ok {
-					return
-				}
-				valuesToDias <- dataFromMes // data to dias Channel
-			}
-		}
-	}()
-
-	// dataFromMes := <-valuesFromMes
-	// valuesToDias <- dataFromMes
-	// close(valuesFromMes) // TODO
 
 	for {
 		conn, err := listener.Accept()
@@ -63,17 +49,24 @@ func MESserver(valuesToDias chan<- []uint16) {
 		}
 
 		fmt.Println("Accepted MES-client from", conn.RemoteAddr())
-		go handleConnection(conn, valuesFromMes)
+		wg1.Add(1)
+		go handleConnection(conn, &resultDias, &wg1)
+		wg1.Wait()
+		valuesToDias <- resultDias
 	}
 }
 
-func handleConnection(conn net.Conn, valuesFromMes chan<- []uint16) {
+func handleConnection(conn net.Conn, resultDias *[]uint16, wg *sync.WaitGroup) {
 
 	defer conn.Close()
+	defer wg.Done()
 
 	var isHeaderOk = false
 	var headerValues []uint32
 	var FullLength int
+
+	var tempResultDias []uint16
+	var wg2 sync.WaitGroup
 
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
@@ -96,16 +89,22 @@ func handleConnection(conn net.Conn, valuesFromMes chan<- []uint16) {
 			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
 			isHeaderOk = false                                                  // reset variables before handling answer
-			go handleAnswer(conn, headerValues, hexBytesBody, valuesFromMes)
+			wg2.Add(1)
+			go handleAnswer(conn, headerValues, hexBytesBody, &tempResultDias, &wg2)
+			wg2.Wait()
+			*resultDias = tempResultDias
 		}
 	}
 }
 
-func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, valuesFromMes chan<- []uint16) {
+func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, resultLTC *[]uint16, wg *sync.WaitGroup) {
+
+	defer wg.Done()
 
 	var echo = false
 	var response []byte
-	var data []uint16
+	var dataLTC []uint16 = []uint16{0, 1, 2, 3, 4, 5, 6, 7} // default values
+
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
 	messageTypeAns := uint32(messageType - 100)
@@ -132,9 +131,10 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 		echo = true
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
-		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
-		data = []uint16{809, 1234, 5678, 7891, 7895, 750, 850, 999}
+		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+		fmt.Println("LTC received")
+		dataLTC = []uint16{uint16(_headerValues[3]), 1234, 5678, 7891, 7895, 750, 850, uint16(_headerValues[4])}
 
 		echo = false
 
@@ -147,7 +147,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, v
 		echo = false
 	}
 
-	valuesFromMes <- data
+	*resultLTC = dataLTC // LTC data DIAS coming from MES
 
 	if echo {
 		_, err := conn.Write(response)
