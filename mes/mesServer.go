@@ -13,11 +13,9 @@ package mes
 
 import (
 	"fmt"
+	"goPostPro/global"
 	"net"
 	"os"
-	"sync"
-
-	"goPostPro/global"
 )
 
 var (
@@ -26,10 +24,7 @@ var (
 )
 
 // MESserver to receive the messages from MES
-func MESserver(valuesToDias chan<- []uint16) {
-
-	var resultDias []uint16
-	var wg1 sync.WaitGroup
+func MESserver() {
 
 	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
@@ -49,25 +44,17 @@ func MESserver(valuesToDias chan<- []uint16) {
 		}
 
 		fmt.Println("[MES SERVER] accepted client from", conn.RemoteAddr())
-		wg1.Add(1)
-		go handleConnection(conn, &resultDias, &wg1)
-		wg1.Wait()
-
-		valuesToDias <- resultDias
+		go handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn, resultDias *[]uint16, wg *sync.WaitGroup) {
+func handleConnection(conn net.Conn) {
 
 	defer conn.Close()
-	defer wg.Done()
 
 	var isHeaderOk = false
 	var headerValues []uint32
 	var FullLength int
-
-	var tempResultDias []uint16
-	var wg2 sync.WaitGroup
 
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
@@ -90,17 +77,12 @@ func handleConnection(conn net.Conn, resultDias *[]uint16, wg *sync.WaitGroup) {
 			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
 			isHeaderOk = false                                                  // reset variables before handling answer
-			wg2.Add(1)
-			go handleAnswer(conn, headerValues, hexBytesBody, &tempResultDias, &wg2)
-			wg2.Wait()
-			*resultDias = tempResultDias
+			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
 	}
 }
 
-func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, resultLTC *[]uint16, wg *sync.WaitGroup) {
-
-	defer wg.Done()
+func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	var echo = false
 	var response []byte
@@ -136,7 +118,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte, r
 		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
 		fmt.Println("[MES SERVER]  LTC received")
 		dataLTC = []uint16{uint16(_headerValues[3]), 1234, 5678, 7891, 7895, 750, 850, uint16(_headerValues[4])}
-		*resultLTC = dataLTC // LTC data DIAS coming from MES
+		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message

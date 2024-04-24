@@ -31,8 +31,6 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	valuesToDias := make(chan []uint16)
-
 	// File-Watcher
 	go func() {
 		defer wg.Done()
@@ -42,21 +40,19 @@ func main() {
 	// dias-Server
 	go func() {
 		defer wg.Done()
-		dias.DiasServer(valuesToDias)
+		dias.DiasServer()
 	}()
 
 	// MES-Server
 	go func() {
 		defer wg.Done()
-		mes.MESserver(valuesToDias)
+		mes.MESserver()
 	}()
 
 	// PLC-client
 	// go plc.SiemensClient()
 
 	wg.Wait()
-
-	close(valuesToDias)
 
 }
 
