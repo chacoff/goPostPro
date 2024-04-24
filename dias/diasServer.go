@@ -49,9 +49,8 @@ func handleDiasConnection(conn net.Conn) {
 		message := hex.EncodeToString(buffer[:n])
 		if global.Appconfig.Verbose {
 			fmt.Println("[DIAS SERVER] message received from Dias: ", message)
+			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
 		}
-
-		fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
 
 		answer := make([]byte, 0)
 		for _, val := range LTCValues {
