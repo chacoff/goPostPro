@@ -86,7 +86,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	var echo = false
 	var response []byte
-	var dataLTC []uint16 = []uint16{0, 1, 2, 3, 4, 5, 6, 7} // default values
+	var dataLTC []uint16
 
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
