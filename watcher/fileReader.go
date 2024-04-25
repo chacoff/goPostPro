@@ -7,12 +7,12 @@ import (
 	"os"
 )
 
-//FileReader reads files and return line by line
+// FileReader reads files and return line by line
 func FileReader(file_path string, filename string) int {
 
 	file, err := os.Open(file_path)
 	if err != nil {
-		fmt.Println("Erreur lors de l'ouverture du fichier:", err)
+		fmt.Println("[WATCHER] errors opening the file:", err)
 	}
 	defer file.Close()
 
@@ -25,18 +25,16 @@ func FileReader(file_path string, filename string) int {
 		lineCount++
 		line := scanner.Text()
 		postpro.DATABASE.Open_database()
-		process_error := postpro.Process_line(line, filename)
-		if process_error != nil {
-			fmt.Println(process_error)
+		processError := postpro.Process_line(line, filename)
+		if processError != nil {
+			fmt.Println(processError)
 			return lineCount
 		}
 	}
 
 	// Scanner error
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Erreur lors de la lecture du fichier:", err)
+		fmt.Println("[WATCHER] errors reading the file:", err)
 	}
 	return lineCount
 }
-
-
