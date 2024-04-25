@@ -20,6 +20,6 @@ var (
 )
 
 var (
-	DATABASE_PATH        string = "C:/Users/VERBRUTH/Files/Post_Pro_Tr2/go_train2/database/processed.db"
+	DATABASE_PATH        string = "./processed.db"
 	TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
 )

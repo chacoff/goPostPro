@@ -56,7 +56,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	return _values
 }
 
-// processType return the real values to answer process message according the number of passes
+// processType return the real values to answer process messages according the number of passes
 func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
 	var _bodyAns []interface{}
 

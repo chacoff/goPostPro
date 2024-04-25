@@ -3,9 +3,11 @@ package watcher
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"goPostPro/global"
 	"os"
+	"strings"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 func Watcher() {
@@ -27,6 +29,9 @@ func Watcher() {
 				// log.Println("event:", event.Op, event.Name)
 				if event.Has(fsnotify.Write) {
 					fmt.Println("modified file:", event.Name)
+					fileNameList := event.Name
+					fileName := fileNameList[strings.LastIndex(fileNameList, "\\")+1:]
+					FileReader(event.Name, fileName)
 				}
 
 			case err, ok := <-watcher.Errors:
