@@ -9,6 +9,9 @@ var (
 	WIDTH_MINIMUM                 int64   = 2
 )
 
-var DATABASE_PATH string = "C:/Users/VERBRUTH/Files/Post_Pro_Tr2/go_train2/database/processed.db"
+var (
+	DATABASE_PATH        string = "C:/Users/VERBRUTH/Files/Post_Pro_Tr2/go_train2/database/processed.db"
+	TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
+)
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
