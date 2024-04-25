@@ -23,6 +23,26 @@ type Database_Line struct {
 	filename  string
 }
 
+func Start_database() error {
+	DATABASE = CalculationsDatabase{}
+	opening_error := DATABASE.Open_database()
+	if opening_error != nil {
+		log.Println(opening_error)
+		return opening_error
+	}
+	drop_error := DATABASE.Drop_Table()
+	if drop_error != nil {
+		log.Println(drop_error)
+		return drop_error
+	}
+	creation_error := DATABASE.Create_Table()
+	if creation_error != nil {
+		log.Println(creation_error)
+		return creation_error
+	}
+	return nil
+}
+
 func (database_line *Database_Line) Import_line_processing(line_processing LineProcessing) {
 	database_line.timestamp = line_processing.timestamp.Format(global.TIME_FORMAT)
 	database_line.max_Tr1 = int64(line_processing.max_Tr1)

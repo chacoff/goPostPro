@@ -19,6 +19,7 @@ import (
 	"goPostPro/global"
 	"goPostPro/mes"
 	"goPostPro/watcher"
+	"goPostPro/postpro"
 	"sync"
 	"syscall"
 	"unicode/utf16"
@@ -27,6 +28,8 @@ import (
 
 func main() {
 	setConsole(global.Appconfig.Cage)
+
+	postpro.Start_database()
 
 	var wg sync.WaitGroup
 	wg.Add(3)
