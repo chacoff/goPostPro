@@ -26,11 +26,12 @@ func Watcher() {
 				if !ok {
 					return
 				}
-				// log.Println("event:", event.Op, event.Name)
+
 				if event.Has(fsnotify.Write) {
-					fmt.Println("modified file:", event.Name)
 					fileNameList := event.Name
 					fileName := fileNameList[strings.LastIndex(fileNameList, "\\")+1:]
+					// fmt.Println("event:", event.Op, event.Name)
+					fmt.Println("[WATCHER] modified file:", event.Name)
 					FileReader(event.Name, fileName)
 				}
 
@@ -38,7 +39,8 @@ func Watcher() {
 				if !ok {
 					return
 				}
-				fmt.Println("error:", err)
+
+				fmt.Println("[WATCHER] error:", err)
 			}
 		}
 	}()
@@ -65,6 +67,7 @@ func Watcher() {
 		}
 	}
 	fmt.Printf("Observing folders in: %s\n", global.Appconfig.DataFolders)
+
 	// Block main goroutine forever.
 	<-make(chan struct{})
 }
