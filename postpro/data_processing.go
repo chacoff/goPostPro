@@ -6,7 +6,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"goPostPro/global"
 )
+
+var DATABASE CalculationsDatabase = CalculationsDatabase{}
 
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
@@ -32,14 +36,14 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 		log.Println("There is an error : a line isnt long enough")
 	}
 	// Parse timestamp
-	timestamp, parsing_error := time.Parse(TIME_FORMAT, splited_string_array[0])
+	timestamp, parsing_error := time.Parse(global.TIME_FORMAT, splited_string_array[0])
 	line_processing.timestamp = timestamp
 	if parsing_error != nil {
 		return parsing_error
 	}
 	// Removed the unwanted measures
 	measures_string_array := append(
-		splited_string_array[1+NUMBER_FIRST_MEASURES_REMOVED:500],
+		splited_string_array[1+global.NUMBER_FIRST_MEASURES_REMOVED:500],
 		splited_string_array[510:len(splited_string_array)-4]...,
 	)
 	// Parse temperature measures and by the same time find the max and min
@@ -62,8 +66,8 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 	}
 	// Calcul the threshold that will be used
 	line_processing.threshold = math.Max(
-		min_temperature*(1-TEMPERATURE_THRESHOLD_FACTOR)+max_temperature*TEMPERATURE_THRESHOLD_FACTOR,
-		TEMPERATURE_THRESHOLD_MINIMUM,
+		min_temperature*(1-global.TEMPERATURE_THRESHOLD_FACTOR)+max_temperature*global.TEMPERATURE_THRESHOLD_FACTOR,
+		global.TEMPERATURE_THRESHOLD_MINIMUM,
 	)
 	return nil
 }
@@ -84,7 +88,7 @@ func (line_processing *LineProcessing) threshold_compute_gradient() error {
 			max_gradient = math.Max(max_gradient, gradient_temperature)
 		}
 	}
-	line_processing.gradient_limit = max_gradient / GRADIENT_LIMIT_FACTOR
+	line_processing.gradient_limit = max_gradient / global.GRADIENT_LIMIT_FACTOR
 	return nil
 }
 
@@ -169,7 +173,7 @@ func Process_line(string_received string, filename string) error {
 	if cropping_error != nil {
 		return parsing_error
 	}
-	if line_processing.width > WIDTH_MINIMUM {
+	if line_processing.width > global.WIDTH_MINIMUM {
 		computing_error := line_processing.compute_calculations()
 		if computing_error != nil {
 			return parsing_error

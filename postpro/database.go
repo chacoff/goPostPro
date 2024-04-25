@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"time"
+	"goPostPro/global"
 
 	_ "github.com/mattn/go-sqlite3"
+	
 )
 
 type Database_Line struct {
@@ -22,7 +24,7 @@ type Database_Line struct {
 }
 
 func (database_line *Database_Line) Import_line_processing(line_processing LineProcessing) {
-	database_line.timestamp = line_processing.timestamp.Format(TIME_FORMAT)
+	database_line.timestamp = line_processing.timestamp.Format(global.TIME_FORMAT)
 	database_line.max_Tr1 = int64(line_processing.max_Tr1)
 	database_line.mean_Tr1 = int64(line_processing.mean_Tr1)
 	database_line.mean_Web = int64(line_processing.mean_Web)
@@ -39,7 +41,7 @@ type CalculationsDatabase struct {
 }
 
 func (calculations_database *CalculationsDatabase) Open_database() error {
-	database, opening_error := sql.Open("sqlite3", DATABASE_PATH)
+	database, opening_error := sql.Open("sqlite3", global.DATABASE_PATH)
 	if opening_error != nil {
 		log.Println(opening_error)
 		return opening_error
@@ -87,11 +89,11 @@ func (calculations_database *CalculationsDatabase) Insert_line(line Database_Lin
 }
 
 func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) error {
-	begin_timestamp, parsing_error := time.Parse(TIME_FORMAT_REQUESTS, begin_string_timestamp)
+	begin_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, begin_string_timestamp)
 	if parsing_error != nil {
 		return parsing_error
 	}
-	end_timestamp, parsing_error := time.Parse(TIME_FORMAT_REQUESTS, end_string_timestamp)
+	end_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, end_string_timestamp)
 	if parsing_error != nil {
 		return parsing_error
 	}
@@ -110,8 +112,8 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
-		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(TIME_FORMAT) + `' AND '` + end_timestamp.Format(TIME_FORMAT) + `')
-	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(TIME_FORMAT) + `' AND '` + end_timestamp.Format(TIME_FORMAT) + `'
+		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `')
+	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `'
 	`,
 	)
 	if err != nil {
