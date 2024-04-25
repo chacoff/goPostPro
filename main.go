@@ -7,38 +7,66 @@
  * Description:
  *   Gathers data from thermal cameras at Train2 and cross-match with timestamps coming from MES to
  *	 to outcome post processes data.
+ *
+ * Build:
+ * go build -o ./Build/goPostPro.exe
  */
 
 package main
 
 import (
 	"goPostPro/dias"
+	"goPostPro/global"
 	"goPostPro/mes"
-	"goPostPro/config"
+	"goPostPro/watcher"
+	"goPostPro/postpro"
+	"sync"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
 )
 
-var appconfig config.Config
-
 func main() {
-	appconfig = config.LoadConfig()
-	setConsoleTitle(appconfig.Cage)
+	setConsole(global.Appconfig.Cage)
+
+	postpro.Start_database()
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	// File-Watcher
+	go func() {
+		defer wg.Done()
+		watcher.Watcher()
+	}()
 
 	// dias-Server
-	go dias.LTCServer(appconfig.NetType, appconfig.AddressDias)
+	go func() {
+		defer wg.Done()
+		dias.DiasServer()
+	}()
+
 	// MES-Server
-	go mes.MESserver(appconfig.NetType, appconfig.Address)
+	go func() {
+		defer wg.Done()
+		mes.MESserver()
+	}()
+
 	// PLC-client
 	// go plc.SiemensClient()
+
+	wg.Wait()
+
 }
 
-func setConsoleTitle(title string) {
+func setConsole(title string) {
 	kernel32 := syscall.NewLazyDLL("kernel32.dll")
 	proc := kernel32.NewProc("SetConsoleTitleW")
 
 	titleUTF16 := utf16.Encode([]rune(title + "\x00"))
 
-	proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
+	_, _, err := proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
+	if err != nil {
+		return
+	}
 }

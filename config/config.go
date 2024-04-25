@@ -15,6 +15,7 @@ type Config struct {
 	MaxBufferSize int      `xml:"maxBufferSize"`
 	HeaderSize    int      `xml:"headerSize"`
 	Verbose       bool     `xml:"verbose"`
+	DataFolders   string   `xml:"jsonFolders"`
 }
 
 func LoadConfig() Config {
@@ -31,7 +32,7 @@ func LoadConfig() Config {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Parameters Ok.\n")
+	fmt.Printf("[Parameters Ok]\n")
 
 	return _config
 }

@@ -6,14 +6,14 @@
  * Project: goPostPro
  * Description:
  *   Open a tcp ip server communication with MES at train2
- *	 
+ *
  */
 
 package mes
 
 import (
 	"fmt"
-	"goPostPro/config"
+	"goPostPro/global"
 	"net"
 	"os"
 )
@@ -23,27 +23,27 @@ var (
 	allHexBytes = make([]byte, 0, 2048) // variable: from 0 to maxBufferSize. Data will be appended on arrival
 )
 
-var	appconfig config.Config = config.LoadConfig()
+// MESserver to receive the messages from MES
+func MESserver() {
 
-func MESserver(NetType string, Address string){
-	listener, err := net.Listen(NetType, Address) // listen on port 4600
+	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
-		fmt.Println("[WARNING] Error listening:", err)
+		fmt.Println("[MES SERVER]  error listening:", err)
 		// return
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	fmt.Printf("Listening MES on port %s\n", Address)
+	fmt.Printf("[MES SERVER] listening MES on port: %s\n", global.Appconfig.Address)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("[WARNING] Error accepting connection:", err)
+			fmt.Println("[MES SERVER] error accepting connection:", err)
 			os.Exit(1)
 			// break
 		}
 
-		fmt.Println("Accepted MES-client from", conn.RemoteAddr())
+		fmt.Println("[MES SERVER] accepted client from", conn.RemoteAddr())
 		go handleConnection(conn)
 	}
 }
@@ -59,24 +59,24 @@ func handleConnection(conn net.Conn) {
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {             // && err != io.EOF
-			fmt.Println("[WARNING] Error reading or Client disconnected:", err)
-			allHexBytes = make([]byte, 0, appconfig.MaxBufferSize) // reset variable before handling answer
-			isHeaderOk = false                                  // reset variables before handling answer
+			fmt.Println("[MES SERVER] error reading or Client disconnected:", err)
+			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize) // reset variable before handling answer
+			isHeaderOk = false                                            // reset variables before handling answer
 			break
 		}
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
-		if len(allHexBytes) >= appconfig.HeaderSize && !isHeaderOk {
-			hexBytesHeader := allHexBytes[:appconfig.HeaderSize]             // Extract first 40 bytes, only header
+		if len(allHexBytes) >= global.Appconfig.HeaderSize && !isHeaderOk {
+			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]   // Extract first 40 bytes, only header
 			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
-			fmt.Println(">> Decoded Header values:", headerValues)
+			fmt.Println("[MES SERVER] >> Decoded Header values:", headerValues)
 		}
 
 		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
-			hexBytesBody := allHexBytes[appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
-			allHexBytes = make([]byte, 0, appconfig.MaxBufferSize)       // reset variable before handling answer
-			isHeaderOk = false                                        // reset variables before handling answer
+			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
+			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
+			isHeaderOk = false                                                  // reset variables before handling answer
 			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
 	}
@@ -86,6 +86,8 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	var echo = false
 	var response []byte
+	var dataLTC []uint16
+
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
 	messageTypeAns := uint32(messageType - 100)
@@ -97,7 +99,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	case 4702, 4712, 4722: // process message: header + body
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
-		fmt.Println(">> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		fmt.Println("[MES SERVER] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic))
 		_length := uint32(40 + len(_bodyAns))
@@ -112,26 +114,28 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = true
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
-		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
-
+		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
+		fmt.Println("[MES SERVER]  LTC received")
+		dataLTC = []uint16{uint16(_headerValues[3]), 1234, 5678, 7891, 7895, 750, 850, uint16(_headerValues[4])}
+		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
-		fmt.Println("MES received data properly")
+		fmt.Println("[MES SERVER] MES received process data properly")
 		echo = false
 
 	default:
-		fmt.Println("Unknown message:", messageType, messageCounter)
+		fmt.Println("[MES SERVER] Unknown message:", messageType, messageCounter)
 		echo = false
 	}
 
-	if echo == true {
+	if echo {
 		_, err := conn.Write(response)
 		if err != nil {
-			fmt.Println("Error writing:", err)
+			fmt.Println("[MES SERVER] error writing:", err)
 			return
 		}
-		fmt.Println("Response sent to client for message", messageCounter)
+		fmt.Println("[MES SERVER] response sent to client for message", messageCounter)
 	}
 }
