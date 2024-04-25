@@ -2,12 +2,11 @@ package postpro
 
 import (
 	"database/sql"
+	"goPostPro/global"
 	"log"
 	"time"
-	"goPostPro/global"
 
 	_ "github.com/mattn/go-sqlite3"
-	
 )
 
 type Database_Line struct {
