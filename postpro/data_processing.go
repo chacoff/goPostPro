@@ -178,12 +178,7 @@ func Process_line(string_received string, filename string) error {
 		if computing_error != nil {
 			return parsing_error
 		}
-		database_line := Database_Line{}
-		database_line.Import_line_processing(line_processing)
-		process_error := DATABASE.Insert_line(database_line)
-		if process_error != nil {
-			return process_error
-		}
+		DATABASE.Insert_line_processing(line_processing)
 	}
 
 	return nil

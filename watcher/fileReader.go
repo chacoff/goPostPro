@@ -24,7 +24,6 @@ func FileReader(file_path string, filename string) int {
 	for scanner.Scan() {
 		lineCount++
 		line := scanner.Text()
-		postpro.DATABASE.Open_database()
 		process_error := postpro.Process_line(line, filename)
 		if process_error != nil {
 			fmt.Println(process_error)

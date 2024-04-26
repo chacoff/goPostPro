@@ -25,17 +25,17 @@ type Database_Line struct {
 
 func Start_database() error {
 	DATABASE = CalculationsDatabase{}
-	opening_error := DATABASE.Open_database()
+	opening_error := DATABASE.open_database()
 	if opening_error != nil {
 		log.Println(opening_error)
 		return opening_error
 	}
-	drop_error := DATABASE.Drop_Table()
+	drop_error := DATABASE.drop_Table()
 	if drop_error != nil {
 		log.Println(drop_error)
 		return drop_error
 	}
-	creation_error := DATABASE.Create_Table()
+	creation_error := DATABASE.create_Table()
 	if creation_error != nil {
 		log.Println(creation_error)
 		return creation_error
@@ -43,24 +43,11 @@ func Start_database() error {
 	return nil
 }
 
-func (database_line *Database_Line) Import_line_processing(line_processing LineProcessing) {
-	database_line.timestamp = line_processing.timestamp.Format(global.TIME_FORMAT)
-	database_line.max_Tr1 = int64(line_processing.max_Tr1)
-	database_line.mean_Tr1 = int64(line_processing.mean_Tr1)
-	database_line.mean_Web = int64(line_processing.mean_Web)
-	database_line.min_Web = int64(line_processing.min_Web)
-	database_line.max_Tr3 = int64(line_processing.max_Tr3)
-	database_line.mean_Tr3 = int64(line_processing.mean_Tr3)
-	database_line.width = int64(line_processing.width)
-	database_line.threshold = int64(line_processing.threshold)
-	database_line.filename = line_processing.filename
-}
-
 type CalculationsDatabase struct {
 	database *sql.DB
 }
 
-func (calculations_database *CalculationsDatabase) Open_database() error {
+func (calculations_database *CalculationsDatabase) open_database() error {
 	database, opening_error := sql.Open("sqlite3", global.DATABASE_PATH)
 	if opening_error != nil {
 		log.Println(opening_error)
@@ -70,7 +57,7 @@ func (calculations_database *CalculationsDatabase) Open_database() error {
 	return nil
 }
 
-func (calculations_database *CalculationsDatabase) Create_Table() error {
+func (calculations_database *CalculationsDatabase) create_Table() error {
 	_, query_error := calculations_database.database.Exec(`
 		CREATE TABLE IF NOT EXISTS Measures (
 			Timestamp TEXT,
@@ -87,12 +74,12 @@ func (calculations_database *CalculationsDatabase) Create_Table() error {
 	return query_error
 }
 
-func (calculations_database *CalculationsDatabase) Drop_Table() error {
+func (calculations_database *CalculationsDatabase) drop_Table() error {
 	_, query_error := calculations_database.database.Exec(`DROP TABLE IF EXISTS Measures;`)
 	return query_error
 }
 
-func (calculations_database *CalculationsDatabase) Insert_line(line Database_Line) error {
+func (calculations_database *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 	preparation, preparation_error := calculations_database.database.Prepare(
 		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
@@ -101,7 +88,7 @@ func (calculations_database *CalculationsDatabase) Insert_line(line Database_Lin
 	}
 	defer preparation.Close()
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp, line.max_Tr1, line.mean_Tr1, line.mean_Web, line.min_Web, line.max_Tr3, line.mean_Tr3, line.width, line.threshold, line.filename)
+	_, execution_error := preparation.Exec(line.timestamp.Format(global.TIME_FORMAT), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
 	if execution_error != nil {
 		return execution_error
 	}
