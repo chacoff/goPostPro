@@ -16,6 +16,7 @@ type Config struct {
 	HeaderSize    int      `xml:"headerSize"`
 	Verbose       bool     `xml:"verbose"`
 	DataFolders   string   `xml:"jsonFolders"`
+	TickWatcher   int      `xml:"tickWatcher"`
 }
 
 func LoadConfig() Config {

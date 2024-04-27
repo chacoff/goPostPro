@@ -35,7 +35,7 @@ func Watcher() {
 					return
 				}
 				lastEvent = event
-				timer.Reset(50 * time.Millisecond)
+				timer.Reset(time.Duration(global.Appconfig.TickWatcher) * time.Millisecond)
 			case errW, ok := <-watcher.Errors:
 				if !ok {
 					return
