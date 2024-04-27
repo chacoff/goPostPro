@@ -8,16 +8,16 @@ import (
 )
 
 // FileReader reads files and return line by line
-func FileReader(file_path string, filename string) int {
+func FileReader(filePath string, fileName string) int {
 
-	file, err := os.Open(file_path)
+	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println("[WATCHER] errors opening the file:", err)
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	scanner.Scan()
+	scanner.Scan() // skip first line
 	lineCount := 0
 
 	// Read and process each line
@@ -25,16 +25,17 @@ func FileReader(file_path string, filename string) int {
 		lineCount++
 		line := scanner.Text()
 		postpro.DATABASE.Open_database()
-		processError := postpro.Process_line(line, filename)
+		processError := postpro.Process_line(line, fileName)
 		if processError != nil {
 			fmt.Println(processError)
 			return lineCount
 		}
 	}
+	fmt.Println("[WATCHER] processed: ", fileName)
 
 	// Scanner error
 	if err := scanner.Err(); err != nil {
-		fmt.Println("[WATCHER] errors reading the file:", err)
+		fmt.Println("[WATCHER] errors reading the file: ", err)
 	}
 	return lineCount
 }
