@@ -159,8 +159,8 @@ func getLastTimeStamp(values []uint32) string{
 	// Hundred-of-Seconds	_headerValues[9]
 	//
 
-	date := strings.Join([]string{strconv.FormatUint(uint64(values[3]), 10), strconv.FormatUint(uint64(values[4]), 10), strconv.FormatUint(uint64(values[5]), 10)}, "-")
-	time := strings.Join([]string{strconv.FormatUint(uint64(values[6]), 10), strconv.FormatUint(uint64(values[7]), 10), strconv.FormatUint(uint64(values[8]), 10), strconv.FormatUint(uint64(values[9]), 10)}, ":")
+	date := strings.Join([]string{strconv.FormatUint(uint64(values[3]), 10), strconv.FormatUint(uint64(values[4]), 10), strconv.FormatUint(uint64(values[5]), 10)}, "")
+	time := strings.Join([]string{strconv.FormatUint(uint64(values[6]), 10), strconv.FormatUint(uint64(values[7]), 10), strconv.FormatUint(uint64(values[8]), 10), strconv.FormatUint(uint64(values[9]), 10)}, "")
 
-	return strings.Join([]string{date, time}, " ")
+	return strings.Join([]string{date, time}, "")
 }
