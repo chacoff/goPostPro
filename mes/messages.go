@@ -19,20 +19,6 @@ import (
 	"goPostPro/postpro"
 )
 
-type PostProData struct {
-	passNumber   uint32
-	passDate     string
-	dummy        string
-	MaxTempMill3 uint32
-	AvgTempMill3 float64
-	MaxTempMill1 uint32
-	AvgTempMill1 float64
-	MinTempWeb   uint32
-	AvgTempWeb   float64
-	AvgStdTemp   float64
-	PixWidth     float64
-}
-
 // headerType return the values of header, at this stage nothing is encoded, it is a vector with the real values
 func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	var _values []interface{} // interface, even though all are uint32 due to body being interface{}
@@ -77,13 +63,13 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		if err != nil {
 			fmt.Println("ERREUR : ", err)
 		}
-		newData.passNumber = uint32(i + 1)
-		newData.passDate = listOfStamps[i] // time.Now().Format("20060102150405"),
-		newData.dummy = "du"
+		newData.PassNumber = uint32(i + 1)
+		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
+		newData.Dummy = "du"
 
-		_bodyAns = append(_bodyAns, newData.passNumber)
-		_bodyAns = append(_bodyAns, newData.passDate)
-		_bodyAns = append(_bodyAns, newData.dummy)
+		_bodyAns = append(_bodyAns, newData.PassNumber)
+		_bodyAns = append(_bodyAns, newData.PassDate)
+		_bodyAns = append(_bodyAns, newData.Dummy)
 		_bodyAns = append(_bodyAns, newData.MaxTempMill3)
 		_bodyAns = append(_bodyAns, newData.AvgTempMill3)
 		_bodyAns = append(_bodyAns, newData.MaxTempMill1)
@@ -100,7 +86,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 // parseTimeStamps creates a list with all timeStamps
 func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
 	var listOfStamps []string
-
+	
+	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	for i := 0; i < int(passCounter); i++ {
 		pass := i + 1
 		listOfStamps = append(listOfStamps, bodyValuesDynamic[pass+(i*2)].(string))

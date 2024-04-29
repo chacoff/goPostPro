@@ -5,10 +5,23 @@ import (
 	"goPostPro/global"
 	"log"
 	"time"
-	"goPostPro/mes"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+type PostProData struct {
+	PassNumber   uint32
+	PassDate     string
+	Dummy        string
+	MaxTempMill3 uint32
+	AvgTempMill3 float64
+	MaxTempMill1 uint32
+	AvgTempMill1 float64
+	MinTempWeb   uint32
+	AvgTempWeb   float64
+	AvgStdTemp   float64
+	PixWidth     float64
+}
 
 type Database_Line struct {
 	timestamp string
@@ -92,8 +105,8 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	return nil
 }
 
-func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (mes.PostProData, error) {
-	post_pro_data := mes.PostProData{}
+func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
+	post_pro_data := PostProData{}
 	begin_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, begin_string_timestamp)
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
