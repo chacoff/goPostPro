@@ -57,7 +57,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 }
 
 // processType return the real values to answer process messages according the number of passes
-func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
+func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTimeStamp string) []interface{} {
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
