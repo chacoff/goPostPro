@@ -5,6 +5,7 @@ import (
 	"goPostPro/global"
 	"log"
 	"time"
+	"goPostPro/mes"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -91,14 +92,15 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	return nil
 }
 
-func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) error {
+func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (mes.PostProData, error) {
+	post_pro_data := mes.PostProData{}
 	begin_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, begin_string_timestamp)
 	if parsing_error != nil {
-		return parsing_error
+		return post_pro_data, parsing_error
 	}
 	end_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, end_string_timestamp)
 	if parsing_error != nil {
-		return parsing_error
+		return post_pro_data, parsing_error
 	}
 
 	rows, query_error := calculations_database.database.Query(`
@@ -120,40 +122,21 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	`,
 	)
 	if query_error != nil {
-		return query_error
+		return post_pro_data, query_error
 	}
 	defer rows.Close()
 	// Iterate on the result and print it
 	for rows.Next() {
-		var (
-			Query_Tr1_Max        int
-			Query_Tr1_Mean       float64
-			Query_Web_Mean       float64
-			Query_Web_Min        int
-			Query_Tr3_Max        int
-			Query_Tr3_Mean       float64
-			Query_Web_Variance   float64
-			Query_Width_Mean     float64
-			Query_Threshold_Mean float64
-		)
-		scan_error := rows.Scan(&Query_Tr1_Max, &Query_Tr1_Mean, &Query_Web_Mean, &Query_Web_Min, &Query_Tr3_Max, &Query_Tr3_Mean, &Query_Web_Variance, &Query_Width_Mean, &Query_Threshold_Mean)
-		log.Println("\nQuery_Tr1_Max : ", Query_Tr1_Max,
-			"\nQuery_Tr1_Mean : ", Query_Tr1_Mean,
-			"\nQuery_Web_Mean ", Query_Web_Mean,
-			"\nQuery_Web_Min ", Query_Web_Min,
-			"\nQuery_Tr3_Max ", Query_Tr3_Max,
-			"\nQuery_Tr3_Mean ", Query_Tr3_Mean,
-			"\nQuery_Web_Variance ", Query_Web_Variance,
-			"\nQuery_Width_Mean ", Query_Width_Mean,
-			"\nQuery_Threshold_Mean ", Query_Threshold_Mean,
-		)
+		Query_Threshold_Mean := float64(0)
+		scan_error := rows.Scan(&post_pro_data.MaxTempMill3, &post_pro_data.AvgTempMill1, &post_pro_data.AvgTempWeb, &post_pro_data.MinTempWeb, &post_pro_data.MaxTempMill3, &post_pro_data.AvgTempMill3, &post_pro_data.AvgStdTemp, &post_pro_data.PixWidth, &Query_Threshold_Mean)
+		
 		if scan_error != nil {
-			return scan_error
+			return post_pro_data, scan_error
 		}
 
 	}
 	if row_error := rows.Err(); row_error != nil {
-		return row_error
+		return post_pro_data, row_error
 	}
-	return nil
+	return post_pro_data, nil
 }

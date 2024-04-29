@@ -16,20 +16,21 @@ import (
 	"time"
 
 	"goPostPro/global"
+	"goPostPro/postpro"
 )
 
-type postProData struct {
+type PostProData struct {
 	passNumber   uint32
 	passDate     string
 	dummy        string
-	maxTempMill3 uint32
-	avgTempMill3 uint32
-	maxTempMill1 uint32
-	avgTempMill1 uint32
-	minTempWeb   uint32
-	avgTempWeb   uint32
-	avgStdTemp   uint32
-	pixWidth     uint32
+	MaxTempMill3 uint32
+	AvgTempMill3 float64
+	MaxTempMill1 uint32
+	AvgTempMill1 float64
+	MinTempWeb   uint32
+	AvgTempWeb   float64
+	AvgStdTemp   float64
+	PixWidth     float64
 }
 
 // headerType return the values of header, at this stage nothing is encoded, it is a vector with the real values
@@ -72,39 +73,32 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	for i := 0; i < int(passCounter); i++ {
-		pass := i + 1
-		newData := postProData{
-			passNumber:   uint32(pass),
-			passDate:     _bodyDynamic[pass+(i*2)].(string), // time.Now().Format("20060102150405"),
-			dummy:        "du",
-			maxTempMill3: 8,
-			avgTempMill3: 0,
-			maxTempMill1: 0,
-			avgTempMill1: 0,
-			minTempWeb:   0,
-			avgTempWeb:   0,
-			avgStdTemp:   0,
-			pixWidth:     5,
+		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
+		if err != nil {
+			fmt.Println("ERREUR : ", err)
 		}
+		newData.passNumber = uint32(i + 1)
+		newData.passDate = listOfStamps[i] // time.Now().Format("20060102150405"),
+		newData.dummy = "du"
 
 		_bodyAns = append(_bodyAns, newData.passNumber)
 		_bodyAns = append(_bodyAns, newData.passDate)
 		_bodyAns = append(_bodyAns, newData.dummy)
-		_bodyAns = append(_bodyAns, newData.maxTempMill3)
-		_bodyAns = append(_bodyAns, newData.avgTempMill3)
-		_bodyAns = append(_bodyAns, newData.maxTempMill1)
-		_bodyAns = append(_bodyAns, newData.avgTempMill1)
-		_bodyAns = append(_bodyAns, newData.minTempWeb)
-		_bodyAns = append(_bodyAns, newData.avgTempWeb)
-		_bodyAns = append(_bodyAns, newData.avgStdTemp)
-		_bodyAns = append(_bodyAns, newData.pixWidth)
+		_bodyAns = append(_bodyAns, newData.MaxTempMill3)
+		_bodyAns = append(_bodyAns, newData.AvgTempMill3)
+		_bodyAns = append(_bodyAns, newData.MaxTempMill1)
+		_bodyAns = append(_bodyAns, newData.AvgTempMill1)
+		_bodyAns = append(_bodyAns, newData.MinTempWeb)
+		_bodyAns = append(_bodyAns, newData.AvgTempWeb)
+		_bodyAns = append(_bodyAns, newData.AvgStdTemp)
+		_bodyAns = append(_bodyAns, newData.PixWidth)
 	}
 
 	return _bodyAns
 }
 
 // parseTimeStamps creates a list with all timeStamps
-func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string{
+func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
 	var listOfStamps []string
 
 	for i := 0; i < int(passCounter); i++ {
