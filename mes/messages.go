@@ -79,7 +79,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, newData.AvgStdTemp)
 		_bodyAns = append(_bodyAns, newData.PixWidth)
 	}
-
+	
+	fmt.Println(_bodyAns)
 	return _bodyAns
 }
 
