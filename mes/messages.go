@@ -61,6 +61,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
+	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
+	fmt.Println(listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -99,4 +101,18 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	}
 
 	return _bodyAns
+}
+
+// parseTimeStamps creates a list with all timeStamps
+func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string{
+	var listOfStamps []string
+
+	for i := 0; i < int(passCounter); i++ {
+		pass := i + 1
+		listOfStamps = append(listOfStamps, bodyValuesDynamic[pass+(i*2)].(string))
+	}
+
+	listOfStamps = append(listOfStamps, laststamp)
+
+	return listOfStamps
 }
