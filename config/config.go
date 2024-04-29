@@ -16,6 +16,7 @@ type Config struct {
 	HeaderSize    int      `xml:"headerSize"`
 	Verbose       bool     `xml:"verbose"`
 	DataFolders   string   `xml:"jsonFolders"`
+	TickWatcher   int      `xml:"tickWatcher"`
 }
 
 func LoadConfig() Config {
@@ -32,7 +33,7 @@ func LoadConfig() Config {
 		os.Exit(1)
 	}
 
-	fmt.Printf("[Parameters Ok]\n")
+	fmt.Println("[Parameters] OK")
 
 	return _config
 }

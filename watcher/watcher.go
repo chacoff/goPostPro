@@ -6,53 +6,64 @@ import (
 	"goPostPro/global"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
 
 func Watcher() {
-	// Create new watcher.
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := fsnotify.NewWatcher() // create new watcher
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer watcher.Close()
 
-	// Start listening for events.
+	// start listening for events
 	go func() {
+		var (
+			timer     *time.Timer
+			lastEvent fsnotify.Event
+		)
+
+		timer = time.NewTimer(time.Millisecond)
+		<-timer.C // timer should be expired at first
+
 		for {
 			select {
 			case event, ok := <-watcher.Events:
 				if !ok {
 					return
 				}
-
-				if event.Has(fsnotify.Write) {
-					fileNameList := event.Name
-					fileName := fileNameList[strings.LastIndex(fileNameList, "\\")+1:]
-					// fmt.Println("event:", event.Op, event.Name)
-					fmt.Println("[WATCHER] modified file:", event.Name)
-					FileReader(event.Name, fileName)
-				}
-
-			case err, ok := <-watcher.Errors:
+				lastEvent = event
+				timer.Reset(time.Duration(global.Appconfig.TickWatcher) * time.Millisecond)
+			case errW, ok := <-watcher.Errors:
 				if !ok {
 					return
 				}
-
-				fmt.Println("[WATCHER] error:", err)
+				fmt.Println("[WATCHER] error:", errW)
+			case <-timer.C:
+				if lastEvent.Op&fsnotify.Write == fsnotify.Write {
+					onModified(lastEvent.Name)
+				} else if lastEvent.Op&fsnotify.Create == fsnotify.Create {
+					onCreate(lastEvent.Name)
+				} else if lastEvent.Op&fsnotify.Remove == fsnotify.Remove {
+					onDelete(lastEvent.Name)
+				}
+				//if err != nil{
+				//	fmt.Println("[WATCHER] error: ", err)
+				//}
 			}
 		}
 	}()
 
+	// add/create folders to watch. we don't have a proper recursive function, yet we know the folder names in advance
 	folders, errR := readFoldersFromJSON(global.Appconfig.DataFolders)
 	if errR != nil {
 		fmt.Println("Error reading folders from JSON file:", errR)
 	}
 
-	// Add a paths
+	// add a paths
 	for _, folder := range folders {
-
 		_, errF := os.Stat(folder)
 		if os.IsNotExist(errF) {
 			errM := os.MkdirAll(folder, 0755)
@@ -61,15 +72,30 @@ func Watcher() {
 			}
 		}
 
-		err = watcher.Add(folder)
-		if err != nil {
-			fmt.Println("watcher.Add error: ", err)
+		errWa := watcher.Add(folder)
+		if errWa != nil {
+			fmt.Println("watcher.Add error: ", errWa)
 		}
 	}
-	fmt.Printf("Observing folders in: %s\n", global.Appconfig.DataFolders)
+	fmt.Printf("[WATCHER] Observing folders in: %s\n", global.Appconfig.DataFolders)
 
-	// Block main goroutine forever.
-	<-make(chan struct{})
+	<-make(chan struct{}) // block main goroutine forever
+}
+
+// onModified handles the file reading
+func onModified(fileAddress string) {
+	fileNameList := fileAddress
+	fileName := fileNameList[strings.LastIndex(fileNameList, "\\")+1:]
+	fmt.Println("[WATCHER] modified file:", fileAddress)
+	FileReader(fileAddress, fileName)
+}
+
+func onCreate(fileAddress string) {
+	fmt.Println("[WATCHER] created file:", fileAddress)
+}
+
+func onDelete(fileAddress string) {
+	fmt.Println("[WATCHER] deleted file:", fileAddress)
 }
 
 func readFoldersFromJSON(filePath string) ([]string, error) {
