@@ -2,12 +2,11 @@ package postpro
 
 import (
 	"database/sql"
+	"goPostPro/global"
 	"log"
 	"time"
-	"goPostPro/global"
 
 	_ "github.com/mattn/go-sqlite3"
-	
 )
 
 type Database_Line struct {
@@ -27,17 +26,14 @@ func Start_database() error {
 	DATABASE = CalculationsDatabase{}
 	opening_error := DATABASE.open_database()
 	if opening_error != nil {
-		log.Println(opening_error)
 		return opening_error
 	}
 	drop_error := DATABASE.drop_Table()
 	if drop_error != nil {
-		log.Println(drop_error)
 		return drop_error
 	}
 	creation_error := DATABASE.create_Table()
 	if creation_error != nil {
-		log.Println(creation_error)
 		return creation_error
 	}
 	return nil
@@ -50,7 +46,6 @@ type CalculationsDatabase struct {
 func (calculations_database *CalculationsDatabase) open_database() error {
 	database, opening_error := sql.Open("sqlite3", global.DATABASE_PATH)
 	if opening_error != nil {
-		log.Println(opening_error)
 		return opening_error
 	}
 	calculations_database.database = database
@@ -105,7 +100,7 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 		return parsing_error
 	}
 
-	rows, err := calculations_database.database.Query(`
+	rows, query_error := calculations_database.database.Query(`
 	SELECT
 		MAX(Tr1_Max) AS Query_Tr1_Max,
 		AVG(Tr1_Mean) AS Query_Tr1_Mean,
@@ -123,9 +118,8 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `'
 	`,
 	)
-	if err != nil {
-		log.Println(err)
-		return err
+	if query_error != nil {
+		return query_error
 	}
 	defer rows.Close()
 	// Iterate on the result and print it
@@ -141,7 +135,7 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 			Query_Width_Mean     float64
 			Query_Threshold_Mean float64
 		)
-		err := rows.Scan(&Query_Tr1_Max, &Query_Tr1_Mean, &Query_Web_Mean, &Query_Web_Min, &Query_Tr3_Max, &Query_Tr3_Mean, &Query_Web_Variance, &Query_Width_Mean, &Query_Threshold_Mean)
+		scan_error := rows.Scan(&Query_Tr1_Max, &Query_Tr1_Mean, &Query_Web_Mean, &Query_Web_Min, &Query_Tr3_Max, &Query_Tr3_Mean, &Query_Web_Variance, &Query_Width_Mean, &Query_Threshold_Mean)
 		log.Println("\nQuery_Tr1_Max : ", Query_Tr1_Max,
 			"\nQuery_Tr1_Mean : ", Query_Tr1_Mean,
 			"\nQuery_Web_Mean ", Query_Web_Mean,
@@ -152,14 +146,13 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 			"\nQuery_Width_Mean ", Query_Width_Mean,
 			"\nQuery_Threshold_Mean ", Query_Threshold_Mean,
 		)
-		if err != nil {
-			return err
+		if scan_error != nil {
+			return scan_error
 		}
 
 	}
-	if err := rows.Err(); err != nil {
-		log.Println("err2")
-		return err
+	if row_error := rows.Err(); row_error != nil {
+		return row_error
 	}
 	return nil
 }
