@@ -1,7 +1,7 @@
 package postpro
 
 import (
-	"log"
+	"errors"
 	"math"
 	"strconv"
 	"strings"
@@ -33,14 +33,14 @@ type LineProcessing struct {
 func (line_processing *LineProcessing) parse_string_received(string_received string) error {
 	splited_string_array := strings.Split(string_received, "\t")
 	if len(splited_string_array) < 516 {
-		log.Println("There is an error : a line isnt long enough")
+		return errors.New("error : the parsed line has not enough measures")
 	}
 	// Parse timestamp
 	timestamp, parsing_error := time.Parse(global.TIME_FORMAT, splited_string_array[0])
-	line_processing.timestamp = timestamp
 	if parsing_error != nil {
 		return parsing_error
 	}
+	line_processing.timestamp = timestamp
 	// Removed the unwanted measures
 	measures_string_array := append(
 		splited_string_array[1+global.NUMBER_FIRST_MEASURES_REMOVED:500],
@@ -56,7 +56,7 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 		if parsing_error != nil {
 			return parsing_error
 		}
-		if index == 0 {
+		if index == 0 { // To initialize the values
 			max_temperature = temperature_float
 			min_temperature = temperature_float
 		}
@@ -74,6 +74,9 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 
 // Threshold the temperatures and compute the gradient array
 func (line_processing *LineProcessing) threshold_compute_gradient() error {
+	if len(line_processing.processed_temperatures_array) < 2 {
+		return errors.New("error : the processed temperatures line has not enough measures")
+	}
 	line_processing.gradient_temperatures_array = make([]float64, len(line_processing.processed_temperatures_array))
 	line_processing.gradient_temperatures_array[0] = 0
 	max_gradient := float64(0)
@@ -87,6 +90,9 @@ func (line_processing *LineProcessing) threshold_compute_gradient() error {
 			line_processing.gradient_temperatures_array[index] = gradient_temperature
 			max_gradient = math.Max(max_gradient, gradient_temperature)
 		}
+	}
+	if global.GRADIENT_LIMIT_FACTOR <= 0 {
+		return errors.New("error : the gradient limit factor is not valid")
 	}
 	line_processing.gradient_limit = max_gradient / global.GRADIENT_LIMIT_FACTOR
 	return nil
@@ -104,14 +110,18 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 			higher_index_crop = index
 		}
 	}
+	// QUESTION : Should we take one processed temperature before to have the values that led to the first gradient?
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.gradient_temperatures_array = line_processing.gradient_temperatures_array[lower_index_crop:higher_index_crop]
-	line_processing.width = int64(higher_index_crop - lower_index_crop)
+	line_processing.width = int64(len(line_processing.processed_temperatures_array))
 	return nil
 }
 
 func (line_processing *LineProcessing) compute_calculations() error {
-	half_index := int((line_processing.width+1)/2 - 1)
+	if line_processing.width < 2 {
+		return errors.New("error : not enough measures for calculation")
+	}
+	half_index := int((line_processing.width+1)/2 - 1) // Round the half to the upper value (+1) and then convert in 0-indexed index (-1)
 	filtered_temperature_array := line_processing.processed_temperatures_array
 	//Max, Mean of Tr1
 	sum_Tr1 := float64(0)
@@ -140,8 +150,11 @@ func (line_processing *LineProcessing) compute_calculations() error {
 		}
 	}
 	line_processing.max_Tr3 = max_Tr3
-	line_processing.mean_Tr3 = sum_Tr3 / float64(len(filtered_temperature_array)-half_index)
+	line_processing.mean_Tr3 = sum_Tr3 / float64(len(filtered_temperature_array)-(half_index+1))
 	//Min, Mean Web
+	if max_index_Tr1 == max_index_Tr3 {
+		return errors.New("error : there is a problem in the max indexes for web calculation")
+	}
 	sum_Web := float64(0)
 	min_Web := filtered_temperature_array[max_index_Tr1]
 	for index_Web := max_index_Tr1; index_Web <= max_index_Tr3; index_Web++ {
@@ -152,7 +165,7 @@ func (line_processing *LineProcessing) compute_calculations() error {
 		}
 	}
 	line_processing.min_Web = min_Web
-	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1)
+	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
 	return nil
 }
 
@@ -167,22 +180,20 @@ func Process_line(string_received string, filename string) error {
 	}
 	threshold_gradient_error := line_processing.threshold_compute_gradient()
 	if threshold_gradient_error != nil {
-		return parsing_error
+		return threshold_gradient_error
 	}
 	cropping_error := line_processing.gradient_cropping()
 	if cropping_error != nil {
-		return parsing_error
+		return cropping_error
 	}
 	if line_processing.width > global.WIDTH_MINIMUM {
 		computing_error := line_processing.compute_calculations()
 		if computing_error != nil {
-			return parsing_error
+			return computing_error
 		}
-		database_line := Database_Line{}
-		database_line.Import_line_processing(line_processing)
-		process_error := DATABASE.Insert_line(database_line)
-		if process_error != nil {
-			return process_error
+		insertion_error := DATABASE.Insert_line_processing(line_processing)
+		if insertion_error != nil {
+			return insertion_error
 		}
 	}
 
