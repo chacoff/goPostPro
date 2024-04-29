@@ -36,6 +36,7 @@ func Start_database() error {
 	if creation_error != nil {
 		return creation_error
 	}
+	log.Println("[DATABASE] Initialized with sucess")
 	return nil
 }
 
