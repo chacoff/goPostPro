@@ -21,5 +21,5 @@ var (
 
 var (
 	DATABASE_PATH        string = "./processed.db"
-	TIME_FORMAT_REQUESTS string = "2006-01-02 15:04:05"
+	TIME_FORMAT_REQUESTS string = "20060102150405" // REFERENCE FOR TIMESTAMP!
 )
