@@ -29,10 +29,10 @@ func Start_database() error {
 	if opening_error != nil {
 		return opening_error
 	}
-	drop_error := DATABASE.drop_Table()
-	if drop_error != nil {
-		return drop_error
-	}
+	// drop_error := DATABASE.drop_Table()
+	// if drop_error != nil {
+	// 	return drop_error
+	// }
 	creation_error := DATABASE.create_Table()
 	if creation_error != nil {
 		return creation_error
@@ -128,7 +128,16 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	// Iterate on the result and print it
 	for rows.Next() {
 		Query_Threshold_Mean := float64(0)
-		scan_error := rows.Scan(&post_pro_data.MaxTempMill3, &post_pro_data.AvgTempMill1, &post_pro_data.AvgTempWeb, &post_pro_data.MinTempWeb, &post_pro_data.MaxTempMill3, &post_pro_data.AvgTempMill3, &post_pro_data.AvgStdTemp, &post_pro_data.PixWidth, &Query_Threshold_Mean)
+		scan_error := rows.Scan(
+			&post_pro_data.MaxTempMill3, 
+			&post_pro_data.AvgTempMill1, 
+			&post_pro_data.AvgTempWeb, 
+			&post_pro_data.MinTempWeb, 
+			&post_pro_data.MaxTempMill3, 
+			&post_pro_data.AvgTempMill3, 
+			&post_pro_data.AvgStdTemp, 
+			&post_pro_data.PixWidth, 
+			&Query_Threshold_Mean)
 		
 		if scan_error != nil {
 			return post_pro_data, scan_error
