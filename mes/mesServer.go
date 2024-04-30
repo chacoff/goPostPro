@@ -18,6 +18,7 @@ import (
 	"os"
 	"strings"
 	"strconv"
+	"time"
 )
 
 var (
@@ -159,10 +160,16 @@ func getLastTimeStamp(values []uint32) string{
 	// Hundred-of-Seconds	_headerValues[9]
 	//
 
-	datS := strings.Join([]string{strconv.FormatUint(uint64(values[3]), 10), strconv.FormatUint(uint64(values[4]), 10), strconv.FormatUint(uint64(values[5]), 10)}, "")
-	timS := strings.Join([]string{strconv.FormatUint(uint64(values[6]), 10), strconv.FormatUint(uint64(values[7]), 10), strconv.FormatUint(uint64(values[8]), 10), strconv.FormatUint(uint64(values[9]), 10)}, "")
+	datS := strings.Join([]string{strconv.FormatUint(uint64(values[3]), 10), strconv.FormatUint(uint64(values[4]), 10), strconv.FormatUint(uint64(values[5]), 10)}, "-")
+	timS := strings.Join([]string{strconv.FormatUint(uint64(values[6]), 10), strconv.FormatUint(uint64(values[7]), 10), strconv.FormatUint(uint64(values[8]), 10)}, ":")
 
-	timestamp := strings.Join([]string{datS, timS}, "")
+	input := strings.Join([]string{datS, timS}, " ")
 
-	return timestamp
+	t, err := time.Parse("2006-1-2 15:4:5,99", input)
+    if err != nil {
+        fmt.Println("Error parsing input:", err)
+        return "Error parsing input >>"
+    }
+
+	return t.Format(global.TIME_FORMAT_REQUESTS) // ISO MES
 }

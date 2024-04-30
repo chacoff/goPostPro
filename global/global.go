@@ -11,7 +11,7 @@ var LTCFromMes []uint16 = []uint16{1, 2, 3, 4, 5, 6, 7, 8} // TODO only a workar
 
 // Post Processing
 var (
-	TIME_FORMAT                   string  = "2006-01-02 15:04:05,999"
+	TIME_FORMAT                   string  = "2006-01-02 15:04:05,999" // Format the time as ISO 8601
 	NUMBER_FIRST_MEASURES_REMOVED int     = 5
 	TEMPERATURE_THRESHOLD_FACTOR  float64 = 0.35
 	TEMPERATURE_THRESHOLD_MINIMUM float64 = 780
