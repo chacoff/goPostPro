@@ -71,13 +71,13 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, newData.PassDate)
 		_bodyAns = append(_bodyAns, newData.Dummy)
 		_bodyAns = append(_bodyAns, newData.MaxTempMill3)
-		_bodyAns = append(_bodyAns, newData.AvgTempMill3)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempMill3))
 		_bodyAns = append(_bodyAns, newData.MaxTempMill1)
-		_bodyAns = append(_bodyAns, newData.AvgTempMill1)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempMill1))
 		_bodyAns = append(_bodyAns, newData.MinTempWeb)
-		_bodyAns = append(_bodyAns, newData.AvgTempWeb)
-		_bodyAns = append(_bodyAns, newData.AvgStdTemp)
-		_bodyAns = append(_bodyAns, newData.PixWidth)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempWeb))
+		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
+		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 	}
 	
 	fmt.Println(_bodyAns)
