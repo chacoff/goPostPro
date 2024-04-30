@@ -23,19 +23,6 @@ type PostProData struct {
 	PixWidth     float64
 }
 
-type Database_Line struct {
-	timestamp string
-	max_Tr1   int64
-	mean_Tr1  int64
-	mean_Web  int64
-	min_Web   int64
-	max_Tr3   int64
-	mean_Tr3  int64
-	width     int64
-	threshold int64
-	filename  string
-}
-
 func Start_database() error {
 	DATABASE = CalculationsDatabase{}
 	opening_error := DATABASE.open_database()
