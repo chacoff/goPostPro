@@ -105,15 +105,15 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 
 	rows, query_error := calculations_database.database.Query(`
 	SELECT
-		MAX(Tr1_Max) AS Query_Tr1_Max,
-		AVG(Tr1_Mean) AS Query_Tr1_Mean,
-		Query_Web_Mean,
-		MIN(Web_Min) AS Query_Web_Min,
-		MAX(Tr3_Max) AS Query_Tr3_Max,
-		AVG(Tr3_Mean) AS Query_Tr3_Mean,
-		AVG((Web_Mean-Query_Web_Mean)*(Web_Mean-Query_Web_Mean)) AS Query_Web_Variance,
-		AVG(Width) AS Query_Width_Mean,
-		AVG(Threshold) AS Query_Threshold_Mean
+		COALESCE(MAX(Tr1_Max), 0) AS Query_Tr1_Max,
+		COALESCE(AVG(Tr1_Mean), 0) AS Query_Tr1_Mean,
+		COALESCE(Query_Web_Mean, 0),
+		COALESCE(MIN(Web_Min), 0) AS Query_Web_Min,
+		COALESCE(MAX(Tr3_Max), 0) AS Query_Tr3_Max,
+		COALESCE(AVG(Tr3_Mean), 0) AS Query_Tr3_Mean,
+		COALESCE(AVG((Web_Mean-Query_Web_Mean)*(Web_Mean-Query_Web_Mean)), 0) AS Query_Web_Variance,
+		COALESCE(AVG(Width), 0) AS Query_Width_Mean,
+		COALESCE(AVG(Threshold), 0) AS Query_Threshold_Mean
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
@@ -129,16 +129,16 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	for rows.Next() {
 		Query_Threshold_Mean := float64(0)
 		scan_error := rows.Scan(
-			&post_pro_data.MaxTempMill3, 
-			&post_pro_data.AvgTempMill1, 
-			&post_pro_data.AvgTempWeb, 
-			&post_pro_data.MinTempWeb, 
-			&post_pro_data.MaxTempMill3, 
-			&post_pro_data.AvgTempMill3, 
-			&post_pro_data.AvgStdTemp, 
-			&post_pro_data.PixWidth, 
+			&post_pro_data.MaxTempMill1,
+			&post_pro_data.AvgTempMill1,
+			&post_pro_data.AvgTempWeb,
+			&post_pro_data.MinTempWeb,
+			&post_pro_data.MaxTempMill3,
+			&post_pro_data.AvgTempMill3,
+			&post_pro_data.AvgStdTemp,
+			&post_pro_data.PixWidth,
 			&Query_Threshold_Mean)
-		
+
 		if scan_error != nil {
 			return post_pro_data, scan_error
 		}
