@@ -16,21 +16,8 @@ import (
 	"time"
 
 	"goPostPro/global"
+	"goPostPro/postpro"
 )
-
-type postProData struct {
-	passNumber   uint32
-	passDate     string
-	dummy        string
-	maxTempMill3 uint32
-	avgTempMill3 uint32
-	maxTempMill1 uint32
-	avgTempMill1 uint32
-	minTempWeb   uint32
-	avgTempWeb   uint32
-	avgStdTemp   uint32
-	pixWidth     uint32
-}
 
 // headerType return the values of header, at this stage nothing is encoded, it is a vector with the real values
 func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
@@ -57,10 +44,12 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 }
 
 // processType return the real values to answer process messages according the number of passes
-func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interface{} {
+func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTimeStamp string) []interface{} {
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
+	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
+	fmt.Println(listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -70,33 +59,42 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}) []interf
 
 	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	for i := 0; i < int(passCounter); i++ {
-		pass := i + 1
-		newData := postProData{
-			passNumber:   uint32(pass),
-			passDate:     _bodyDynamic[pass+(i*2)].(string), // time.Now().Format("20060102150405"),
-			dummy:        "du",
-			maxTempMill3: 8,
-			avgTempMill3: 0,
-			maxTempMill1: 0,
-			avgTempMill1: 0,
-			minTempWeb:   0,
-			avgTempWeb:   0,
-			avgStdTemp:   0,
-			pixWidth:     5,
+		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
+		if err != nil {
+			fmt.Println("ERREUR : ", err)
 		}
+		newData.PassNumber = uint32(i + 1)
+		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
+		newData.Dummy = "du"
 
-		_bodyAns = append(_bodyAns, newData.passNumber)
-		_bodyAns = append(_bodyAns, newData.passDate)
-		_bodyAns = append(_bodyAns, newData.dummy)
-		_bodyAns = append(_bodyAns, newData.maxTempMill3)
-		_bodyAns = append(_bodyAns, newData.avgTempMill3)
-		_bodyAns = append(_bodyAns, newData.maxTempMill1)
-		_bodyAns = append(_bodyAns, newData.avgTempMill1)
-		_bodyAns = append(_bodyAns, newData.minTempWeb)
-		_bodyAns = append(_bodyAns, newData.avgTempWeb)
-		_bodyAns = append(_bodyAns, newData.avgStdTemp)
-		_bodyAns = append(_bodyAns, newData.pixWidth)
+		_bodyAns = append(_bodyAns, newData.PassNumber)
+		_bodyAns = append(_bodyAns, newData.PassDate)
+		_bodyAns = append(_bodyAns, newData.Dummy)
+		_bodyAns = append(_bodyAns, newData.MaxTempMill3)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempMill3))
+		_bodyAns = append(_bodyAns, newData.MaxTempMill1)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempMill1))
+		_bodyAns = append(_bodyAns, newData.MinTempWeb)
+		_bodyAns = append(_bodyAns, uint32(newData.AvgTempWeb))
+		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
+		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
+	}
+	
+	fmt.Println(_bodyAns)
+	return _bodyAns
+}
+
+// parseTimeStamps creates a list with all timeStamps
+func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
+	var listOfStamps []string
+	
+	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
+	for i := 0; i < int(passCounter); i++ {
+		pass := i + 1
+		listOfStamps = append(listOfStamps, bodyValuesDynamic[pass+(i*2)].(string))
 	}
 
-	return _bodyAns
+	listOfStamps = append(listOfStamps, laststamp)
+
+	return listOfStamps
 }

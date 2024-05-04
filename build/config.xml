@@ -16,4 +16,5 @@ cage 4      10.28.100.0:4604
     <verbose>false</verbose>
     <addressDias>127.0.0.1:2002</addressDias>
     <jsonFolders>folders.json</jsonFolders>
+    <tickWatcher>50</tickWatcher>
 </config>
