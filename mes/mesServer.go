@@ -16,8 +16,8 @@ import (
 	"goPostPro/global"
 	"net"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -95,7 +95,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	messageType := int(_headerValues[1]) // message type on the header
 	messageCounter := _headerValues[2]   // already in uint32
 	messageTypeAns := uint32(messageType - 100)
-	lastTimestamp := getLastTimeStamp(_headerValues)  // gets last timestamp for passes based on the message timestamp
+	lastTimestamp := getLastTimeStamp(_headerValues) // gets last timestamp for passes based on the message timestamp
 	// fmt.Println(lastTimestamp)
 
 	switch messageType {
@@ -107,7 +107,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		fmt.Println("[MES SERVER] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
-		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp))  // processType actually does the processing
+		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
 		_headerAns := encodeUint32(headerType(_length, messageTypeAns, messageCounter))
 
@@ -120,10 +120,10 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = true
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
-		//bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		//fmt.Println(">> Decoded LTC values:", bodyValuesStatic)
-		fmt.Println("[MES SERVER]  LTC received")
-		dataLTC = []uint16{uint16(_headerValues[3]), 1234, 5678, 7891, 7895, 750, 850, uint16(_headerValues[4])}
+		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
+		fmt.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
+		tempLTC := bodyValuesStatic[7].(uint16)
+		dataLTC = []uint16{tempLTC, 11, 22, 33, 44, 55, 66, 77}
 		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
@@ -147,9 +147,9 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 }
 
 // getLastTimeStamp provides the timestamp of the message to use it as a limit for the last pass postprocessing
-func getLastTimeStamp(values []uint32) string{
-	// LastTimestamp is the timestamp of the message, we know the 
-	// sheetpile is out of the rolling mill at this stage
+func getLastTimeStamp(values []uint32) string {
+	// LastTimestamp is the timestamp of the message.
+	// we know the sheet-pile is out of the rolling mill at this stage
 	//
 	// Year					_headerValues[3]
 	// Month				_headerValues[4]
@@ -166,10 +166,10 @@ func getLastTimeStamp(values []uint32) string{
 	input := strings.Join([]string{datS, timS}, " ")
 
 	t, err := time.Parse("2006-1-2 15:4:5,99", input)
-    if err != nil {
-        fmt.Println("Error parsing input:", err)
-        return "Error parsing input >>"
-    }
+	if err != nil {
+		fmt.Println("Error parsing input:", err)
+		return "Error parsing input >>"
+	}
 
 	return t.Format(global.TIME_FORMAT_REQUESTS) // ISO MES
 }
