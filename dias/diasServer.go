@@ -44,14 +44,16 @@ func handleDiasConnection(conn net.Conn) {
 			break
 		}
 
-		LTCValues := global.LTCFromMes
-		
+		// RECEIVED from DIAS
 		message := hex.EncodeToString(buffer[:n])
 		lenDias := len(buffer[:n])
 		if global.Appconfig.Verbose {
 			fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
 			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
 		}
+
+		// SENT to DIAS
+		LTCValues := global.LTCFromMes
 
 		answer := make([]byte, 0)
 		for _, val := range LTCValues {
