@@ -7,10 +7,10 @@ import (
 	"goPostPro/global"
 	"log"
 	"net"
-	"time"
+	// "time"
 )
 
-var buffer = make([]byte, 24)
+var buffer = make([]byte, global.Appconfig.MaxBufferSize)
 
 // DiasServer opens socket communication with DIAS software. Objective is to pass the LTC value
 func DiasServer() {
@@ -45,10 +45,11 @@ func handleDiasConnection(conn net.Conn) {
 		}
 
 		LTCValues := global.LTCFromMes
-
+		
 		message := hex.EncodeToString(buffer[:n])
+		lenDias := len(buffer[:n])
+		fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
 		if global.Appconfig.Verbose {
-			fmt.Println("[DIAS SERVER] message received from Dias: ", message)
 			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
 		}
 
@@ -60,7 +61,7 @@ func handleDiasConnection(conn net.Conn) {
 		}
 
 		_, err = conn.Write(answer)
-		time.Sleep(1000 * time.Millisecond)
+		// time.Sleep(1000 * time.Millisecond)
 		if err != nil {
 			fmt.Println("[DIAS SERVER] error writing response: ", err)
 			break

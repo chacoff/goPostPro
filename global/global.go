@@ -7,7 +7,7 @@ import (
 // Appconfig Main Software
 var Appconfig config.Config = config.LoadConfig()
 
-var LTCFromMes []uint16 = []uint16{1, 2, 3, 4, 5, 6, 7, 8} // TODO only a workaround!
+var LTCFromMes []uint16 = []uint16{500, 950, 500, 980, 44, 55, 66, 77} // TODO only a workaround!
 
 // Post Processing
 var (

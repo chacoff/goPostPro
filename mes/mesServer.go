@@ -123,7 +123,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		fmt.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
 		tempLTC := bodyValuesStatic[7].(uint16)
-		dataLTC = []uint16{tempLTC, 11, 22, 33, 44, 55, 66, 77}
+		dataLTC = []uint16{500, tempLTC, 500, tempLTC, 44, 55, 66, 77}
 		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
