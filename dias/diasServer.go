@@ -48,8 +48,8 @@ func handleDiasConnection(conn net.Conn) {
 		
 		message := hex.EncodeToString(buffer[:n])
 		lenDias := len(buffer[:n])
-		fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
 		if global.Appconfig.Verbose {
+			fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
 			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
 		}
 
@@ -67,7 +67,10 @@ func handleDiasConnection(conn net.Conn) {
 			break
 		} else {
 			_length := len(answer)
-			fmt.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
+			if global.Appconfig.Verbose{
+				fmt.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
+			}
+			
 		}
 	}
 
