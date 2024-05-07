@@ -19,7 +19,6 @@ import (
 	"goPostPro/global"
 	"goPostPro/mes"
 	"goPostPro/postpro"
-	"goPostPro/watcher"
 	"sync"
 	"syscall"
 	"unicode/utf16"
@@ -32,13 +31,14 @@ func main() {
 	postpro.Start_database()
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(2)
 
 	// File-Watcher
-	go func() {
-		defer wg.Done()
-		watcher.Watcher()
-	}()
+	/*
+		go func() {
+			defer wg.Done()
+			watcher.Watcher()
+		}()*/
 
 	// dias-Server
 	go func() {
