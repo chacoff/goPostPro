@@ -33,13 +33,6 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// File-Watcher
-	/*
-		go func() {
-			defer wg.Done()
-			watcher.Watcher()
-		}()*/
-
 	// dias-Server
 	go func() {
 		defer wg.Done()

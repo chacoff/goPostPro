@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"goPostPro/global"
 	"goPostPro/postpro"
+	"goPostPro/logger"
 	"log"
 	"net"
 	// "time"
@@ -18,7 +19,8 @@ func DiasServer() {
 
 	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
-		log.Fatal("[DIAS SERVER] problems listening: ", err)
+		log := fmt.Sprintf("[DIAS SERVER] problems listening: %s ", err)
+		logger.Warning(log)
 	}
 	defer ln.Close()
 	fmt.Printf("[DIAS SERVER] listening DIAS on port: %s\n", global.Appconfig.AddressDias)
