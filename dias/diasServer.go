@@ -57,7 +57,7 @@ func handleDiasConnection(conn net.Conn) {
 		process_error := postpro.Process_live_line(measurement_array)
 		if process_error != nil {
 			fmt.Println("[PROCESSING] error : ", process_error)
-		} else {
+		} else if global.Appconfig.Verbose {
 			fmt.Println("[PROCESSING] completed : ", measurement_array)
 		}
 
