@@ -3,13 +3,10 @@ package dias
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"goPostPro/global"
 	"goPostPro/postpro"
-	"goPostPro/logger"
 	"log"
 	"net"
-	// "time"
 )
 
 var buffer = make([]byte, global.Appconfig.MaxBufferSize)
@@ -19,19 +16,18 @@ func DiasServer() {
 
 	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
 	if err != nil {
-		log := fmt.Sprintf("[DIAS SERVER] problems listening: %s ", err)
-		logger.Warning(log)
+		log.Printf("[DIAS SERVER] problems listening: %s\n", err)
 	}
 	defer ln.Close()
-	fmt.Printf("[DIAS SERVER] listening DIAS on port: %s\n", global.Appconfig.AddressDias)
+	log.Printf("[DIAS SERVER] listening DIAS on port: %s\n", global.Appconfig.AddressDias)
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Println("[DIAS SERVER] error accepting connection: ", err)
+			log.Printf("[DIAS SERVER] error accepting connection: %s\n", err)
 			continue
 		}
-		fmt.Println("[DIAS SERVER] accepted DIAS-client")
+		log.Printf("[DIAS SERVER] accepted DIAS-client")
 
 		go handleDiasConnection(conn)
 
@@ -43,7 +39,7 @@ func handleDiasConnection(conn net.Conn) {
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("[DIAS SERVER] error reading from connection: ", err)
+			log.Printf("[DIAS SERVER] error reading from connection: %s\n", err)
 			break
 		}
 
@@ -58,14 +54,14 @@ func handleDiasConnection(conn net.Conn) {
 
 		process_error := postpro.Process_live_line(measurement_array)
 		if process_error != nil {
-			fmt.Println("[PROCESSING] error : ", process_error)
+			log.Printf("[PROCESSING] error: %s\n", process_error)
 		} else if global.Appconfig.Verbose {
-			fmt.Println("[PROCESSING] completed : ", measurement_array)
+			log.Printf("[PROCESSING] completed: %d\n", measurement_array)
 		}
 
 		if global.Appconfig.Verbose {
-			fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
-			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
+			log.Printf("[DIAS SERVER] len: %d received from Dias: %s\n", lenDias, message)
+			log.Printf("[DIAS SERVER] new LTC values: %d\n", global.LTCFromMes)
 		}
 
 		// SENT to DIAS
@@ -81,14 +77,13 @@ func handleDiasConnection(conn net.Conn) {
 		_, err = conn.Write(answer)
 		// time.Sleep(1000 * time.Millisecond)
 		if err != nil {
-			fmt.Println("[DIAS SERVER] error writing response: ", err)
+			log.Printf("[DIAS SERVER] error writing response: %s\n", err)
 			break
 		} else {
 			_length := len(answer)
 			if global.Appconfig.Verbose {
-				fmt.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
+				log.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
 			}
-
 		}
 	}
 

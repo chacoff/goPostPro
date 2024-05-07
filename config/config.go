@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/xml"
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -22,18 +22,18 @@ type Config struct {
 func LoadConfig() Config {
 	file, err := os.Open("./config.xml")
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		log.Println("Error opening file:", err)
 		os.Exit(1)
 	}
 	defer file.Close()
 
 	var _config Config
 	if err := xml.NewDecoder(file).Decode(&_config); err != nil {
-		fmt.Println("Error decoding XML:", err)
+		log.Println("Error decoding XML:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("[Parameters] OK")
+	log.Println("[Parameters] OK")
 
 	return _config
 }

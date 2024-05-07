@@ -2,7 +2,7 @@ package watcher
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"goPostPro/postpro"
 	"os"
 )
@@ -12,7 +12,7 @@ func FileReader(filePath string, fileName string) int {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("[WATCHER] errors opening the file:", err)
+		log.Println("[WATCHER] errors opening the file:", err)
 	}
 	defer file.Close()
 
@@ -26,15 +26,15 @@ func FileReader(filePath string, fileName string) int {
 		line := scanner.Text()
 		processError := postpro.Process_line(line, fileName)
 		if processError != nil {
-			fmt.Println("[ERROR]", processError)
+			log.Println("[ERROR]", processError)
 			return lineCount
 		}
 	}
-	fmt.Println("[WATCHER] processed: ", fileName)
+	log.Println("[WATCHER] processed: ", fileName)
 
 	// Scanner error
 	if err := scanner.Err(); err != nil {
-		fmt.Println("[WATCHER] errors reading the file: ", err)
+		log.Println("[WATCHER] errors reading the file: ", err)
 	}
 	return lineCount
 }

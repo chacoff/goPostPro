@@ -2,7 +2,7 @@ package watcher
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"goPostPro/global"
 	"os"
 	"strings"
@@ -14,7 +14,7 @@ import (
 func Watcher() {
 	watcher, err := fsnotify.NewWatcher() // create new watcher
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer watcher.Close()
 
@@ -40,7 +40,7 @@ func Watcher() {
 				if !ok {
 					return
 				}
-				fmt.Println("[WATCHER] error:", errW)
+				log.Println("[WATCHER] error:", errW)
 			case <-timer.C:
 				if lastEvent.Op&fsnotify.Write == fsnotify.Write {
 					onModified(lastEvent.Name)
@@ -50,7 +50,7 @@ func Watcher() {
 					onDelete(lastEvent.Name)
 				}
 				//if err != nil{
-				//	fmt.Println("[WATCHER] error: ", err)
+				//	log.Println("[WATCHER] error: ", err)
 				//}
 			}
 		}
@@ -59,7 +59,7 @@ func Watcher() {
 	// add/create folders to watch. we don't have a proper recursive function, yet we know the folder names in advance
 	folders, errR := readFoldersFromJSON(global.Appconfig.DataFolders)
 	if errR != nil {
-		fmt.Println("Error reading folders from JSON file:", errR)
+		log.Println("Error reading folders from JSON file:", errR)
 	}
 
 	// add a paths
@@ -68,16 +68,16 @@ func Watcher() {
 		if os.IsNotExist(errF) {
 			errM := os.MkdirAll(folder, 0755)
 			if errM != nil {
-				fmt.Println("Error creating folder: ", errM)
+				log.Println("Error creating folder: ", errM)
 			}
 		}
 
 		errWa := watcher.Add(folder)
 		if errWa != nil {
-			fmt.Println("watcher.Add error: ", errWa)
+			log.Println("watcher.Add error: ", errWa)
 		}
 	}
-	fmt.Printf("[WATCHER] Observing folders in: %s\n", global.Appconfig.DataFolders)
+	log.Printf("[WATCHER] Observing folders in: %s\n", global.Appconfig.DataFolders)
 
 	<-make(chan struct{}) // block main goroutine forever
 }
@@ -86,16 +86,16 @@ func Watcher() {
 func onModified(fileAddress string) {
 	fileNameList := fileAddress
 	fileName := fileNameList[strings.LastIndex(fileNameList, "\\")+1:]
-	fmt.Println("[WATCHER] modified file:", fileAddress)
+	log.Println("[WATCHER] modified file:", fileAddress)
 	FileReader(fileAddress, fileName)
 }
 
 func onCreate(fileAddress string) {
-	fmt.Println("[WATCHER] created file:", fileAddress)
+	log.Println("[WATCHER] created file:", fileAddress)
 }
 
 func onDelete(fileAddress string) {
-	fmt.Println("[WATCHER] deleted file:", fileAddress)
+	log.Println("[WATCHER] deleted file:", fileAddress)
 }
 
 func readFoldersFromJSON(filePath string) ([]string, error) {

@@ -19,15 +19,19 @@ import (
 	"goPostPro/global"
 	"goPostPro/mes"
 	"goPostPro/postpro"
+	"log"
 	"sync"
 	"syscall"
 	"unicode/utf16"
 	"unsafe"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func main() {
 	setConsole(global.Appconfig.Cage)
 
+	loggerInit()
 	postpro.Start_database()
 
 	var wg sync.WaitGroup
@@ -45,9 +49,6 @@ func main() {
 		mes.MESserver()
 	}()
 
-	// PLC-client
-	// go plc.SiemensClient()
-
 	wg.Wait()
 
 }
@@ -62,4 +63,21 @@ func setConsole(title string) {
 	if err != nil {
 		return
 	}
+}
+
+func loggerInit() {
+	// rotation settings
+	logger := &lumberjack.Logger{
+		Filename:   "logs/livePostPro.log",
+		MaxSize:    10,    // max. size in megas of the log file before it gets rotated
+		MaxBackups: 5,    // max. number of old log files to keep
+		MaxAge:     30,   // max. number of days to retain old log files
+		Compress:   true, // compress the old log files
+	}
+
+	log.SetOutput(logger)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
+
+	log.Println("[LOGGER] Logs init.")
+	defer logger.Close()
 }

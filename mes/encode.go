@@ -13,7 +13,7 @@ package mes
 
 import (
 	"encoding/binary"
-	"fmt"
+	"log"
 
 	"goPostPro/global"
 )
@@ -35,8 +35,8 @@ func encodeUint32(_values []interface{}) []byte {
 	}
 
 	if global.Appconfig.Verbose {
-		fmt.Printf("Length of buffer: %d\n", len(_buffer))
-		fmt.Printf("Capacity of buffer: %d\n", cap(_buffer))
+		log.Printf("Length of buffer: %d\n", len(_buffer))
+		log.Printf("Capacity of buffer: %d\n", cap(_buffer))
 	}
 
 	return _buffer
@@ -54,7 +54,7 @@ func encodeProcess(_values []interface{}) []byte {
 		binaryValue := make([]byte, 4)
 
 		if isInSlice(rawWrite, j) {
-			// fmt.Println(value)
+			// log.Println(value)
 			binaryValue = []byte(value.(string))
 		} else {
 			binary.LittleEndian.PutUint32(binaryValue, value.(uint32))

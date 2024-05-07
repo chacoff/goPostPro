@@ -14,7 +14,6 @@ package mes
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"log"
 
 	"goPostPro/global"
@@ -43,7 +42,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 	j := 0
 	length := binary.BigEndian.Uint32(data[0:bytesGap]) // it assumes BigEndian
 
-	// fmt.Printf(">> Received header (hex): %s\n", hex.EncodeToString(data))
+	// log.Printf(">> Received header (hex): %s\n", hex.EncodeToString(data))
 
 	for i := 0; i+1 < len(data); i += bytesGap { // iterate over the byte slice in steps of 4 bytes, i.e. 8 characters
 		if length > 1000 && j < 3 { // because watchdog comes in big endian and process messages in both!!!
@@ -53,7 +52,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 		}
 
 		if global.Appconfig.Verbose {
-			fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
+			log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 		}
 		j += 1
 		_values = append(_values, value)
@@ -106,9 +105,9 @@ func decodeBodyStatic(data []byte) []interface{} {
 
 		if global.Appconfig.Verbose {
 			if j == 0 || j == 3 || j == 4 {
-				fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
+				log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 			} else {
-				fmt.Printf("-- %s - %d decoded: %s\n", hex.EncodeToString(data[i:i+bytesGap]), i, valueUtf)
+				log.Printf("-- %s - %d decoded: %s\n", hex.EncodeToString(data[i:i+bytesGap]), i, valueUtf)
 			}
 		}
 		j += 1

@@ -12,7 +12,7 @@
 package mes
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"goPostPro/global"
@@ -37,7 +37,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	_values = append(_values, uint32(_now.Nanosecond()/10000000)) // hundreds of seconds
 
 	if global.Appconfig.Verbose {
-		fmt.Println("Header to encode:", _values)
+		log.Println("Header to encode:", _values)
 	}
 
 	return _values
@@ -49,7 +49,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
-	fmt.Println(listOfStamps)
+	log.Println(listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -61,7 +61,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
 		if err != nil {
-			fmt.Println("ERREUR : ", err)
+			log.Println("ERREUR : ", err)
 		}
 		newData.PassNumber = uint32(i + 1)
 		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
@@ -80,7 +80,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 	}
 	
-	fmt.Println(_bodyAns)
+	log.Println(_bodyAns)
 	return _bodyAns
 }
 

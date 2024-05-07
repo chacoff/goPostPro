@@ -12,8 +12,8 @@
 package mes
 
 import (
-	"fmt"
 	"goPostPro/global"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -31,22 +31,22 @@ func MESserver() {
 
 	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
 	if err != nil {
-		fmt.Println("[MES SERVER]  error listening:", err)
+		log.Println("[MES SERVER]  error listening:", err)
 		// return
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	fmt.Printf("[MES SERVER] listening MES on port: %s\n", global.Appconfig.Address)
+	log.Printf("[MES SERVER] listening MES on port: %s\n", global.Appconfig.Address)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("[MES SERVER] error accepting connection:", err)
+			log.Println("[MES SERVER] error accepting connection:", err)
 			os.Exit(1)
 			// break
 		}
 
-		fmt.Println("[MES SERVER] accepted client from", conn.RemoteAddr())
+		log.Println("[MES SERVER] accepted client from", conn.RemoteAddr())
 		go handleConnection(conn)
 	}
 }
@@ -62,7 +62,7 @@ func handleConnection(conn net.Conn) {
 	for {
 		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {             // && err != io.EOF
-			fmt.Println("[MES SERVER] error reading or Client disconnected:", err)
+			log.Println("[MES SERVER] error reading or Client disconnected:", err)
 			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize) // reset variable before handling answer
 			isHeaderOk = false                                            // reset variables before handling answer
 			break
@@ -73,7 +73,7 @@ func handleConnection(conn net.Conn) {
 			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]   // Extract first 40 bytes, only header
 			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
-			fmt.Println("[MES SERVER] >> Decoded Header values:", headerValues)
+			log.Println("[MES SERVER] >> Decoded Header values:", headerValues)
 		}
 
 		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
@@ -96,7 +96,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	messageCounter := _headerValues[2]   // already in uint32
 	messageTypeAns := uint32(messageType - 100)
 	lastTimestamp := getLastTimeStamp(_headerValues) // gets last timestamp for passes based on the message timestamp
-	// fmt.Println(lastTimestamp)
+	// log.Println(lastTimestamp)
 
 	switch messageType {
 	case 4701, 4711, 4721: // watchdog: only header
@@ -105,7 +105,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
-		fmt.Println("[MES SERVER] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		log.Println("[MES SERVER] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -121,28 +121,28 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		fmt.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
+		log.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
 		tempLTC := bodyValuesStatic[7].(uint16)
 		dataLTC = []uint16{500, tempLTC, 500, tempLTC, 44, 55, 66, 77}
 		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
-		fmt.Println("[MES SERVER] MES received process data properly")
+		log.Println("[MES SERVER] MES received process data properly")
 		echo = false
 
 	default:
-		fmt.Println("[MES SERVER] Unknown message:", messageType, messageCounter)
+		log.Println("[MES SERVER] Unknown message:", messageType, messageCounter)
 		echo = false
 	}
 
 	if echo {
 		_, err := conn.Write(response)
 		if err != nil {
-			fmt.Println("[MES SERVER] error writing:", err)
+			log.Println("[MES SERVER] error writing:", err)
 			return
 		}
-		fmt.Println("[MES SERVER] response sent to client for message", messageCounter)
+		log.Println("[MES SERVER] response sent to client for message", messageCounter)
 	}
 }
 
@@ -167,7 +167,7 @@ func getLastTimeStamp(values []uint32) string {
 
 	t, err := time.Parse("2006-1-2 15:4:5,99", input)
 	if err != nil {
-		fmt.Println("Error parsing input:", err)
+		log.Println("Error parsing input:", err)
 		return "Error parsing input >>"
 	}
 
