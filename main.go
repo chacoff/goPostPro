@@ -22,6 +22,7 @@ import (
 	"log"
 	"sync"
 	"syscall"
+	"time"
 	"unicode/utf16"
 	"unsafe"
 
@@ -78,6 +79,6 @@ func loggerInit() {
 	log.SetOutput(logger)
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 
-	log.Println("[LOGGER] Logs init.")
+	log.Printf("---------------- [livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	defer logger.Close()
 }
