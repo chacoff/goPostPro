@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"goPostPro/global"
+	"goPostPro/postpro"
 	"log"
 	"net"
 	// "time"
@@ -45,8 +46,21 @@ func handleDiasConnection(conn net.Conn) {
 		}
 
 		// RECEIVED from DIAS
-		message := hex.EncodeToString(buffer[:n])
+		message := buffer[:n]
 		lenDias := len(buffer[:n])
+		measurement_array := make([]int16, 0)
+
+		for index := 2; index < len(message)-2; index += 2 {
+			measurement_array = append(measurement_array, int16(binary.LittleEndian.Uint16(message[index:index+2])))
+		}
+
+		process_error := postpro.Process_live_line(measurement_array)
+		if process_error != nil {
+			fmt.Println("[PROCESSING] error : ", process_error)
+		} else {
+			fmt.Println("[PROCESSING] completed : ", measurement_array)
+		}
+
 		if global.Appconfig.Verbose {
 			fmt.Printf("[DIAS SERVER] len: %d received from Dias: %s ", lenDias, message)
 			fmt.Println("[DIAS SERVER] new LTC values: ", global.LTCFromMes)
@@ -69,10 +83,10 @@ func handleDiasConnection(conn net.Conn) {
 			break
 		} else {
 			_length := len(answer)
-			if global.Appconfig.Verbose{
+			if global.Appconfig.Verbose {
 				fmt.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
 			}
-			
+
 		}
 	}
 

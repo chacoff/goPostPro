@@ -72,6 +72,36 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 	return nil
 }
 
+func (line_processing *LineProcessing) clean_int_received(int_array []int16) error{
+	if len(int_array) < 516 {
+		return errors.New("error : the parsed line has not enough measures")
+	}
+	line_processing.timestamp = time.Now()
+	measures_int_array := append(
+		int_array[1+global.NUMBER_FIRST_MEASURES_REMOVED:500],
+		int_array[510:len(int_array)-4]...,
+	)
+	var max_temperature float64
+	var min_temperature float64
+	line_processing.processed_temperatures_array = make([]float64, len(measures_int_array))
+	for index, temperature_int := range measures_int_array {
+		temperature_float := float64(temperature_int)
+		if index == 0 { // To initialize the values
+			max_temperature = temperature_float
+			min_temperature = temperature_float
+		}
+		max_temperature = math.Max(max_temperature, temperature_float)
+		min_temperature = math.Min(min_temperature, temperature_float)
+		line_processing.processed_temperatures_array[index] = temperature_float
+	}
+	// Calcul the threshold that will be used
+	line_processing.threshold = math.Max(
+		min_temperature*(1-global.TEMPERATURE_THRESHOLD_FACTOR)+max_temperature*global.TEMPERATURE_THRESHOLD_FACTOR,
+		global.TEMPERATURE_THRESHOLD_MINIMUM,
+	)
+	return nil
+}
+
 // Threshold the temperatures and compute the gradient array
 func (line_processing *LineProcessing) threshold_compute_gradient() error {
 	if len(line_processing.processed_temperatures_array) < 2 {
@@ -175,6 +205,36 @@ func Process_line(string_received string, filename string) error {
 	line_processing.filename = filename
 
 	parsing_error := line_processing.parse_string_received(string_received)
+	if parsing_error != nil {
+		return parsing_error
+	}
+	threshold_gradient_error := line_processing.threshold_compute_gradient()
+	if threshold_gradient_error != nil {
+		return threshold_gradient_error
+	}
+	cropping_error := line_processing.gradient_cropping()
+	if cropping_error != nil {
+		return cropping_error
+	}
+	if line_processing.width > global.WIDTH_MINIMUM {
+		computing_error := line_processing.compute_calculations()
+		if computing_error != nil {
+			return computing_error
+		}
+		insertion_error := DATABASE.Insert_line_processing(line_processing)
+		if insertion_error != nil {
+			return insertion_error
+		}
+	}
+
+	return nil
+}
+
+func Process_live_line(int_array_received []int16) error{
+	var line_processing LineProcessing
+	line_processing.filename = "Live_Recording"
+
+	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
 		return parsing_error
 	}
