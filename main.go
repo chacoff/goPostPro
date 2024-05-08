@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	setConsole(global.Appconfig.Cage)
+	setConsole(global.AppParams.Cage)
 
 	loggerInit()
 	postpro.Start_database()
@@ -69,11 +69,11 @@ func setConsole(title string) {
 func loggerInit() {
 	// rotation settings
 	logger := &lumberjack.Logger{
-		Filename:   "logs/livePostPro.log",
-		MaxSize:    10,    // max. size in megas of the log file before it gets rotated
-		MaxBackups: 5,    // max. number of old log files to keep
-		MaxAge:     30,   // max. number of days to retain old log files
-		Compress:   true, // compress the old log files
+		Filename:   global.LogParams.FileName,
+		MaxSize:    global.LogParams.MaxSize,    // max. size in megas of the log file before it gets rotated
+		MaxBackups: global.LogParams.MaxBackups, // max. number of old log files to keep
+		MaxAge:     global.LogParams.MaxAge,     // max. number of days to retain old log files
+		Compress:   global.LogParams.Compress,   // compress the old log files
 	}
 
 	log.SetOutput(logger)

@@ -9,17 +9,17 @@ import (
 	"net"
 )
 
-var buffer = make([]byte, global.Appconfig.MaxBufferSize)
+var buffer = make([]byte, global.AppParams.MaxBufferSize)
 
 // DiasServer opens socket communication with DIAS software. Objective is to pass the LTC value
 func DiasServer() {
 
-	ln, err := net.Listen(global.Appconfig.NetType, global.Appconfig.AddressDias)
+	ln, err := net.Listen(global.AppParams.NetType, global.AppParams.AddressDias)
 	if err != nil {
 		log.Printf("[DIAS SERVER] problems listening: %s\n", err)
 	}
 	defer ln.Close()
-	log.Printf("[DIAS SERVER] listening DIAS on port: %s\n", global.Appconfig.AddressDias)
+	log.Printf("[DIAS SERVER] listening DIAS on port: %s\n", global.AppParams.AddressDias)
 
 	for {
 		conn, err := ln.Accept()
@@ -55,11 +55,11 @@ func handleDiasConnection(conn net.Conn) {
 		process_error := postpro.Process_live_line(measurement_array)
 		if process_error != nil {
 			log.Printf("[PROCESSING] error: %s\n", process_error)
-		} else if global.Appconfig.Verbose {
+		} else if global.AppParams.Verbose {
 			log.Printf("[PROCESSING] completed: %d\n", measurement_array)
 		}
 
-		if global.Appconfig.Verbose {
+		if global.AppParams.Verbose {
 			log.Printf("[DIAS SERVER] len: %d received from Dias: %s\n", lenDias, message)
 			log.Printf("[DIAS SERVER] new LTC values: %d\n", global.LTCFromMes)
 		}
@@ -81,7 +81,7 @@ func handleDiasConnection(conn net.Conn) {
 			break
 		} else {
 			_length := len(answer)
-			if global.Appconfig.Verbose {
+			if global.AppParams.Verbose {
 				log.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", hex.EncodeToString(answer), _length)
 			}
 		}

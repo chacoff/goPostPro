@@ -46,7 +46,7 @@ type CalculationsDatabase struct {
 }
 
 func (calculations_database *CalculationsDatabase) open_database() error {
-	database, opening_error := sql.Open("sqlite3", global.DATABASE_PATH)
+	database, opening_error := sql.Open("sqlite3", global.DBParams.Path)
 	if opening_error != nil {
 		return opening_error
 	}
@@ -85,7 +85,7 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	}
 	defer preparation.Close()
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp.Format(global.TIME_FORMAT), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
+	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
 	if execution_error != nil {
 		return execution_error
 	}
@@ -94,11 +94,11 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 
 func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
 	post_pro_data := PostProData{}
-	begin_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, begin_string_timestamp)
+	begin_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
-	end_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, end_string_timestamp)
+	end_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
@@ -117,8 +117,8 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
-		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `')
-	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `'
+		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `')
+	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `'
 	`,
 	)
 	if query_error != nil {

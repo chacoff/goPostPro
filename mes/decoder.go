@@ -51,7 +51,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 			value = binary.BigEndian.Uint32(data[i : i+bytesGap])
 		}
 
-		if global.Appconfig.Verbose {
+		if global.AppParams.Verbose {
 			log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 		}
 		j += 1
@@ -103,7 +103,7 @@ func decodeBodyStatic(data []byte) []interface{} {
 			_values = append(_values, valueUtf)
 		}
 
-		if global.Appconfig.Verbose {
+		if global.AppParams.Verbose {
 			if j == 0 || j == 3 || j == 4 {
 				log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 			} else {
@@ -149,7 +149,7 @@ func decodePasses(data []byte, passes int) []interface{} {
 			case gap == 2: // dummy
 				// dummy = binary.LittleEndian.Uint16(_data)
 				dumm, err := hex.DecodeString(hex.EncodeToString(_data))
-				if err != nil{
+				if err != nil {
 					log.Fatal(err)
 				}
 				dummy = string(dumm)

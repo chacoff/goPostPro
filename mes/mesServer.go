@@ -29,14 +29,14 @@ var (
 // MESserver to receive the messages from MES
 func MESserver() {
 
-	listener, err := net.Listen(global.Appconfig.NetType, global.Appconfig.Address) // listen on port 4600
+	listener, err := net.Listen(global.AppParams.NetType, global.AppParams.Address) // listen on port 4600
 	if err != nil {
 		log.Println("[MES SERVER]  error listening:", err)
 		// return
 		os.Exit(1)
 	}
 	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	log.Printf("[MES SERVER] listening MES on port: %s\n", global.Appconfig.Address)
+	log.Printf("[MES SERVER] listening MES on port: %s\n", global.AppParams.Address)
 
 	for {
 		conn, err := listener.Accept()
@@ -63,22 +63,22 @@ func handleConnection(conn net.Conn) {
 		n, err := conn.Read(buffer) // read data from the connection
 		if err != nil {             // && err != io.EOF
 			log.Println("[MES SERVER] error reading or Client disconnected:", err)
-			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize) // reset variable before handling answer
+			allHexBytes = make([]byte, 0, global.AppParams.MaxBufferSize) // reset variable before handling answer
 			isHeaderOk = false                                            // reset variables before handling answer
 			break
 		}
 		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
 
-		if len(allHexBytes) >= global.Appconfig.HeaderSize && !isHeaderOk {
-			hexBytesHeader := allHexBytes[:global.Appconfig.HeaderSize]   // Extract first 40 bytes, only header
+		if len(allHexBytes) >= global.AppParams.HeaderSize && !isHeaderOk {
+			hexBytesHeader := allHexBytes[:global.AppParams.HeaderSize]   // Extract first 40 bytes, only header
 			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
 			FullLength = int(headerValues[0])
 			log.Println("[MES SERVER] >> Decoded Header values:", headerValues)
 		}
 
 		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
-			hexBytesBody := allHexBytes[global.Appconfig.HeaderSize:FullLength] // Extract the rest of the bytes
-			allHexBytes = make([]byte, 0, global.Appconfig.MaxBufferSize)       // reset variable before handling answer
+			hexBytesBody := allHexBytes[global.AppParams.HeaderSize:FullLength] // Extract the rest of the bytes
+			allHexBytes = make([]byte, 0, global.AppParams.MaxBufferSize)       // reset variable before handling answer
 			isHeaderOk = false                                                  // reset variables before handling answer
 			go handleAnswer(conn, headerValues, hexBytesBody)
 		}
@@ -171,5 +171,5 @@ func getLastTimeStamp(values []uint32) string {
 		return "Error parsing input >>"
 	}
 
-	return t.Format(global.TIME_FORMAT_REQUESTS) // ISO MES
+	return t.Format(global.DBParams.TimeFormatRequest) // ISO MES
 }

@@ -6,15 +6,33 @@ cage 1-2    10.28.114.89:4612
 cage 3 	    10.28.114.56:4603
 cage 4      10.28.100.0:4604
 -->
-
-<config>
-    <cage>goPostPro - TestCage</cage>
-    <netType>tcp</netType>
-    <address>127.0.0.1:4600</address>
-    <maxBufferSize>2048</maxBufferSize>
-    <headerSize>40</headerSize>
-    <verbose>false</verbose>
-    <addressDias>127.0.0.1:2002</addressDias>
-    <jsonFolders>folders.json</jsonFolders>
-    <tickWatcher>50</tickWatcher>
-</config>
+<parameters>
+    <config>
+        <cage>goPostPro - TestCage</cage>
+        <netType>tcp</netType>
+        <address>127.0.0.1:4600</address>
+        <addressDias>127.0.0.1:2002</addressDias>
+        <maxBufferSize>2048</maxBufferSize>
+        <headerSize>40</headerSize>
+        <verbose>false</verbose>
+    </config>
+    <logger>
+        <fileName>logs/livePostPro.log</fileName>
+        <maxSize>10</maxSize>
+        <maxBackups>5</maxBackups>
+        <maxAge>30</maxAge>
+        <compress>true</compress>
+    </logger>
+    <postpro>
+        <timeFormat>2006-01-02 15:04:05,999</timeFormat>
+        <firstRemoved>5</firstRemoved>
+        <adaptativeFactor>0.35</adaptativeFactor>
+        <minTemperatureThreshold>780</minTemperatureThreshold>
+        <gradientFactor>3</gradientFactor>
+        <minwidth>2</minwidth>
+    </postpro>
+    <database>
+        <path>./processed.db</path>
+        <timeFormatRequest>20060102150405</timeFormatRequest>
+    </database>
+</parameters>

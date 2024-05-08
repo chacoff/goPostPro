@@ -20,7 +20,7 @@ import (
 
 // encodeUint32 function encoding Header data, it is common for all message types
 func encodeUint32(_values []interface{}) []byte {
-	_buffer := make([]byte, 0, global.Appconfig.MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
+	_buffer := make([]byte, 0, global.AppParams.MaxBufferSize) // variable buffer with maximum capacity MaxBufferSize
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
 	for _, value := range _values {
@@ -34,7 +34,7 @@ func encodeUint32(_values []interface{}) []byte {
 		j += 1
 	}
 
-	if global.Appconfig.Verbose {
+	if global.AppParams.Verbose {
 		log.Printf("Length of buffer: %d\n", len(_buffer))
 		log.Printf("Capacity of buffer: %d\n", cap(_buffer))
 	}
@@ -44,7 +44,7 @@ func encodeUint32(_values []interface{}) []byte {
 
 // encodeProcess encode process data containing passes, it is only to encode Body
 func encodeProcess(_values []interface{}) []byte {
-	_buffer := make([]byte, 0, global.Appconfig.MaxBufferSize)
+	_buffer := make([]byte, 0, global.AppParams.MaxBufferSize)
 
 	var rawWrite = []int{1, 2, 6, 7, 17, 18, 28, 29, 39, 40, 50, 51, 61, 62, 72, 73, 83, 84, 94, 95}
 

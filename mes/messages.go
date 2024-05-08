@@ -36,7 +36,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	_values = append(_values, uint32(_now.Second()))              // seconds
 	_values = append(_values, uint32(_now.Nanosecond()/10000000)) // hundreds of seconds
 
-	if global.Appconfig.Verbose {
+	if global.AppParams.Verbose {
 		log.Println("Header to encode:", _values)
 	}
 
@@ -79,7 +79,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 	}
-	
+
 	log.Println(_bodyAns)
 	return _bodyAns
 }
@@ -87,7 +87,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 // parseTimeStamps creates a list with all timeStamps
 func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
 	var listOfStamps []string
-	
+
 	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	for i := 0; i < int(passCounter); i++ {
 		pass := i + 1
