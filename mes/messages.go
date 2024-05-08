@@ -49,7 +49,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
-	log.Println(listOfStamps)
+	log.Println("[MES SERVER] process timestamps", listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -80,7 +80,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 	}
 
-	log.Println(_bodyAns)
+	log.Println("[MES SERVER] post-pro answer", _bodyAns)
 	return _bodyAns
 }
 

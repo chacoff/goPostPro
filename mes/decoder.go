@@ -199,5 +199,6 @@ func decodeLTC(data []byte) []interface{} {
 		j += 1
 	}
 
+	// log.Printf("[LTC] length of string %d - %d ", len(_values), _values[7])
 	return _values
 }
