@@ -16,6 +16,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -122,8 +123,8 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
-		tempLTC := bodyValuesStatic[7].(uint16)
-		dataLTC = []uint16{500, tempLTC, 500, tempLTC, 44, 55, 66, 77}
+		val := reflectToUint16(bodyValuesStatic[7])
+		dataLTC = []uint16{500, val, 500, val, 44, 55, 66, 77}
 		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
@@ -132,7 +133,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = false
 
 	default:
-		log.Println("[MES SERVER] Unknown message:", messageType, messageCounter)
+		log.Println("[MES SERVER] Unknown message", messageType, messageCounter)
 		echo = false
 	}
 
@@ -172,4 +173,20 @@ func getLastTimeStamp(values []uint32) string {
 	}
 
 	return t.Format(global.DBParams.TimeFormatRequest) // ISO MES
+}
+
+func reflectToUint16(val interface{}) uint16{
+
+	var value uint16
+	valType := reflect.TypeOf(val)
+
+	if valType.ConvertibleTo(reflect.TypeOf(uint16(0))) {
+		value = reflect.ValueOf(val).Convert(reflect.TypeOf(uint16(0))).Interface().(uint16)
+		log.Println("[LTC] LTC reflected to uint16", val)
+	} else {
+		value = 1432
+		log.Println("[LTC] Type not convertible", valType)
+	}
+
+	return value
 }
