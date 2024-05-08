@@ -58,5 +58,6 @@ func LoadConfig() Parameters {
 		log.Fatalf("Error decoding XML: %s\n", err)
 	}
 
+	log.Println("[Parameters] OK")
 	return params
 }
