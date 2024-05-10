@@ -79,12 +79,12 @@ func main() {
 
 			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
 			if err != nil {
-				log.Printf("[DIAS SERVER] error writing response: %s\n", err)
+				log.Printf("[DIAS] error writing response: %s\n", err)
 				break
 			}
 
 			if global.AppParams.Verbose {
-				log.Printf("[DIAS SERVER] sent to Dias %q\n", LTC)
+				log.Printf("[DIAS] sent to Dias %q\n", LTC)
 			}
 		}
 	}()
@@ -109,10 +109,10 @@ func main() {
 			if echo {
 				_, err := msg.Conn.Write(response)
 				if err != nil {
-					log.Println("[MES SERVER] error writing:", err)
+					log.Println("[MES] error writing:", err)
 					return
 				}
-				log.Println("[MES SERVER] response sent to client for message", msgCounter)
+				log.Println("[MES] response sent to client for message", msgCounter)
 			}
 		}
 		close(LTCch)

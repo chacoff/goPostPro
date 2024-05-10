@@ -30,7 +30,7 @@ func HandleMesData(payload []byte) ([]uint32, []byte) {
 		hexBytesHeader := payload[:global.AppParams.HeaderSize] // Extract first 40 bytes, only header
 		headerValues, _ = DecodeHeaderUint32(hexBytesHeader)    // decode little-endian uint32 values
 		FullLength = int(headerValues[0])
-		log.Println("[MES SERVER] >> Decoded Header values:", headerValues)
+		log.Println("[MES Header] >> Decoded Header values:", headerValues)
 	}
 
 	if len(payload) >= FullLength { // TODO attention with the '>='
@@ -59,7 +59,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
-		log.Println("[MES SERVER] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -75,17 +75,17 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
-		log.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
+		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
 		val := reflectToUint16(bodyValuesStatic[7])
 		dataLTC = []uint16{500, val, 500, val, 44, 55, 66, 77}
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
-		log.Println("[MES SERVER] MES received process data properly")
+		log.Println("[MES ACK] MES received process data properly")
 		echo = false
 
 	default:
-		log.Println("[MES SERVER] Unknown message", messageType, messageCounter)
+		log.Println("[MES Unknown] Unknown message", messageType, messageCounter)
 		echo = false
 	}
 
