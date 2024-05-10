@@ -71,8 +71,7 @@ func main() {
 			}
 
 			_msg, _length := diasHelpers.DataScope(msg.Payload)
-			measurementsArray := diasHelpers.DecodeDiasData(msg.Payload)
-			diasHelpers.ProcessDiasData(measurementsArray)
+			diasHelpers.ProcessDiasData(msg.Payload)
 
 			if global.AppParams.Verbose {
 				log.Printf("[DIAS] received message length %s from (%s): %s\n", _length, msg.From, _msg)

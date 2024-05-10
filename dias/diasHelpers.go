@@ -18,7 +18,11 @@ import (
 	"log"
 )
 
-func ProcessDiasData(array []int16) {
+// ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
+func ProcessDiasData(payload []byte) {
+
+	array := DecodeDiasData(payload)
+
 	processError := postpro.Process_live_line(array)
 	if processError != nil {
 		log.Printf("[PROCESSING] error: %s\n", processError)
