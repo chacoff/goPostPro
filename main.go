@@ -17,10 +17,10 @@ package main
 import (
 	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
+	mesHelpers "goPostPro/mes"
 	"goPostPro/postpro"
 	server "goPostPro/tcpServer"
 	"log"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -61,6 +61,13 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for msg := range dias.Msgch {
+			// Dias payload
+			_msg, _length := diasHelpers.DataScope(msg.Payload)
+			diasHelpers.ProcessDiasData(msg.Payload)
+
+			if global.AppParams.Verbose {
+				log.Printf("[DIAS] received message length %s from (%s): %s\n", _length, msg.From, _msg)
+			}
 
 			// LTC consumer
 			select {
@@ -70,14 +77,6 @@ func main() {
 				//
 			}
 
-			_msg, _length := diasHelpers.DataScope(msg.Payload)
-			diasHelpers.ProcessDiasData(msg.Payload)
-
-			if global.AppParams.Verbose {
-				log.Printf("[DIAS] received message length %s from (%s): %s\n", _length, msg.From, _msg)
-				log.Printf("[DIAS] new LTC values: %d\n", LTC)
-			}
-
 			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
 			if err != nil {
 				log.Printf("[DIAS SERVER] error writing response: %s\n", err)
@@ -85,7 +84,7 @@ func main() {
 			}
 
 			if global.AppParams.Verbose {
-				log.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", _msg, _length)
+				log.Printf("[DIAS SERVER] sent to Dias %q\n", LTC)
 			}
 		}
 	}()
@@ -96,15 +95,25 @@ func main() {
 		for msg := range mes.Msgch {
 			log.Printf("[MES] received message (%s): %s", msg.From, string(msg.Payload))
 
+			header, hexBody := mesHelpers.HandleMesData(msg.Payload)
+			echo, response, dataLTC, msgType, msgCounter := mesHelpers.HandleAnswerToMes(header, hexBody)
+
 			// LTC producer
-			switch strings.TrimSpace(string(msg.Payload)) {
-			case "LTC":
-				LTCch <- []uint16{500, 1200, 500, 1250, 44, 55, 66, 77}
+			switch msgType {
+			case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
+				LTCch <- dataLTC // []uint16{500, 1200, 500, 1250, 44, 55, 66, 77}
 			default:
 				//
 			}
 
-			msg.Conn.Write([]byte("Answer to MES\n"))
+			if echo {
+				_, err := msg.Conn.Write(response)
+				if err != nil {
+					log.Println("[MES SERVER] error writing:", err)
+					return
+				}
+				log.Println("[MES SERVER] response sent to client for message", msgCounter)
+			}
 		}
 		close(LTCch)
 	}()

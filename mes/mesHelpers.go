@@ -1,11 +1,11 @@
 /*
- * File:    mesServer.go
- * Date:    April 17, 2024
+ * File:    mesHelpers.go
+ * Date:    May 10, 2024
  * Author:  J.
  * Email:   jaime.gomez@usach.cl
  * Project: goPostPro
  * Description:
- *   Open a tcp ip server communication with MES at train2
+ *   Handle decoding incoming messages from MES
  *
  */
 
@@ -14,81 +14,34 @@ package mes
 import (
 	"goPostPro/global"
 	"log"
-	"net"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var (
-	buffer      = make([]byte, 2048)    // buffer to hold incoming data
-	allHexBytes = make([]byte, 0, 2048) // variable: from 0 to maxBufferSize. Data will be appended on arrival
-)
-
-// MESserver to receive the messages from MES
-func MESserver() {
-
-	listener, err := net.Listen(global.AppParams.NetType, global.AppParams.Address) // listen on port 4600
-	if err != nil {
-		log.Println("[MES SERVER]  error listening:", err)
-		// return
-		os.Exit(1)
-	}
-	defer listener.Close() // close the connection when the function returns using a schedule: defer
-	log.Printf("[MES SERVER] listening MES on port: %s\n", global.AppParams.Address)
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("[MES SERVER] error accepting connection:", err)
-			os.Exit(1)
-			// break
-		}
-
-		log.Println("[MES SERVER] accepted client from", conn.RemoteAddr())
-		go handleConnection(conn)
-	}
-}
-
-func handleConnection(conn net.Conn) {
-
-	defer conn.Close()
-
-	var isHeaderOk = false
+// HandleMesData ensures the header is at least 40bytes before decoding it. It returns the body in bytes
+func HandleMesData(payload []byte) ([]uint32, []byte) {
 	var headerValues []uint32
 	var FullLength int
+	var hexBytesBody []byte
 
-	for {
-		n, err := conn.Read(buffer) // read data from the connection
-		if err != nil {             // && err != io.EOF
-			log.Println("[MES SERVER] error reading or Client disconnected:", err)
-			allHexBytes = make([]byte, 0, global.AppParams.MaxBufferSize) // reset variable before handling answer
-			isHeaderOk = false                                            // reset variables before handling answer
-			break
-		}
-		allHexBytes = append(allHexBytes, buffer[:n]...) //  append data upon arrival
-
-		if len(allHexBytes) >= global.AppParams.HeaderSize && !isHeaderOk {
-			hexBytesHeader := allHexBytes[:global.AppParams.HeaderSize]   // Extract first 40 bytes, only header
-			headerValues, isHeaderOk = decodeHeaderUint32(hexBytesHeader) // decode little-endian uint32 values
-			FullLength = int(headerValues[0])
-			log.Println("[MES SERVER] >> Decoded Header values:", headerValues)
-		}
-
-		if len(allHexBytes) >= FullLength && isHeaderOk { // TODO attention with the '>='
-			hexBytesBody := allHexBytes[global.AppParams.HeaderSize:FullLength] // Extract the rest of the bytes
-			allHexBytes = make([]byte, 0, global.AppParams.MaxBufferSize)       // reset variable before handling answer
-			isHeaderOk = false                                                  // reset variables before handling answer
-			go handleAnswer(conn, headerValues, hexBytesBody)
-		}
+	if len(payload) >= global.AppParams.HeaderSize {
+		hexBytesHeader := payload[:global.AppParams.HeaderSize] // Extract first 40 bytes, only header
+		headerValues, _ = DecodeHeaderUint32(hexBytesHeader)    // decode little-endian uint32 values
+		FullLength = int(headerValues[0])
+		log.Println("[MES SERVER] >> Decoded Header values:", headerValues)
 	}
+
+	if len(payload) >= FullLength { // TODO attention with the '>='
+		hexBytesBody = payload[global.AppParams.HeaderSize:FullLength] // Extract the rest of the bytes
+	}
+
+	return headerValues, hexBytesBody
 }
 
-// handleAnswer dispatches the next process according the messageType
-func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
-
+// HandleAnswerToMes dispatches the next process according the messageType
+func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []byte, []uint16, int, uint32) {
 	var echo = false
 	var response []byte
 	var dataLTC []uint16
@@ -125,7 +78,6 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		log.Println("[MES SERVER]  LTC received:", bodyValuesStatic)
 		val := reflectToUint16(bodyValuesStatic[7])
 		dataLTC = []uint16{500, val, 500, val, 44, 55, 66, 77}
-		global.LTCFromMes = dataLTC // TODO pointer removed, now just a global Var, but is not efficient! LTC data DIAS coming from MES
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
@@ -137,14 +89,7 @@ func handleAnswer(conn net.Conn, _headerValues []uint32, _hexBytesBody []byte) {
 		echo = false
 	}
 
-	if echo {
-		_, err := conn.Write(response)
-		if err != nil {
-			log.Println("[MES SERVER] error writing:", err)
-			return
-		}
-		log.Println("[MES SERVER] response sent to client for message", messageCounter)
-	}
+	return echo, response, dataLTC, messageType, messageCounter
 }
 
 // getLastTimeStamp provides the timestamp of the message to use it as a limit for the last pass postprocessing
@@ -175,7 +120,7 @@ func getLastTimeStamp(values []uint32) string {
 	return t.Format(global.DBParams.TimeFormatRequest) // ISO MES
 }
 
-func reflectToUint16(val interface{}) uint16{
+func reflectToUint16(val interface{}) uint16 {
 
 	var value uint16
 	valType := reflect.TypeOf(val)
