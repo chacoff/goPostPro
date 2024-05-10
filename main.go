@@ -15,11 +15,12 @@
 package main
 
 import (
-	"goPostPro/dias"
+	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
-	"goPostPro/mes"
 	"goPostPro/postpro"
+	server "goPostPro/tcpServer"
 	"log"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -29,25 +30,100 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+// LTC default
+var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
+
 func main() {
+	// Init
 	setConsole(global.AppParams.Cage)
 
-	loggerInit()
-	postpro.Start_database()
+	errLogger := loggerInit()
+	if errLogger != nil {
+		log.Panicln("error initializing Logger")
+	}
 
+	errPostPro := postpro.StartDatabase()
+	if errPostPro != nil {
+		log.Panicln("error initializing DataBase")
+	}
+
+	// Init servers
+	dias := server.NewServer(global.AppParams.AddressDias, "DIAS")
+	mes := server.NewServer(global.AppParams.Address, "MES")
+
+	// Define waiting groups
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(4)
 
-	// dias-Server
+	LTCch := make(chan []uint16) // LTC channel
+
+	// Dias messages
 	go func() {
 		defer wg.Done()
-		dias.DiasServer()
+		for msg := range dias.Msgch {
+
+			// LTC consumer
+			select {
+			case ltc := <-LTCch:
+				LTC = ltc
+			default:
+				//
+			}
+
+			_msg, _length := diasHelpers.DataScope(msg.Payload)
+			measurementsArray := diasHelpers.DecodeDiasData(msg.Payload)
+			diasHelpers.ProcessDiasData(measurementsArray)
+
+			if global.AppParams.Verbose {
+				log.Printf("[DIAS] received message length %s from (%s): %s\n", _length, msg.From, _msg)
+				log.Printf("[DIAS] new LTC values: %d\n", LTC)
+			}
+
+			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
+			if err != nil {
+				log.Printf("[DIAS SERVER] error writing response: %s\n", err)
+				break
+			}
+
+			if global.AppParams.Verbose {
+				log.Printf("[DIAS SERVER] sent to Dias %q with length: %d\n", _msg, _length)
+			}
+		}
 	}()
 
-	// MES-Server
+	// MES messages
 	go func() {
 		defer wg.Done()
-		mes.MESserver()
+		for msg := range mes.Msgch {
+			log.Printf("[MES] received message (%s): %s", msg.From, string(msg.Payload))
+
+			// LTC producer
+			switch strings.TrimSpace(string(msg.Payload)) {
+			case "LTC":
+				LTCch <- []uint16{500, 1200, 500, 1250, 44, 55, 66, 77}
+			default:
+				//
+			}
+
+			msg.Conn.Write([]byte("Answer to MES\n"))
+		}
+		close(LTCch)
+	}()
+
+	// Dias server start
+	go func() {
+		defer wg.Done()
+		if err := dias.Start(); err != nil {
+			log.Panicln("dias server error:", err)
+		}
+	}()
+
+	// MES server start
+	go func() {
+		defer wg.Done()
+		if err := mes.Start(); err != nil {
+			log.Panicln("mes server error:", err)
+		}
 	}()
 
 	wg.Wait()
@@ -66,7 +142,7 @@ func setConsole(title string) {
 	}
 }
 
-func loggerInit() {
+func loggerInit() error {
 	// rotation settings
 	logger := &lumberjack.Logger{
 		Filename:   global.LogParams.FileName,
@@ -79,6 +155,9 @@ func loggerInit() {
 	log.SetOutput(logger)
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
 
-	log.Printf("---------------- [livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	log.Println("** ----------------------------------------------------------------")
+	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	defer logger.Close()
+
+	return nil
 }

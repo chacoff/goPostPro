@@ -23,7 +23,7 @@ type PostProData struct {
 	PixWidth     float64
 }
 
-func Start_database() error {
+func StartDatabase() error {
 	DATABASE = CalculationsDatabase{}
 	opening_error := DATABASE.open_database()
 	if opening_error != nil {
@@ -37,7 +37,7 @@ func Start_database() error {
 	if creation_error != nil {
 		return creation_error
 	}
-	log.Println("[DATABASE] Initialized with sucess")
+	log.Println("[DATABASE] init with success")
 	return nil
 }
 

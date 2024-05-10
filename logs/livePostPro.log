@@ -1,0 +1,45 @@
+2024/05/10 13:15:46.591747 main.go:189: ---------------- [livePostPro] init at 2024-05-10 13:15:46
+2024/05/10 13:15:46.595522 database.go:40: [DATABASE] Initialized with sucess
+2024/05/10 13:18:33.257376 main.go:188: ---------------- [livePostPro] init at 2024-05-10 13:18:33
+2024/05/10 13:18:33.260056 database.go:40: [DATABASE] Initialized with sucess
+2024/05/10 13:18:33.261659 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:18:33.261659 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:18:45.589379 tcpServer.go:68: [MES] new connection from: 127.0.0.1:63422
+2024/05/10 13:18:48.653945 tcpServer.go:68: [DIAS] new connection from: 127.0.0.1:63424
+2024/05/10 13:19:19.040212 main.go:188: [livePostPro] init at 2024-05-10 13:19:19 ----------------
+2024/05/10 13:19:19.054355 database.go:40: [DATABASE] Initialized with sucess
+2024/05/10 13:19:19.056122 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:19:19.056122 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:20:05.294291 main.go:188: * --------------------------------
+2024/05/10 13:20:05.294831 main.go:189: [livePostPro] init at 2024-05-10 13:20:05
+2024/05/10 13:20:05.296966 database.go:40: [DATABASE] Initialized with sucess
+2024/05/10 13:20:05.298624 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:20:05.298624 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:20:47.485821 main.go:188: ** ------------------------------------------------
+
+2024/05/10 13:20:47.485821 main.go:189: [livePostPro] init at 2024-05-10 13:20:47
+2024/05/10 13:20:47.488114 database.go:40: [DATABASE] Initialized with sucess
+2024/05/10 13:20:47.490311 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:20:47.490311 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:22:28.107276 main.go:188: 
+2024/05/10 13:22:28.107813 main.go:189: ** ----------------------------------------------------------------
+2024/05/10 13:22:28.107877 main.go:190: [livePostPro] init at 2024-05-10 13:22:28
+2024/05/10 13:22:28.109903 database.go:40: [DATABASE] init with success
+2024/05/10 13:22:28.112269 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:22:28.112269 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:23:31.894837 main.go:163: 
+** ----------------------------------------------------------------
+2024/05/10 13:23:31.895342 main.go:164: [livePostPro] init at 2024-05-10 13:23:31
+2024/05/10 13:23:31.896958 database.go:40: [DATABASE] init with success
+2024/05/10 13:23:31.898589 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:23:31.898589 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:45:15.400247 main.go:158: ** ----------------------------------------------------------------
+2024/05/10 13:45:15.400770 main.go:159: [livePostPro] init at 2024-05-10 13:45:15
+2024/05/10 13:45:15.402435 database.go:40: [DATABASE] init with success
+2024/05/10 13:45:15.404590 tcpServer.go:50: [DIAS] listening on: 127.0.0.1:2002
+2024/05/10 13:45:15.404590 tcpServer.go:50: [MES] listening on: 127.0.0.1:4600
+2024/05/10 13:45:31.770414 tcpServer.go:68: [DIAS] new connection from: 127.0.0.1:63696
+2024/05/10 13:45:33.383466 tcpServer.go:68: [MES] new connection from: 127.0.0.1:63698
+2024/05/10 13:45:36.043174 main.go:98: [MES] received message (127.0.0.1:63698): LTC
+2024/05/10 13:45:40.259489 diasHelpers.go:24: [PROCESSING] error: error : the parsed line has not enough measures
+2024/05/10 13:45:40.259489 diasHelpers.go:26: [PROCESSING] completed: [21313]
