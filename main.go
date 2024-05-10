@@ -66,7 +66,7 @@ func main() {
 			diasHelpers.ProcessDiasData(msg.Payload)
 
 			if global.AppParams.Verbose {
-				log.Printf("[DIAS] received message length %s from (%s): %s\n", _length, msg.From, _msg)
+				log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
 			}
 
 			// LTC consumer
@@ -93,7 +93,8 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for msg := range mes.Msgch {
-			log.Printf("[MES] received message (%s): %s", msg.From, string(msg.Payload))
+			_payload, _len := mesHelpers.DataScope(msg.Payload)
+			log.Printf("[MES] received message from %s with length %d: %s", msg.From, _len, _payload)
 
 			header, hexBody := mesHelpers.HandleMesData(msg.Payload)
 			echo, response, dataLTC, msgType, msgCounter := mesHelpers.HandleAnswerToMes(header, hexBody)

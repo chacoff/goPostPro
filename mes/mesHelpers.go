@@ -12,6 +12,7 @@
 package mes
 
 import (
+	"encoding/hex"
 	"goPostPro/global"
 	"log"
 	"reflect"
@@ -134,4 +135,9 @@ func reflectToUint16(val interface{}) uint16 {
 	}
 
 	return value
+}
+
+// DataScope is used only for printing byte arrays while debugging
+func DataScope(buffer []byte) (string, int) {
+	return hex.EncodeToString(buffer), len(buffer)
 }

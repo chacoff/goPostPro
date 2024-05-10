@@ -14,6 +14,7 @@ package dias
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"goPostPro/global"
 	"goPostPro/postpro"
 	"log"
 )
@@ -27,7 +28,10 @@ func ProcessDiasData(payload []byte) {
 	if processError != nil {
 		log.Printf("[PROCESSING] error: %s\n", processError)
 	}
-	log.Printf("[PROCESSING] completed: %d\n", array)
+	if global.AppParams.Verbose{
+		log.Printf("[PROCESSING] completed: %d\n", array)
+	}
+	
 }
 
 // DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 4 digital outputs
