@@ -1,3 +1,14 @@
+/*
+ * File:    global.go
+ * Date:    May 11, 2024
+ * Author:  J.
+ * Email:   jaime.gomez@usach.cl
+ * Project: goPostPro
+ * Description:
+ *   a package with global variables for the whole project
+ *
+ */
+
 package global
 
 import (

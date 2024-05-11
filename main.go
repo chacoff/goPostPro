@@ -1,6 +1,6 @@
 /*
  * File:    main.go
- * Date:    March 04, 2024
+ * Date:    May 11, 2024
  * Author:  J.
  * Email:   jaime.gomez@usach.cl
  * Project: goPostPro
@@ -8,8 +8,15 @@
  *   Gathers data from thermal cameras at Train2 and cross-match with timestamps coming from MES to
  *	 to outcome post processes data.
  *
- * Build:
- * go build -o ./Build/goPostPro.exe
+ * Basic Build:
+ *  go build -o ./Build/goPostPro.exe
+ *
+ * Advance Build:
+ *  ./build.bat
+ *
+ * Install as Windows Service:
+ *  nssm install LivePostProTr2
+ *
  */
 
 package main

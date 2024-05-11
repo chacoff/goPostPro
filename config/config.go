@@ -1,3 +1,14 @@
+/*
+ * File:    config.go
+ * Date:    May 11, 2024
+ * Author:  J.
+ * Email:   jaime.gomez@usach.cl
+ * Project: goPostPro
+ * Description:
+ *   handles config.xml in different struct types to make the parameters available across the whole project
+ *
+ */
+
 package config
 
 import (
