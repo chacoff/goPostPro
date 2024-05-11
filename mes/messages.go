@@ -85,7 +85,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 }
 
 // parseTimeStamps creates a list with all timeStamps
-func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
+func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastStamp string) []string {
 	var listOfStamps []string
 
 	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
@@ -94,7 +94,7 @@ func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastst
 		listOfStamps = append(listOfStamps, bodyValuesDynamic[pass+(i*2)].(string))
 	}
 
-	listOfStamps = append(listOfStamps, laststamp)
+	listOfStamps = append(listOfStamps, lastStamp)
 
 	return listOfStamps
 }

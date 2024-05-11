@@ -121,6 +121,7 @@ func getLastTimeStamp(values []uint32) string {
 	return t.Format(global.DBParams.TimeFormatRequest) // ISO MES
 }
 
+// reflectToUint16 reflects interface values to uint16 before sending these to DIAS-IO
 func reflectToUint16(val interface{}) uint16 {
 
 	var value uint16
