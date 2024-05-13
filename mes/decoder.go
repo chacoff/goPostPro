@@ -25,7 +25,7 @@ const (
 	staticBodySize int = 20
 )
 
-func decodeHeaderUint32(data []byte) ([]uint32, bool) {
+func DecodeHeaderUint32(data []byte) ([]uint32, bool) {
 	// Total Length			format	HEX		BytesGap	4
 	// Identification		format	HEX		BytesGap	4
 	// Message Counter		format	HEX		BytesGap	4

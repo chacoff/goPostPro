@@ -1,3 +1,14 @@
+/*
+ * File:    config.go
+ * Date:    May 11, 2024
+ * Author:  J.
+ * Email:   jaime.gomez@usach.cl
+ * Project: goPostPro
+ * Description:
+ *   handles config.xml in different struct types to make the parameters available across the whole project
+ *
+ */
+
 package config
 
 import (
@@ -47,7 +58,7 @@ type DataBase struct {
 	TimeFormatRequest string `xml:"timeFormatRequest"`
 }
 
-func LoadConfig() Parameters {
+func LoadConfig() (Parameters, error) {
 	file, err := os.Open("./config.xml")
 	if err != nil {
 		log.Fatalf("Error opening file: %s\n", err)
@@ -59,6 +70,6 @@ func LoadConfig() Parameters {
 		log.Fatalf("Error decoding XML: %s\n", err)
 	}
 
-	log.Println("[Parameters] OK")
-	return params
+	// log.Println("[Parameters] OK")
+	return params, nil
 }

@@ -37,7 +37,7 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 	_values = append(_values, uint32(_now.Nanosecond()/10000000)) // hundreds of seconds
 
 	if global.AppParams.Verbose {
-		log.Println("Header to encode:", _values)
+		log.Println("[MES Header] Header to encode:", _values)
 	}
 
 	return _values
@@ -49,7 +49,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
-	log.Println("[MES SERVER] process timestamps", listOfStamps)
+	log.Println("[MES PostPro] process timestamps", listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -61,7 +61,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
 		if err != nil {
-			log.Println("ERREUR : ", err)
+			log.Println("ERROR : ", err)
 		}
 		newData.PassNumber = uint32(i + 1)
 		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
@@ -80,12 +80,12 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 	}
 
-	log.Println("[MES SERVER] post-pro answer", _bodyAns)
+	log.Println("[MES PostPro] post-pro answer", _bodyAns)
 	return _bodyAns
 }
 
 // parseTimeStamps creates a list with all timeStamps
-func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, laststamp string) []string {
+func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastStamp string) []string {
 	var listOfStamps []string
 
 	// passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
@@ -94,7 +94,7 @@ func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastst
 		listOfStamps = append(listOfStamps, bodyValuesDynamic[pass+(i*2)].(string))
 	}
 
-	listOfStamps = append(listOfStamps, laststamp)
+	listOfStamps = append(listOfStamps, lastStamp)
 
 	return listOfStamps
 }
