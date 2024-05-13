@@ -23,20 +23,22 @@ import (
 
 // Appconfig Main Software
 var (
-	AppParams     	config.Config
-	PostProParams 	config.PostPro
-	DBParams      	config.DataBase
-	LogParams     	config.LogParams
-	IsConsoleApp	bool = true
+	BuildParams   config.Build
+	AppParams     config.Config
+	PostProParams config.PostPro
+	DBParams      config.DataBase
+	LogParams     config.LogParams
 )
 
 // ConfigInit public method that initialize the config variables and the logger
-func ConfigInit(){
+func ConfigInit() {
+
 	Appconfig, err := config.LoadConfig()
-	if err != nil{
+	if err != nil {
 		log.Fatalf("Error loading configurations: %s\n", err)
 	}
 
+	BuildParams = Appconfig.Build
 	AppParams = Appconfig.Config
 	PostProParams = Appconfig.PostPro
 	DBParams = Appconfig.DataBase
@@ -80,4 +82,3 @@ func SetConsole(title string) {
 		return
 	}
 }
-

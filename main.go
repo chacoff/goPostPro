@@ -11,11 +11,11 @@
  * Basic Build:
  *  go build -o ./Build/goPostPro.exe
  *
- * Advance Build:
- *  ./build.bat
+ * Advance Build: require xmlstarlet: https://xmlstar.sourceforge.net/
+ *  ./buildMachine.bat
  *
  * Install as Windows Service:
- *  nssm install LivePostProTr2
+ *  nssm install goPostProTr2
  *
  */
 
@@ -35,16 +35,12 @@ import (
 // LTC default
 var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
 
-
 // init function starts Logger and DataBase
-func init(){
-	if global.IsConsoleApp{
-		global.SetConsole(global.AppParams.Cage)
-	}
-	
+func init() {
 	global.ConfigInit()
+	global.SetConsole(global.AppParams.Cage)
 
-	log.Println("** ----------------------------------------------------------------")
+	log.Printf("***** Build Version: v %s %s *****", global.BuildParams.Version, global.BuildParams.Type)
 	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	errPostPro := postpro.StartDatabase()
@@ -54,7 +50,7 @@ func init(){
 }
 
 func main() {
-	
+
 	// Init servers
 	dias := server.NewServer(global.AppParams.AddressDias, "DIAS")
 	mes := server.NewServer(global.AppParams.Address, "MES")

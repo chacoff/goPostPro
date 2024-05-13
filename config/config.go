@@ -19,10 +19,16 @@ import (
 
 type Parameters struct {
 	XMLName  xml.Name  `xml:"parameters"`
+	Build    Build     `xml:"build"`
 	Config   Config    `xml:"config"`
 	PostPro  PostPro   `xml:"postpro"`
 	DataBase DataBase  `xml:"database"`
 	Logs     LogParams `xml:"logger"`
+}
+
+type Build struct {
+	Version string `xml:"version"`
+	Type    string `xml:"type"`
 }
 
 type Config struct {
