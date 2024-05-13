@@ -31,6 +31,7 @@ cage 4      10.28.100.0:4604
         <minTemperatureThreshold>780</minTemperatureThreshold>
         <gradientFactor>3</gradientFactor>
         <minwidth>2</minwidth>
+        <cage12split>false</cage12split>
     </postpro>
     <database>
         <path>./processed.db</path>

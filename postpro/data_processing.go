@@ -73,14 +73,27 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
-	if len(int_array) < 516 {
+	if len(int_array) < int(global.PostProParams.MinWidth) {
 		return errors.New("error : the parsed line has not enough measures")
 	}
 	line_processing.timestamp = time.Now()
-	measures_int_array := append(
-		int_array[1+global.PostProParams.FirstMeasuresRemoved:500],
-		int_array[510:len(int_array)-4]...,
-	)
+	measures_int_array := int_array
+	
+	if global.PostProParams.Cage12Split{
+		if len(int_array) < 513 {
+			return errors.New("error : not enough measures to split cage 1 / cage 2")
+		}
+		measures_int_array = append(
+			int_array[global.PostProParams.FirstMeasuresRemoved:500],
+			int_array[510:]...,
+		)
+	}else{
+		if len(int_array) < global.PostProParams.FirstMeasuresRemoved {
+			return errors.New("error : not enough measures to remove the first measures")
+		}
+		measures_int_array = int_array[global.PostProParams.FirstMeasuresRemoved:]
+	}
+	
 	var max_temperature float64
 	var min_temperature float64
 	line_processing.processed_temperatures_array = make([]float64, len(measures_int_array))
