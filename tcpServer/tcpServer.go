@@ -14,6 +14,7 @@ package tcpServer
 import (
 	"log"
 	"net"
+	"goPostPro/global"
 )
 
 type Message struct {
@@ -73,7 +74,7 @@ func (s *Server) acceptLoop() {
 
 func (s *Server) readLoop(conn net.Conn) {
 	defer conn.Close()
-	buf := make([]byte, 2048)
+	buf := make([]byte, global.AppParams.MaxBufferSize)
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
