@@ -1,3 +1,14 @@
+/*
+ * File:    data_processing.go
+ * Date:    May 10, 2024
+ * Author:  T.V
+ * Email:   theo.verbrugge77@gmail.com
+ * Project: goPostPro
+ * Description:
+ *   Contains all the computations to do postprocessing of thermal temperatures
+ *
+ */
+
 package postpro
 
 import (

@@ -1,3 +1,14 @@
+/*
+ * File:    database.go
+ * Date:    May 10, 2024
+ * Author:  T.V
+ * Email:   theo.verbrugge77@gmail.com
+ * Project: goPostPro
+ * Description:
+ *   Contains the functions and queries to use the sqlite database
+ *
+ */
+
 package postpro
 
 import (
