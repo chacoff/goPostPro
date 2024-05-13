@@ -39,6 +39,7 @@ type PostPro struct {
 	MinTemperatureThreshold float64 `xml:"minTemperatureThreshold"`
 	GradientFactor          float64 `xml:"gradientFactor"`
 	MinWidth                int64   `xml:"minWidth"`
+	Cage12Split             bool    `xml:"cage12split"`
 }
 
 type DataBase struct {
