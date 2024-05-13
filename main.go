@@ -29,31 +29,32 @@ import (
 	server "goPostPro/tcpServer"
 	"log"
 	"sync"
-	"syscall"
 	"time"
-	"unicode/utf16"
-	"unsafe"
-
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // LTC default
 var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
 
-func main() {
-	// Init
-	setConsole(global.AppParams.Cage)
 
-	errLogger := loggerInit()
-	if errLogger != nil {
-		log.Panicln("error initializing Logger")
+// init function starts Logger and DataBase
+func init(){
+	if global.IsConsoleApp{
+		global.SetConsole(global.AppParams.Cage)
 	}
+	
+	global.ConfigInit()
+
+	log.Println("** ----------------------------------------------------------------")
+	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	errPostPro := postpro.StartDatabase()
 	if errPostPro != nil {
 		log.Panicln("error initializing DataBase")
 	}
+}
 
+func main() {
+	
 	// Init servers
 	dias := server.NewServer(global.AppParams.AddressDias, "DIAS")
 	mes := server.NewServer(global.AppParams.Address, "MES")
@@ -144,36 +145,4 @@ func main() {
 
 	wg.Wait()
 
-}
-
-func setConsole(title string) {
-	kernel32 := syscall.NewLazyDLL("kernel32.dll")
-	proc := kernel32.NewProc("SetConsoleTitleW")
-
-	titleUTF16 := utf16.Encode([]rune(title + "\x00"))
-
-	_, _, err := proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
-	if err != nil {
-		return
-	}
-}
-
-func loggerInit() error {
-	// rotation settings
-	logger := &lumberjack.Logger{
-		Filename:   global.LogParams.FileName,
-		MaxSize:    global.LogParams.MaxSize,    // max. size in megas of the log file before it gets rotated
-		MaxBackups: global.LogParams.MaxBackups, // max. number of old log files to keep
-		MaxAge:     global.LogParams.MaxAge,     // max. number of days to retain old log files
-		Compress:   global.LogParams.Compress,   // compress the old log files
-	}
-
-	log.SetOutput(logger)
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
-
-	log.Println("** ----------------------------------------------------------------")
-	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
-	defer logger.Close()
-
-	return nil
 }
