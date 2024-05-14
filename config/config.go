@@ -62,9 +62,8 @@ type PostPro struct {
 type DataBase struct {
 	Path              string `xml:"path"`
 	TimeFormatRequest string `xml:"timeFormatRequest"`
-	CleaningHoursKept         int    `xml:"cleaningHoursKept"`
-	CleaningPeriod int `xml:"cleaningPeriod"`
-
+	CleaningHoursKept int    `xml:"cleaningHoursKept"`
+	CleaningPeriod    int    `xml:"cleaningPeriod"`
 }
 
 func LoadConfig() (Parameters, error) {

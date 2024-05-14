@@ -91,6 +91,7 @@ func (calculations_database *CalculationsDatabase) drop_Table() error {
 
 func (calculations_database *CalculationsDatabase) clean_Table() error {
 	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+	log.Println(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
 	_, query_error := calculations_database.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
 	return query_error
 }
@@ -113,6 +114,7 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
 		cleaning_error := calculations_database.clean_Table()
 		if cleaning_error != nil {
+			log.Println("[DATABASE] Cleaning error", cleaning_error)
 			return cleaning_error
 		}
 		log.Println("[DATABASE] Cleaned")

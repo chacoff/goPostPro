@@ -22,6 +22,7 @@ import (
 )
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
+var No_beam_error error = errors.New("error : not enough measures for calculation")
 
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
@@ -172,7 +173,7 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 
 func (line_processing *LineProcessing) compute_calculations() error {
 	if line_processing.width < 2 {
-		return errors.New("error : not enough measures for calculation")
+		return No_beam_error
 	}
 	half_index := int((line_processing.width+1)/2 - 1) // Round the half to the upper value (+1) and then convert in 0-indexed index (-1)
 	filtered_temperature_array := line_processing.processed_temperatures_array
