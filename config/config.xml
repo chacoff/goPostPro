@@ -38,7 +38,7 @@ cage 4      10.28.100.0:4604
   <database>
     <path>./processed.db</path>
     <timeFormatRequest>20060102150405</timeFormatRequest>
-    <cleaningHoursKept>48</hoursKept>
-    <cleaningPeriod>100</cleaningPeriod>
+    <cleaningHoursKept>48</cleaningHoursKept>
+    <cleaningPeriod>1000</cleaningPeriod>
   </database>
 </parameters>
