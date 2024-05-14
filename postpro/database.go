@@ -20,6 +20,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var insert_since_cleaning int = 0
+
 type PostProData struct {
 	PassNumber   uint32
 	PassDate     string
@@ -87,6 +89,12 @@ func (calculations_database *CalculationsDatabase) drop_Table() error {
 	return query_error
 }
 
+func (calculations_database *CalculationsDatabase) clean_Table() error {
+	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+	_, query_error := calculations_database.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
+	return query_error
+}
+
 func (calculations_database *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 	preparation, preparation_error := calculations_database.database.Prepare(
 		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -99,6 +107,16 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
 	if execution_error != nil {
 		return execution_error
+	}
+	// Clean the database every x insertions
+	insert_since_cleaning++
+	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
+		cleaning_error := calculations_database.clean_Table()
+		if cleaning_error != nil {
+			return cleaning_error
+		}
+		log.Println("[DATABASE] Cleaned")
+		insert_since_cleaning = 0
 	}
 	return nil
 }
