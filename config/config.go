@@ -24,6 +24,7 @@ type Parameters struct {
 	PostPro  PostPro   `xml:"postpro"`
 	DataBase DataBase  `xml:"database"`
 	Logs     LogParams `xml:"logger"`
+	Graphics  Graphics  `xml:"graphics"`
 }
 
 type Build struct {
@@ -64,6 +65,13 @@ type DataBase struct {
 	TimeFormatRequest string `xml:"timeFormatRequest"`
 	CleaningHoursKept int    `xml:"cleaningHoursKept"`
 	CleaningPeriod    int    `xml:"cleaningPeriod"`
+}
+
+type Graphics struct {
+	ImageHeight       int `xml:"imageHeight"`
+	ImageWidth        int `xml:"imageWidth"`
+	ThermalScaleStart int `xml:"thermalScaleStart"`
+	ThermalScaleEnd   int `xml:"thermalScaleEnd"`
 }
 
 func LoadConfig() (Parameters, error) {

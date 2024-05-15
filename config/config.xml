@@ -41,7 +41,7 @@ cage 4      10.28.100.0:4604
     <cleaningHoursKept>48</cleaningHoursKept>
     <cleaningPeriod>1000</cleaningPeriod>
   </database>
-   <graphics>
+  <graphics>
     <imageHeight>500</imageHeight>
     <imageWidth>1200</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>

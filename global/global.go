@@ -24,6 +24,7 @@ var (
 	PostProParams config.PostPro
 	DBParams      config.DataBase
 	LogParams     config.LogParams
+	Graphics      config.Graphics
 )
 
 // ConfigInit public method that initialize the config variables and the logger
@@ -39,6 +40,7 @@ func ConfigInit() {
 	PostProParams = Appconfig.PostPro
 	DBParams = Appconfig.DataBase
 	LogParams = Appconfig.Logs
+	Graphics = Appconfig.Graphics
 
 	errLogger := loggerInit()
 	if errLogger != nil {

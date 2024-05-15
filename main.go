@@ -26,6 +26,7 @@ import (
 	"fmt"
 	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
+	"goPostPro/graphic"
 	mesHelpers "goPostPro/mes"
 	"goPostPro/postpro"
 	server "goPostPro/tcpServer"
@@ -46,6 +47,7 @@ func init() {
 	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	errPostPro := postpro.StartDatabase()
+	graphic.NewImage()
 	if errPostPro != nil {
 		log.Panicln("error initializing DataBase")
 	}

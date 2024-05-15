@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"goPostPro/global"
+	"goPostPro/graphic"
 )
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
@@ -118,6 +119,9 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 		min_temperature = math.Min(min_temperature, temperature_float)
 		line_processing.processed_temperatures_array[index] = temperature_float
 	}
+
+	graphic.DrawBeforeProcessing(line_processing.processed_temperatures_array)
+
 	// Calcul the threshold that will be used
 	line_processing.threshold = math.Max(
 		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
@@ -165,6 +169,8 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 		}
 	}
 	// QUESTION : Should we take one processed temperature before to have the values that led to the first gradient?
+	graphic.DrawAfterProcessing(line_processing.processed_temperatures_array)
+	graphic.DrawBorders(lower_index_crop, higher_index_crop)
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.gradient_temperatures_array = line_processing.gradient_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.width = int64(len(line_processing.processed_temperatures_array))
@@ -220,6 +226,7 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	}
 	line_processing.min_Web = min_Web
 	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
+	graphic.DrawRegions(int(max_index_Tr1), int(max_index_Tr3))
 	return nil
 }
 
@@ -279,6 +286,8 @@ func Process_live_line(int_array_received []int16) error {
 		if insertion_error != nil {
 			return insertion_error
 		}
+		graphic.NewLine()
+
 	}
 
 	return nil
