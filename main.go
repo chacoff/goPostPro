@@ -8,14 +8,15 @@
  *   Gathers data from thermal cameras at Train2 and cross-match with timestamps coming from MES to
  *	 to outcome post processes data.
  *
- * Basic Build:
- *  go build -o ./Build/goPostPro.exe
+ * - Basic Build:
+ *    go build -o ./Build/goPostPro.exe
  *
- * Advance Build: require xmlstarlet: https://xmlstar.sourceforge.net/
- *  ./buildMachine.bat
+ * - Advance Build: require xmlstarlet: https://xmlstar.sourceforge.net/
+ *    ./buildMachine.bat
+ *     use later LaunchgoPostPro.lnk shortcut to start the application
  *
- * Install as Windows Service:
- *  nssm install goPostProTr2
+ * - Install as Windows Service:
+ *    nssm install goPostProTr2
  *
  */
 
