@@ -15,8 +15,8 @@ rem Set variables -----------------------------------------------------------
 set target_folder=./BuildMachine/release
 set config_file=config.xml
 set previous_builds_folder=./BuildMachine/previousReleases
-set counter_file=./BuildMachine/buildVersion.txt
-set icon=./BuildMachine/beam.ico
+set counter_file=./_Resources/buildVersion.txt
+set icon=./_Resources/beam.ico
 
 rem Create target folder if it doesn't exist --------------------------------
 if not exist "%previous_builds_folder%" mkdir "%previous_builds_folder%"
@@ -43,7 +43,7 @@ for /f "usebackq tokens=*" %%a in ("%counter_file%") do set patch_version=%%a
     set major=!number:~0,1!
     set minor=!number:~1,1!
     set patch=!number:~2!
-    echo Build Number: %major%.%minor%.%patch%
+    echo Current Build Number: %major%.%minor%.%patch%
     set buildNumber=%major%.%minor%.%patch%
 
 
@@ -63,7 +63,7 @@ go build -o "%target_folder%-%buildNumber%\%executable_name%"
 rem Copy the config file and external libs to complete the release -----------
 copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
 copy "_ExternalLibs\TrayRunner\*.*" "%target_folder%-%buildNumber%"
-copy "BuildMachine\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
+copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
 
 rem Create shortcut -----------------------------------------------------------
 call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
