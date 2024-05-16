@@ -14,7 +14,6 @@ package mes
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"log"
 
 	"goPostPro/global"
@@ -26,7 +25,7 @@ const (
 	staticBodySize int = 20
 )
 
-func decodeHeaderUint32(data []byte) ([]uint32, bool) {
+func DecodeHeaderUint32(data []byte) ([]uint32, bool) {
 	// Total Length			format	HEX		BytesGap	4
 	// Identification		format	HEX		BytesGap	4
 	// Message Counter		format	HEX		BytesGap	4
@@ -43,7 +42,7 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 	j := 0
 	length := binary.BigEndian.Uint32(data[0:bytesGap]) // it assumes BigEndian
 
-	// fmt.Printf(">> Received header (hex): %s\n", hex.EncodeToString(data))
+	// log.Printf(">> Received header (hex): %s\n", hex.EncodeToString(data))
 
 	for i := 0; i+1 < len(data); i += bytesGap { // iterate over the byte slice in steps of 4 bytes, i.e. 8 characters
 		if length > 1000 && j < 3 { // because watchdog comes in big endian and process messages in both!!!
@@ -52,8 +51,8 @@ func decodeHeaderUint32(data []byte) ([]uint32, bool) {
 			value = binary.BigEndian.Uint32(data[i : i+bytesGap])
 		}
 
-		if global.Appconfig.Verbose {
-			fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
+		if global.AppParams.Verbose {
+			log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 		}
 		j += 1
 		_values = append(_values, value)
@@ -104,11 +103,11 @@ func decodeBodyStatic(data []byte) []interface{} {
 			_values = append(_values, valueUtf)
 		}
 
-		if global.Appconfig.Verbose {
+		if global.AppParams.Verbose {
 			if j == 0 || j == 3 || j == 4 {
-				fmt.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
+				log.Printf("-- %s - %d decoded: %d\n", hex.EncodeToString(data[i:i+bytesGap]), i, value)
 			} else {
-				fmt.Printf("-- %s - %d decoded: %s\n", hex.EncodeToString(data[i:i+bytesGap]), i, valueUtf)
+				log.Printf("-- %s - %d decoded: %s\n", hex.EncodeToString(data[i:i+bytesGap]), i, valueUtf)
 			}
 		}
 		j += 1
@@ -150,7 +149,7 @@ func decodePasses(data []byte, passes int) []interface{} {
 			case gap == 2: // dummy
 				// dummy = binary.LittleEndian.Uint16(_data)
 				dumm, err := hex.DecodeString(hex.EncodeToString(_data))
-				if err != nil{
+				if err != nil {
 					log.Fatal(err)
 				}
 				dummy = string(dumm)
@@ -200,5 +199,6 @@ func decodeLTC(data []byte) []interface{} {
 		j += 1
 	}
 
+	// log.Printf("[LTC] length of string %d - %d ", len(_values), _values[7])
 	return _values
 }

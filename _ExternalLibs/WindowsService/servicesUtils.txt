@@ -1,0 +1,7 @@
+AS ADMIN
+
+FIND service pid
+sc queryex goPostProTr2
+
+KILL IT BY PID
+taskkill /pid 12345 /f

@@ -1,3 +1,14 @@
+/*
+ * File:    data_processing.go
+ * Date:    May 10, 2024
+ * Author:  T.V
+ * Email:   theo.verbrugge77@gmail.com
+ * Project: goPostPro
+ * Description:
+ *   Contains all the computations to do postprocessing of thermal temperatures
+ *
+ */
+
 package postpro
 
 import (
@@ -11,6 +22,7 @@ import (
 )
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
+var No_beam_error error = errors.New("error : not enough measures for calculation")
 
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
@@ -36,14 +48,14 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 		return errors.New("error : the parsed line has not enough measures")
 	}
 	// Parse timestamp
-	timestamp, parsing_error := time.Parse(global.TIME_FORMAT, splited_string_array[0])
+	timestamp, parsing_error := time.Parse(global.PostProParams.TimeFormat, splited_string_array[0])
 	if parsing_error != nil {
 		return parsing_error
 	}
 	line_processing.timestamp = timestamp
 	// Removed the unwanted measures
 	measures_string_array := append(
-		splited_string_array[1+global.NUMBER_FIRST_MEASURES_REMOVED:500],
+		splited_string_array[1+global.PostProParams.FirstMeasuresRemoved:500],
 		splited_string_array[510:len(splited_string_array)-4]...,
 	)
 	// Parse temperature measures and by the same time find the max and min
@@ -66,8 +78,50 @@ func (line_processing *LineProcessing) parse_string_received(string_received str
 	}
 	// Calcul the threshold that will be used
 	line_processing.threshold = math.Max(
-		min_temperature*(1-global.TEMPERATURE_THRESHOLD_FACTOR)+max_temperature*global.TEMPERATURE_THRESHOLD_FACTOR,
-		global.TEMPERATURE_THRESHOLD_MINIMUM,
+		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
+		global.PostProParams.MinTemperatureThreshold,
+	)
+	return nil
+}
+
+func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
+	if len(int_array) < int(global.PostProParams.MinWidth) {
+		return errors.New("error : the parsed line has not enough measures")
+	}
+	if len(int_array) < int(global.PostProParams.FirstMeasuresRemoved) {
+		return errors.New("error : the parsed line has not enough measures")
+	}
+	if global.PostProParams.Cage12Split && len(int_array) < 513 {
+		return errors.New("error : not enough measures to split cage 1 / cage 2")
+	}
+
+	line_processing.timestamp = time.Now()
+	measures_int_array := int_array[global.PostProParams.FirstMeasuresRemoved:]
+
+	if global.PostProParams.Cage12Split {
+		measures_int_array = append(
+			int_array[global.PostProParams.FirstMeasuresRemoved:500],
+			int_array[510:]...,
+		)
+	}
+
+	var max_temperature float64
+	var min_temperature float64
+	line_processing.processed_temperatures_array = make([]float64, len(measures_int_array))
+	for index, temperature_int := range measures_int_array {
+		temperature_float := float64(temperature_int)
+		if index == 0 { // To initialize the values
+			max_temperature = temperature_float
+			min_temperature = temperature_float
+		}
+		max_temperature = math.Max(max_temperature, temperature_float)
+		min_temperature = math.Min(min_temperature, temperature_float)
+		line_processing.processed_temperatures_array[index] = temperature_float
+	}
+	// Calcul the threshold that will be used
+	line_processing.threshold = math.Max(
+		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
+		global.PostProParams.MinTemperatureThreshold,
 	)
 	return nil
 }
@@ -91,10 +145,10 @@ func (line_processing *LineProcessing) threshold_compute_gradient() error {
 			max_gradient = math.Max(max_gradient, gradient_temperature)
 		}
 	}
-	if global.GRADIENT_LIMIT_FACTOR <= 0 {
+	if global.PostProParams.GradientFactor <= 0 {
 		return errors.New("error : the gradient limit factor is not valid")
 	}
-	line_processing.gradient_limit = max_gradient / global.GRADIENT_LIMIT_FACTOR
+	line_processing.gradient_limit = max_gradient / global.PostProParams.GradientFactor
 	return nil
 }
 
@@ -119,7 +173,7 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 
 func (line_processing *LineProcessing) compute_calculations() error {
 	if line_processing.width < 2 {
-		return errors.New("error : not enough measures for calculation")
+		return No_beam_error
 	}
 	half_index := int((line_processing.width+1)/2 - 1) // Round the half to the upper value (+1) and then convert in 0-indexed index (-1)
 	filtered_temperature_array := line_processing.processed_temperatures_array
@@ -186,7 +240,37 @@ func Process_line(string_received string, filename string) error {
 	if cropping_error != nil {
 		return cropping_error
 	}
-	if line_processing.width > global.WIDTH_MINIMUM {
+	if line_processing.width > global.PostProParams.MinWidth {
+		computing_error := line_processing.compute_calculations()
+		if computing_error != nil {
+			return computing_error
+		}
+		insertion_error := DATABASE.Insert_line_processing(line_processing)
+		if insertion_error != nil {
+			return insertion_error
+		}
+	}
+
+	return nil
+}
+
+func Process_live_line(int_array_received []int16) error {
+	var line_processing LineProcessing
+	line_processing.filename = "Live_Recording"
+
+	parsing_error := line_processing.clean_int_received(int_array_received)
+	if parsing_error != nil {
+		return parsing_error
+	}
+	threshold_gradient_error := line_processing.threshold_compute_gradient()
+	if threshold_gradient_error != nil {
+		return threshold_gradient_error
+	}
+	cropping_error := line_processing.gradient_cropping()
+	if cropping_error != nil {
+		return cropping_error
+	}
+	if line_processing.width > global.PostProParams.MinWidth {
 		computing_error := line_processing.compute_calculations()
 		if computing_error != nil {
 			return computing_error

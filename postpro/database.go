@@ -1,3 +1,14 @@
+/*
+ * File:    database.go
+ * Date:    May 10, 2024
+ * Author:  T.V
+ * Email:   theo.verbrugge77@gmail.com
+ * Project: goPostPro
+ * Description:
+ *   Contains the functions and queries to use the sqlite database
+ *
+ */
+
 package postpro
 
 import (
@@ -8,6 +19,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+var insert_since_cleaning int = 0
 
 type PostProData struct {
 	PassNumber   uint32
@@ -23,7 +36,7 @@ type PostProData struct {
 	PixWidth     float64
 }
 
-func Start_database() error {
+func StartDatabase() error {
 	DATABASE = CalculationsDatabase{}
 	opening_error := DATABASE.open_database()
 	if opening_error != nil {
@@ -37,7 +50,7 @@ func Start_database() error {
 	if creation_error != nil {
 		return creation_error
 	}
-	log.Println("[DATABASE] Initialized with sucess")
+	log.Println("[DATABASE] init with success")
 	return nil
 }
 
@@ -46,7 +59,7 @@ type CalculationsDatabase struct {
 }
 
 func (calculations_database *CalculationsDatabase) open_database() error {
-	database, opening_error := sql.Open("sqlite3", global.DATABASE_PATH)
+	database, opening_error := sql.Open("sqlite3", global.DBParams.Path)
 	if opening_error != nil {
 		return opening_error
 	}
@@ -76,6 +89,13 @@ func (calculations_database *CalculationsDatabase) drop_Table() error {
 	return query_error
 }
 
+func (calculations_database *CalculationsDatabase) clean_Table() error {
+	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+	log.Println(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
+	_, query_error := calculations_database.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
+	return query_error
+}
+
 func (calculations_database *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 	preparation, preparation_error := calculations_database.database.Prepare(
 		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -85,20 +105,31 @@ func (calculations_database *CalculationsDatabase) Insert_line_processing(line L
 	}
 	defer preparation.Close()
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp.Format(global.TIME_FORMAT), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
+	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
 	if execution_error != nil {
 		return execution_error
+	}
+	// Clean the database every x insertions
+	insert_since_cleaning++
+	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
+		cleaning_error := calculations_database.clean_Table()
+		if cleaning_error != nil {
+			log.Println("[DATABASE] Cleaning error", cleaning_error)
+			return cleaning_error
+		}
+		log.Println("[DATABASE] Cleaned")
+		insert_since_cleaning = 0
 	}
 	return nil
 }
 
 func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
 	post_pro_data := PostProData{}
-	begin_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, begin_string_timestamp)
+	begin_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
-	end_timestamp, parsing_error := time.Parse(global.TIME_FORMAT_REQUESTS, end_string_timestamp)
+	end_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
@@ -117,8 +148,8 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
-		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `')
-	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.TIME_FORMAT) + `' AND '` + end_timestamp.Format(global.TIME_FORMAT) + `'
+		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `')
+	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `'
 	`,
 	)
 	if query_error != nil {
