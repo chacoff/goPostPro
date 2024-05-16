@@ -66,7 +66,9 @@ copy "_ExternalLibs\TrayRunner\*.*" "%target_folder%-%buildNumber%"
 copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
 
 rem Create shortcut -----------------------------------------------------------
-call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
+rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
+windres _Resources\icon.rc -O coff -o _Resources\icon.o
+gcc _Resources\launchgoPostPro.c _Resources\icon.o -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
 echo Shortcut created successfully.
 
 echo Build completed for release-%buildNumber%.
