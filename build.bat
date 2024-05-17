@@ -55,7 +55,7 @@ git pull
 
 git commit -a -m 'updated build version'
 
-git push -u origin buildVersion
+git push -u buildVersion
 
 git checkout dev
 
