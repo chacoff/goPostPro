@@ -53,11 +53,15 @@ git pull
         set previousBuildNumber=%previousMajor%.%previousMinor%.%previousPatch%
         set buildNumber=%major%.%minor%.%patch%
 
-git commit -a -m 'updated build version'
+git commit -a -m "updated build version"
 
-git push -u origin buildVersion
+git push -u devops buildVersion
+
+timeout /t 1
 
 git checkout dev
+
+timeout /t 1
 
 rem Create target folder if it doesn't exist --------------------------------
 if not exist "%previous_builds_folder%" mkdir "%previous_builds_folder%"
