@@ -55,19 +55,8 @@ git pull
 
 git commit -a -m "updated build version"
 
-git push -u devops buildVersion
-if %errorlevel% neq 0 (
-    echo Push to devops failed. Attempting to push to origin...
-    git push -u origin buildVersion
-    if %errorlevel% neq 0 (
-        echo Push to 'origin' also failed. Please check your configuration.
-        exit /b 1
-    ) else (
-        echo Push to origin successful!
-    )
-) else (
-    echo Push to devops successful!
-)
+git push -u origin buildVersion
+echo Push to origin.buildVersion successful!
 
 timeout /t 1
 
