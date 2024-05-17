@@ -16,7 +16,6 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"log"
 	"os"
 	"time"
 
@@ -38,7 +37,8 @@ func thermalColor(temperature float64) color.Color {
 // Save the global image with the timestamps of beginning and end of measurement
 func saveImage() error {
 	//Create the file
-	filename := first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + ".png"
+	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{50, 50}}
+	filename := "results/" + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + ".png"
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
 		return creation_error
@@ -54,26 +54,27 @@ func saveImage() error {
 
 // Create a new image by reseting the variables used
 func NewImage() error {
-	log.Println(global.Graphics.ImageWidth, global.Graphics.ImageHeight)
 	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
 	image_line = 0
 	first_timestamp = time.Now()
 	return nil
 }
 
+func ChangeImage() error {
+	saving_error := saveImage()
+	if saving_error != nil {
+		return saving_error
+	}
+	creation_error := NewImage()
+	if creation_error != nil {
+		return creation_error
+	}
+	return nil
+}
+
 // Go to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
-	if image_line > global.Graphics.ImageHeight {
-		saving_error := saveImage()
-		if saving_error != nil {
-			return saving_error
-		}
-		creation_error := NewImage()
-		if creation_error != nil {
-			return creation_error
-		}
-	}
 	return nil
 }
 

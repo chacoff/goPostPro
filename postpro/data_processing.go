@@ -13,17 +13,18 @@ package postpro
 
 import (
 	"errors"
+	"goPostPro/global"
+	"goPostPro/graphic"
+	"log"
 	"math"
 	"strconv"
 	"strings"
 	"time"
-
-	"goPostPro/global"
-	"goPostPro/graphic"
 )
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
 var No_beam_error error = errors.New("error : not enough measures for calculation")
+var previous_pass_number int = 0
 
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
@@ -40,6 +41,25 @@ type LineProcessing struct {
 	width                        int64
 	threshold                    float64
 	gradient_limit               float64
+}
+
+func determine_passname(digital_output int16) (string, error) {
+	if digital_output == 249 {
+		previous_pass_number = 3
+		return "Pass 3", nil
+	}
+	if digital_output == 245 {
+		previous_pass_number = 2
+		return "Pass 2", nil
+	}
+	if digital_output == 243 {
+		if previous_pass_number == 3 {
+			graphic.ChangeImage()
+		}
+		previous_pass_number = 1
+		return "Pass 1", nil
+	}
+	return "", errors.New("something went wrong with the passes")
 }
 
 // Take the string received and parse its datas
@@ -261,9 +281,8 @@ func Process_line(string_received string, filename string) error {
 	return nil
 }
 
-func Process_live_line(int_array_received []int16) error {
+func Process_live_line(int_array_received []int16, digital_output int16) error {
 	var line_processing LineProcessing
-	line_processing.filename = "Live_Recording"
 
 	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
@@ -282,6 +301,15 @@ func Process_live_line(int_array_received []int16) error {
 		if computing_error != nil {
 			return computing_error
 		}
+
+		passname, pass_error := determine_passname(digital_output)
+		if pass_error != nil {
+			log.Println("pass error")
+			return pass_error
+		}
+
+		line_processing.filename = passname
+
 		insertion_error := DATABASE.Insert_line_processing(line_processing)
 		if insertion_error != nil {
 			return insertion_error
