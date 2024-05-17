@@ -53,10 +53,6 @@ if exist "%target_folder%-%previousBuildNumber%" (
     move "%target_folder%-%previousBuildNumber%" "%previous_builds_folder%"
 )
 
-rem update config XML using xmlstarlet --------------------------------------
-xmlstarlet ed -L -u /parameters/build/version -v %buildNumber% ./config/config.xml
-echo XML update completed with build number: %buildNumber%
-
 rem Build the Go program -----------------------------------------------------
 go build -o "%target_folder%-%buildNumber%\%executable_name%"
 
@@ -64,6 +60,10 @@ rem Copy the config file and external libs to complete the release -----------
 copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
 copy "_ExternalLibs\TrayRunner\*.*" "%target_folder%-%buildNumber%"
 copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
+
+rem update config XML using xmlstarlet --------------------------------------
+xmlstarlet ed -L -u /parameters/build/version -v %buildNumber% %target_folder%-%buildNumber%/%config_file%
+echo XML update completed with build number: %buildNumber%
 
 rem Create shortcut -----------------------------------------------------------
 rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
