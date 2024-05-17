@@ -55,7 +55,7 @@ git pull
 
 git commit -a -m "updated build version"
 
-git push -u devops buildVersion
+git push -u origin buildVersion
 
 timeout /t 1
 
