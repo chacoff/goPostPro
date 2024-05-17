@@ -16,6 +16,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log"
 	"os"
 	"time"
 
@@ -37,7 +38,9 @@ func thermalColor(temperature float64) color.Color {
 // Save the global image with the timestamps of beginning and end of measurement
 func saveImage() error {
 	//Create the file
+	log.Println(recording_image.Rect.Bounds().Dy())
 	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{50, 50}}
+	log.Println(recording_image.Rect.Bounds().Dy())
 	filename := "results/" + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + ".png"
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
