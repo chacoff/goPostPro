@@ -18,13 +18,6 @@ set previous_builds_folder=./BuildMachine/previousReleases
 set counter_file=buildVersion.txt
 set icon=./_Resources/beam.ico
 
-rem Set colors --------------------------------------------------------------
-# ANSI color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
 rem Taking the remote buildVersion number -----------------------------------
 git fetch
 
@@ -44,7 +37,7 @@ git pull
         set previousMajor=!previousBuild:~0,1!
         set previousMinor=!previousBuild:~1,1!
         set previousPatch=!previousBuild:~2!
-        echo -e ${YELLOW}Previous Build Number: %previousMajor%.%previousMinor%.%previousPatch%${NC}
+        echo Previous Build Number: %previousMajor%.%previousMinor%.%previousPatch%
         
         set /a patch_version=%patch_version%+1
         echo %patch_version% > "%counter_file%"
@@ -53,7 +46,7 @@ git pull
         set major=!number:~0,1!
         set minor=!number:~1,1!
         set patch=!number:~2!
-        echo -e ${YELLOW}Current Build Number: %major%.%minor%.%patch%${NC}
+        echo Current Build Number: %major%.%minor%.%patch%
         
 
         rem set build number Variables --------------------------------------
@@ -63,16 +56,18 @@ git pull
 git commit -a -m "updated build version"
 
 git push -u devops buildVersion
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Push to 'devops' failed. Attempting to push to 'origin'...${NC}"
+if %errorlevel% neq 0 (
+    echo Push to devops failed. Attempting to push to origin...
     git push -u origin buildVersion
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Push to 'origin' also failed. Please check your configuration${NC}"
-        exit 1
-    fi
-fi
-
-echo -e "${GREEN}Push to 'origin' successful!${NC}"
+    if %errorlevel% neq 0 (
+        echo Push to 'origin' also failed. Please check your configuration.
+        exit /b 1
+    ) else (
+        echo Push to origin successful!
+    )
+) else (
+    echo Push to devops successful!
+)
 
 timeout /t 1
 
@@ -85,7 +80,7 @@ if not exist "%previous_builds_folder%" mkdir "%previous_builds_folder%"
 
 rem Store previous releases -------------------------------------------------
 if exist "%target_folder%-%previousBuildNumber%" (
-    echo -e ${YELLOW}Moving previous release: %previousBuildNumber%${NC}
+    echo Moving previous release: %previousBuildNumber%
     move "%target_folder%-%previousBuildNumber%" "%previous_builds_folder%"
 )
 
