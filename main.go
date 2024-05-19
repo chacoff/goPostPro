@@ -23,6 +23,7 @@
 package main
 
 import (
+	"fmt"
 	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
 	mesHelpers "goPostPro/mes"
@@ -39,7 +40,7 @@ var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
 // init function starts Logger and DataBase
 func init() {
 	global.ConfigInit()
-	global.SetConsole(global.AppParams.Cage)
+	fmt.Println(global.AppParams.Cage)
 
 	log.Printf("***** Build Version: v %s %s *****", global.BuildParams.Version, global.BuildParams.Type)
 	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
