@@ -13,12 +13,8 @@ package global
 
 import (
 	"goPostPro/config"
-	"log"
-	"syscall"
-	"unicode/utf16"
-	"unsafe"
-
 	"gopkg.in/natefinch/lumberjack.v2"
+	"log"
 )
 
 // Appconfig Main Software
@@ -28,6 +24,7 @@ var (
 	PostProParams config.PostPro
 	DBParams      config.DataBase
 	LogParams     config.LogParams
+	Graphics      config.Graphics
 )
 
 // ConfigInit public method that initialize the config variables and the logger
@@ -43,6 +40,7 @@ func ConfigInit() {
 	PostProParams = Appconfig.PostPro
 	DBParams = Appconfig.DataBase
 	LogParams = Appconfig.Logs
+	Graphics = Appconfig.Graphics
 
 	errLogger := loggerInit()
 	if errLogger != nil {
@@ -68,17 +66,4 @@ func loggerInit() error {
 	defer logger.Close()
 
 	return nil
-}
-
-// SetConsole is a method to define a name when the software is used as a consoleApp
-func SetConsole(title string) {
-	kernel32 := syscall.NewLazyDLL("kernel32.dll")
-	proc := kernel32.NewProc("SetConsoleTitleW")
-
-	titleUTF16 := utf16.Encode([]rune(title + "\x00"))
-
-	_, _, err := proc.Call(uintptr(unsafe.Pointer(&titleUTF16[0])))
-	if err != nil {
-		return
-	}
 }

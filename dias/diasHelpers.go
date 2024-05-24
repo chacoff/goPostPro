@@ -23,9 +23,9 @@ import (
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
 
-	array := DecodeDiasData(payload)
+	array, digitalOutput := DecodeDiasData(payload)
 
-	processError := postpro.Process_live_line(array)
+	processError := postpro.Process_live_line(array, digitalOutput)
 	if errors.Is(processError, postpro.No_beam_error) {
 		return
 	}
@@ -39,15 +39,18 @@ func ProcessDiasData(payload []byte) {
 }
 
 // DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 4 digital outputs
-func DecodeDiasData(payload []byte) []int16 {
+func DecodeDiasData(payload []byte) ([]int16, int16) {
 	message := payload
-	measurementArray := make([]int16, 0)
+	int16_message := make([]int16, 0)
 
-	for index := 2; index < len(message)-2; index += 2 {
-		measurementArray = append(measurementArray, int16(binary.LittleEndian.Uint16(message[index:index+2])))
+	for index := 2; index < len(message); index += 2 {
+		int16_message = append(int16_message, int16(binary.LittleEndian.Uint16(message[index:index+2])))
 	}
+	
+	measurementArray := int16_message[:len(int16_message)-1]
+	digitalOutput := int16_message[len(int16_message)-1]
 
-	return measurementArray
+	return measurementArray, digitalOutput
 }
 
 // EncodeToDias currently DIAS-Pyrosoft is supporting 8 Analog Inputs, i.e., LTCValues is a slice of 8 elements

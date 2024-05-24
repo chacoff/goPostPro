@@ -13,16 +13,18 @@ package postpro
 
 import (
 	"errors"
+	"goPostPro/global"
+	"goPostPro/graphic"
+	"log"
 	"math"
 	"strconv"
 	"strings"
 	"time"
-
-	"goPostPro/global"
 )
 
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
 var No_beam_error error = errors.New("error : not enough measures for calculation")
+var previous_pass_number int = 0
 
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
@@ -39,6 +41,26 @@ type LineProcessing struct {
 	width                        int64
 	threshold                    float64
 	gradient_limit               float64
+}
+
+func determine_passname(digital_output int16) (string, error) {
+	if digital_output == 249 {
+		previous_pass_number = 3
+		return "Pass 3", nil
+	}
+	if digital_output == 245 {
+		previous_pass_number = 2
+		return "Pass 2", nil
+	}
+	if digital_output == 243 {
+		if previous_pass_number == 3 {
+			graphic.ChangeImage()
+		}
+		previous_pass_number = 1
+		return "Pass 1", nil
+	}
+	log.Println(digital_output)
+	return "", errors.New("something went wrong with the passes")
 }
 
 // Take the string received and parse its datas
@@ -118,6 +140,9 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 		min_temperature = math.Min(min_temperature, temperature_float)
 		line_processing.processed_temperatures_array[index] = temperature_float
 	}
+
+	graphic.DrawBeforeProcessing(line_processing.processed_temperatures_array)
+
 	// Calcul the threshold that will be used
 	line_processing.threshold = math.Max(
 		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
@@ -165,6 +190,8 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 		}
 	}
 	// QUESTION : Should we take one processed temperature before to have the values that led to the first gradient?
+	graphic.DrawAfterProcessing(line_processing.processed_temperatures_array)
+	graphic.DrawBorders(lower_index_crop, higher_index_crop)
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.gradient_temperatures_array = line_processing.gradient_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.width = int64(len(line_processing.processed_temperatures_array))
@@ -220,6 +247,7 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	}
 	line_processing.min_Web = min_Web
 	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
+	graphic.DrawRegions(int(max_index_Tr1), int(max_index_Tr3))
 	return nil
 }
 
@@ -254,9 +282,8 @@ func Process_line(string_received string, filename string) error {
 	return nil
 }
 
-func Process_live_line(int_array_received []int16) error {
+func Process_live_line(int_array_received []int16, digital_output int16) error {
 	var line_processing LineProcessing
-	line_processing.filename = "Live_Recording"
 
 	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
@@ -275,10 +302,21 @@ func Process_live_line(int_array_received []int16) error {
 		if computing_error != nil {
 			return computing_error
 		}
+
+		passname, pass_error := determine_passname(digital_output)
+		if pass_error != nil {
+			log.Println("pass error")
+			return pass_error
+		}
+
+		line_processing.filename = passname
+
 		insertion_error := DATABASE.Insert_line_processing(line_processing)
 		if insertion_error != nil {
 			return insertion_error
 		}
+		graphic.NewLine()
+
 	}
 
 	return nil
