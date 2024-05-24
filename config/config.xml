@@ -7,7 +7,7 @@ cage 4      10.28.100.0:4604
 -->
 <parameters>
   <build>
-    <version>1.0.096</version>
+    <version>1.0.085</version>
     <type>beta</type>
   </build>
   <config>
@@ -41,4 +41,10 @@ cage 4      10.28.100.0:4604
     <cleaningHoursKept>48</cleaningHoursKept>
     <cleaningPeriod>1000</cleaningPeriod>
   </database>
+   <graphics>
+    <imageHeight>500</imageHeight>
+    <imageWidth>1200</imageWidth>
+    <thermalScaleStart>650</thermalScaleStart>
+    <thermalScaleEnd>1050</thermalScaleEnd>
+  </graphics>
 </parameters>
