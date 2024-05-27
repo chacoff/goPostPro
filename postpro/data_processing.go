@@ -15,6 +15,7 @@ import (
 	"errors"
 	"goPostPro/global"
 	"goPostPro/graphic"
+	"image"
 	"log"
 	"math"
 	"strconv"
@@ -54,7 +55,10 @@ func determine_passname(digital_output int16) (string, error) {
 	}
 	if digital_output == 243 {
 		if previous_pass_number == 3 {
-			graphic.ChangeImage()
+			image_error := graphic.ChangeImage()
+			if image_error != nil {
+				return "", image_error
+			}
 			log.Println("Changed image")
 		}
 		previous_pass_number = 1
