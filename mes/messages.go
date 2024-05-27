@@ -13,9 +13,11 @@ package mes
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"goPostPro/global"
+	"goPostPro/graphic"
 	"goPostPro/postpro"
 )
 
@@ -48,6 +50,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
+	beamId := _bodyStatic[0].(uint32)
+	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
 	log.Println("[MES PostPro] process timestamps", listOfStamps)
 
