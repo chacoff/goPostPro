@@ -60,7 +60,7 @@ echo Push to origin.buildVersion successful!
 
 timeout /t 1
 
-git checkout dev
+git checkout master
 
 timeout /t 1
 
