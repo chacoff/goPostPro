@@ -13,11 +13,12 @@ package mes
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"goPostPro/global"
-	"goPostPro/postpro"
 	"goPostPro/graphic"
+	"goPostPro/postpro"
 )
 
 // headerType return the values of header, at this stage nothing is encoded, it is a vector with the real values
@@ -49,8 +50,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
-	beamId := _bodyStatic[0].(string)
-	graphic.ChangeName(beamId)
+	beamId := _bodyStatic[0].(uint32)
+	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)
 	log.Println("[MES PostPro] process timestamps", listOfStamps)
 
