@@ -91,6 +91,7 @@ func ChangeImage() error {
 // Go to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
+	log.Println(image_line)
 	return nil
 }
 

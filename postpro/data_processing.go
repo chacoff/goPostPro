@@ -55,6 +55,7 @@ func determine_passname(digital_output int16) (string, error) {
 	if digital_output == 243 {
 		if previous_pass_number == 3 {
 			graphic.ChangeImage()
+			log.Println("Changed image")
 		}
 		previous_pass_number = 1
 		return "Pass 1", nil
