@@ -15,7 +15,6 @@ import (
 	"errors"
 	"goPostPro/global"
 	"goPostPro/graphic"
-	"image"
 	"log"
 	"math"
 	"strconv"
