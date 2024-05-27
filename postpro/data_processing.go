@@ -59,7 +59,9 @@ func determine_passname(digital_output int16) (string, error) {
 		previous_pass_number = 1
 		return "Pass 1", nil
 	}
-	log.Println(digital_output)
+	if digital_output == 241 {
+		return "", nil
+	}
 	return "", errors.New("something went wrong with the passes")
 }
 

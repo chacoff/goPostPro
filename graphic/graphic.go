@@ -28,6 +28,8 @@ var recording_image *image.RGBA
 var image_line int = 0
 var first_timestamp time.Time = time.Now()
 var offset int = 0
+var image_count int = 0
+var beam_id string = ""
 
 // Used to convert a temperature into a thermal color
 func thermalColor(temperature float64) color.Color {
@@ -38,10 +40,14 @@ func thermalColor(temperature float64) color.Color {
 // Save the global image with the timestamps of beginning and end of measurement
 func saveImage() error {
 	//Create the file
-	log.Println(recording_image.Rect.Bounds().Dy())
 	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line}}
-	log.Println(recording_image.Rect.Bounds().Dy())
-	filename := "results/" + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + ".png"
+	filename := ""
+	if beam_id == "" {
+		filename = "results/unknown_beam [ "
+	} else {
+		filename = "results/" + beam_id + " [ "
+	}
+	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + "].png"
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
 		return creation_error
@@ -52,6 +58,7 @@ func saveImage() error {
 	if encoding_error != nil {
 		return encoding_error
 	}
+	log.Println("Saved image as : ", filename)
 	return nil
 }
 
@@ -60,6 +67,12 @@ func NewImage() error {
 	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
 	image_line = 0
 	first_timestamp = time.Now()
+	beam_id = ""
+	return nil
+}
+
+func ChangeName(beam_id_string string) error {
+	beam_id = beam_id_string
 	return nil
 }
 
