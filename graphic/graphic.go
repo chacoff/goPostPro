@@ -47,7 +47,7 @@ func saveImage() error {
 		filename = "results/" + beam_id + " [ "
 	}
 	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + "].png"
-	log.Println("Saved image as : ", filename)
+
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
 		return creation_error
@@ -58,6 +58,7 @@ func saveImage() error {
 	if encoding_error != nil {
 		return encoding_error
 	}
+	log.Println("[GRAPHIC] Saved image as : ", filename)
 	return nil
 }
 
@@ -90,7 +91,7 @@ func ChangeImage() error {
 // Go to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
-	if(image_line>global.Graphics.ImageHeight){
+	if image_line > global.Graphics.ImageHeight {
 		ChangeImage()
 	}
 	return nil

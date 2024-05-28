@@ -67,50 +67,7 @@ func determine_passname(digital_output int16) (string, error) {
 	if digital_output == 240 {
 		return "Unknown pass", nil
 	}
-	return "", errors.New("something went wrong with the passes")
-}
-
-// Take the string received and parse its datas
-func (line_processing *LineProcessing) parse_string_received(string_received string) error {
-	splited_string_array := strings.Split(string_received, "\t")
-	if len(splited_string_array) < 516 {
-		return errors.New("error : the parsed line has not enough measures")
-	}
-	// Parse timestamp
-	timestamp, parsing_error := time.Parse(global.PostProParams.TimeFormat, splited_string_array[0])
-	if parsing_error != nil {
-		return parsing_error
-	}
-	line_processing.timestamp = timestamp
-	// Removed the unwanted measures
-	measures_string_array := append(
-		splited_string_array[1+global.PostProParams.FirstMeasuresRemoved:500],
-		splited_string_array[510:len(splited_string_array)-4]...,
-	)
-	// Parse temperature measures and by the same time find the max and min
-	var max_temperature float64
-	var min_temperature float64
-	line_processing.processed_temperatures_array = make([]float64, len(measures_string_array))
-	for index, temperature_string := range measures_string_array {
-		temperature_string = strings.ReplaceAll(temperature_string, ",", ".")
-		temperature_float, parsing_error := strconv.ParseFloat(temperature_string, 64)
-		if parsing_error != nil {
-			return parsing_error
-		}
-		if index == 0 { // To initialize the values
-			max_temperature = temperature_float
-			min_temperature = temperature_float
-		}
-		max_temperature = math.Max(max_temperature, temperature_float)
-		min_temperature = math.Min(min_temperature, temperature_float)
-		line_processing.processed_temperatures_array[index] = temperature_float
-	}
-	// Calcul the threshold that will be used
-	line_processing.threshold = math.Max(
-		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
-		global.PostProParams.MinTemperatureThreshold,
-	)
-	return nil
+	return "", errors.New("something went wrong with the passes : "+strconv.FormatInt(int64(digital_output), 16))
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
@@ -245,37 +202,6 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	line_processing.min_Web = min_Web
 	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
 	graphic.DrawRegions(int(max_index_Tr1), int(max_index_Tr3))
-	return nil
-}
-
-// Receive the string for a single line, process it and save the values in the database
-func Process_line(string_received string, filename string) error {
-	var line_processing LineProcessing
-	line_processing.filename = filename
-
-	parsing_error := line_processing.parse_string_received(string_received)
-	if parsing_error != nil {
-		return parsing_error
-	}
-	threshold_gradient_error := line_processing.threshold_compute_gradient()
-	if threshold_gradient_error != nil {
-		return threshold_gradient_error
-	}
-	cropping_error := line_processing.gradient_cropping()
-	if cropping_error != nil {
-		return cropping_error
-	}
-	if line_processing.width > global.PostProParams.MinWidth {
-		computing_error := line_processing.compute_calculations()
-		if computing_error != nil {
-			return computing_error
-		}
-		insertion_error := DATABASE.Insert_line_processing(line_processing)
-		if insertion_error != nil {
-			return insertion_error
-		}
-	}
-
 	return nil
 }
 
