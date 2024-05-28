@@ -53,7 +53,7 @@ func ProcessDiasData(payload []byte) {
 	}
 }
 
-// DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 4 digital outputs
+// DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 8 digital outputs
 func DecodeDiasData(payload []byte) ([]int16, int16) {
 	message := payload
 	int16_message := make([]int16, 0)

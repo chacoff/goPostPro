@@ -42,9 +42,9 @@ func saveImage() error {
 	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line}}
 	filename := ""
 	if beam_id == "" {
-		filename = "results/unknown_beam [ "
+		filename = "results/000000[ "
 	} else {
-		filename = "results/" + beam_id + " [ "
+		filename = "results/" + beam_id + "[ "
 	}
 	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + "].png"
 
