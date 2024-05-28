@@ -17,7 +17,6 @@ import (
 	"goPostPro/graphic"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -67,7 +66,7 @@ func determine_passname(digital_output int16) (string, error) {
 	if digital_output == 240 {
 		return "Unknown pass", nil
 	}
-	return "", errors.New("something went wrong with the passes : "+strconv.FormatInt(int64(digital_output), 16))
+	return "", errors.New("something went wrong with the passes : " + strconv.Itoa(int(digital_output)))
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
