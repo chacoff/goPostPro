@@ -15,7 +15,6 @@ import (
 	"errors"
 	"goPostPro/global"
 	"goPostPro/graphic"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -58,13 +57,15 @@ func determine_passname(digital_output int16) (string, error) {
 			if image_error != nil {
 				return "", image_error
 			}
-			log.Println("Changed image")
 		}
 		previous_pass_number = 1
 		return "Pass 1", nil
 	}
 	if digital_output == 241 {
-		return "", nil
+		return "Unknown pass", nil
+	}
+	if digital_output == 240 {
+		return "Unknown pass", nil
 	}
 	return "", errors.New("something went wrong with the passes")
 }
@@ -119,19 +120,9 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 	if len(int_array) < int(global.PostProParams.FirstMeasuresRemoved) {
 		return errors.New("error : the parsed line has not enough measures")
 	}
-	if global.PostProParams.Cage12Split && len(int_array) < 513 {
-		return errors.New("error : not enough measures to split cage 1 / cage 2")
-	}
 
 	line_processing.timestamp = time.Now()
 	measures_int_array := int_array[global.PostProParams.FirstMeasuresRemoved:]
-
-	if global.PostProParams.Cage12Split {
-		measures_int_array = append(
-			int_array[global.PostProParams.FirstMeasuresRemoved:500],
-			int_array[510:]...,
-		)
-	}
 
 	var max_temperature float64
 	var min_temperature float64
@@ -311,7 +302,6 @@ func Process_live_line(int_array_received []int16, digital_output int16) error {
 
 		passname, pass_error := determine_passname(digital_output)
 		if pass_error != nil {
-			log.Println("pass error")
 			return pass_error
 		}
 

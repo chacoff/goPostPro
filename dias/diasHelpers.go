@@ -24,18 +24,33 @@ import (
 func ProcessDiasData(payload []byte) {
 
 	array, digitalOutput := DecodeDiasData(payload)
+	processing_list := make([][]int16, 0)
 
-	processError := postpro.Process_live_line(array, digitalOutput)
-	if errors.Is(processError, postpro.No_beam_error) {
-		return
+	if global.PostProParams.Cage12Split && len(array) < 513 {
+		log.Println("error : not enough measures to split cage 1 / cage 2")
 	}
-	if processError != nil {
-		log.Printf("[PROCESSING] error: %s\n", processError)
+
+	if global.PostProParams.Cage12Split {
+		processing_list = append(processing_list, array[:500])
+		processing_list = append(processing_list, array[502:])
+	} else {
+		processing_list = append(processing_list, array)
 	}
+
+	for _, measures := range processing_list {
+		processError := postpro.Process_live_line(measures, digitalOutput)
+
+		if errors.Is(processError, postpro.No_beam_error) {
+			continue
+		}
+		if processError != nil {
+			log.Printf("[PROCESSING] error: %s\n", processError)
+		}
+	}
+
 	if global.AppParams.Verbose {
 		log.Printf("[PROCESSING] completed: %d\n", array)
 	}
-
 }
 
 // DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 4 digital outputs
@@ -46,7 +61,7 @@ func DecodeDiasData(payload []byte) ([]int16, int16) {
 	for index := 2; index < len(message); index += 2 {
 		int16_message = append(int16_message, int16(binary.LittleEndian.Uint16(message[index:index+2])))
 	}
-	
+
 	measurementArray := int16_message[:len(int16_message)-1]
 	digitalOutput := int16_message[len(int16_message)-1]
 
