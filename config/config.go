@@ -37,7 +37,8 @@ type Config struct {
 	NetType       string `xml:"netType"`
 	Address       string `xml:"address"`
 	AddressDias   string `xml:"addressDias"`
-	MaxBufferSize int    `xml:"maxBufferSize"`
+	MaxBufferSizeDIAS int    `xml:"maxBufferSizeDIAS"`
+	MaxBufferSizeMES int    `xml:"maxBufferSizeMES"`
 	HeaderSize    int    `xml:"headerSize"`
 	Verbose       bool   `xml:"verbose"`
 }

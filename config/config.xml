@@ -15,7 +15,8 @@ cage 4      10.28.100.0:4604
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <addressDias>127.0.0.1:2002</addressDias>
-    <maxBufferSize>4096</maxBufferSize>
+    <maxBufferSizeDIAS>4096</maxBufferSizeDIAS>
+    <maxBufferSizeMES>4096</maxBufferSizeMES>
     <headerSize>40</headerSize>
     <verbose>false</verbose>
   </config>

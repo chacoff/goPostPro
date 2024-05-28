@@ -75,7 +75,14 @@ func (s *Server) acceptLoop() {
 
 func (s *Server) readLoop(conn net.Conn) {
 	defer conn.Close()
-	buf := make([]byte, global.AppParams.MaxBufferSize)
+	buf := make([]byte, 0)
+	if (s.name != "MES")&&(s.name != "DIAS") {
+		log.Println("ERROR : one server as the wrong name : should be 'MES' and 'DIAS'")
+		return
+	}
+	if (s.name == "DIAS"){buf = make([]byte, global.AppParams.MaxBufferSizeDIAS)}
+	if (s.name == "MES"){buf = make([]byte, global.AppParams.MaxBufferSizeMES)}
+	
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
