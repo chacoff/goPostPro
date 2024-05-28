@@ -28,7 +28,6 @@ var recording_image *image.RGBA
 var image_line int = 0
 var first_timestamp time.Time = time.Now()
 var offset int = 0
-var image_count int = 0
 var beam_id string = ""
 
 // Used to convert a temperature into a thermal color
@@ -91,7 +90,9 @@ func ChangeImage() error {
 // Go to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
-	log.Println(image_line)
+	if(image_line>global.Graphics.ImageHeight){
+		ChangeImage()
+	}
 	return nil
 }
 
