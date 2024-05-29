@@ -17,5 +17,6 @@ require (
 	github.com/mazznoer/csscolorparser v0.1.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/zerolog v1.32.0 // indirect
+	golang.org/x/image v0.16.0
 	golang.org/x/sys v0.20.0 // indirect
 )

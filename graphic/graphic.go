@@ -20,6 +20,10 @@ import (
 	"os"
 	"time"
 
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
+
 	"github.com/mazznoer/colorgrad"
 )
 
@@ -30,10 +34,28 @@ var first_timestamp time.Time = time.Now()
 var offset int = 0
 var beam_id string = ""
 
+func addLabel(img *image.RGBA, x, y int, label string) {
+	col := color.RGBA{0, 0, 0, 255}
+	point := fixed.Point26_6{fixed.I(x), fixed.I(y)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: basicfont.Face7x13,
+		Dot:  point,
+	}
+	d.DrawString(label)
+}
+
 // Used to convert a temperature into a thermal color
 func thermalColor(temperature float64) color.Color {
 	domain_value := (temperature - float64(global.Graphics.ThermalScaleStart)) / (float64(global.Graphics.ThermalScaleEnd) - float64(global.Graphics.ThermalScaleStart))
 	return colorgrad.Inferno().At(domain_value)
+}
+
+func WriteCenteredText(text string) error {
+	addLabel(recording_image, 900, image_line, text)
+	return nil
 }
 
 // Save the global image with the timestamps of beginning and end of measurement
@@ -91,9 +113,10 @@ func ChangeImage() error {
 // Go to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
-	if image_line > global.Graphics.ImageHeight {
+	if image_line == global.Graphics.ImageHeight {
 		ChangeImage()
 	}
+	image_line = image_line % global.Graphics.ImageHeight
 	return nil
 }
 

@@ -31,8 +31,8 @@ func ProcessDiasData(payload []byte) {
 	}
 
 	if global.PostProParams.Cage12Split {
-		processing_list = append(processing_list, array[:500])
-		processing_list = append(processing_list, array[502:])
+		cage12 := append(array[:500], array[502:]...)
+		processing_list = append(processing_list, cage12)
 	} else {
 		processing_list = append(processing_list, array)
 	}

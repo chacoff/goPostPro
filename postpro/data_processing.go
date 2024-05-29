@@ -43,10 +43,16 @@ type LineProcessing struct {
 
 func determine_passname(digital_output int16) (string, error) {
 	if digital_output == 249 {
+		if previous_pass_number == 2 {
+			graphic.WriteCenteredText("Pass 3")
+		}
 		previous_pass_number = 3
 		return "Pass 3", nil
 	}
 	if digital_output == 245 {
+		if previous_pass_number == 1 {
+			graphic.WriteCenteredText("Pass 2")
+		}
 		previous_pass_number = 2
 		return "Pass 2", nil
 	}
