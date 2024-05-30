@@ -34,7 +34,7 @@ func HandleMesData(payload []byte) ([]uint32, []byte) {
 		log.Println("[MES Header] >> Decoded Header values:", headerValues)
 	}
 
-	if len(payload) >= FullLength { // TODO attention with the '>='
+	if len(payload) >= FullLength && FullLength != 0 { // TODO attention with the '>='
 		hexBytesBody = payload[global.AppParams.HeaderSize:FullLength] // Extract the rest of the bytes
 	}
 
