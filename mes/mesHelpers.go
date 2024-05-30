@@ -76,11 +76,28 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		// Cage 3: pass1 is AI_01 and pass3 is AI_02
-		// Cage 4:    
+		// Cage 4:   
+
+		var val1 uint16
+		var val2 uint16
+
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
-		val := reflectToUint16(bodyValuesStatic[7])
-		dataLTC = []uint16{500, val, 500, val, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
+		
+		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
+		pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
+		
+		if int(pas) == 1{
+			val1 = val
+			val2 = 9999
+		}
+
+		if int(pas) == 3{
+			val1 = 9999
+			val2 = val
+		}
+
+		dataLTC = []uint16{500, val1, 500, val2, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
