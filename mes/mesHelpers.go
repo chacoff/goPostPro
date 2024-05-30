@@ -86,15 +86,19 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
 		pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
-		
-		if int(pas) == 1{
-			val1 = val
-			val2 = 9999
-		}
 
-		if int(pas) == 3{
-			val1 = 9999
+		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
+		
+		switch int(pas){
+		case 1:
+			val1 = val
+			val2 = 8996
+		case 3:
+			val1 = 8996
 			val2 = val
+		default:
+			val1 = 8997
+			val2 = 8998
 		}
 
 		dataLTC = []uint16{500, val1, 500, val2, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
@@ -148,10 +152,10 @@ func reflectToUint16(val interface{}) uint16 {
 
 	if valType.ConvertibleTo(reflect.TypeOf(uint16(0))) {
 		value = reflect.ValueOf(val).Convert(reflect.TypeOf(uint16(0))).Interface().(uint16)
-		log.Println("[LTC] LTC reflected to uint16", val)
+		// log.Println("[LTC] LTC reflected to uint16", val)
 	} else {
 		value = 1432
-		log.Println("[LTC] Type not convertible", valType)
+		// log.Println("[LTC] Type not convertible", valType)
 	}
 
 	return value

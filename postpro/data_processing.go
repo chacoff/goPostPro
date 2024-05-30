@@ -15,6 +15,7 @@ import (
 	"errors"
 	"goPostPro/global"
 	"goPostPro/graphic"
+	"log"
 	"math"
 	"strconv"
 	"time"
@@ -41,22 +42,26 @@ type LineProcessing struct {
 	gradient_limit               float64
 }
 
+//determine_passname
 func determine_passname(digital_output int16) (string, error) {
-	if digital_output == 249 {
+
+	switch digital_output{
+
+	case 249:
 		if previous_pass_number == 2 {
 			graphic.WriteCenteredText("Pass 3")
 		}
 		previous_pass_number = 3
 		return "Pass 3", nil
-	}
-	if digital_output == 245 {
+
+	case 245:
 		if previous_pass_number == 1 {
 			graphic.WriteCenteredText("Pass 2")
 		}
 		previous_pass_number = 2
 		return "Pass 2", nil
-	}
-	if digital_output == 243 {
+
+	case 243:
 		if previous_pass_number == 3 {
 			image_error := graphic.ChangeImage()
 			if image_error != nil {
@@ -65,14 +70,17 @@ func determine_passname(digital_output int16) (string, error) {
 		}
 		previous_pass_number = 1
 		return "Pass 1", nil
-	}
-	if digital_output == 241 {
+
+	case 241:
 		return "Unknown pass", nil
-	}
-	if digital_output == 240 {
+
+	case 240:
 		return "Unknown pass", nil
+
+	default:
+		return "", errors.New("something went wrong with the passes : " + strconv.Itoa(int(digital_output)))
 	}
-	return "", errors.New("something went wrong with the passes : " + strconv.Itoa(int(digital_output)))
+
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
@@ -231,9 +239,13 @@ func Process_live_line(int_array_received []int16, digital_output int16) error {
 			return computing_error
 		}
 
-		passname, pass_error := determine_passname(digital_output)
+		passname, pass_error := determine_passname(digital_output)	
 		if pass_error != nil {
 			return pass_error
+		}
+		
+		if global.AppParams.Verbose{
+			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
 		line_processing.filename = passname

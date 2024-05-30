@@ -15,8 +15,7 @@ cage 4      10.28.100.0:4604
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <addressDias>127.0.0.1:2002</addressDias>
-    <maxBufferSizeDIAS>4096</maxBufferSizeDIAS>
-    <maxBufferSizeMES>4096</maxBufferSizeMES>
+    <maxBufferSize>4096</maxBufferSize>
     <headerSize>40</headerSize>
     <verbose>false</verbose>
   </config>
@@ -47,5 +46,6 @@ cage 4      10.28.100.0:4604
     <imageWidth>1200</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>
     <thermalScaleEnd>1050</thermalScaleEnd>
+    <savingFolder>D:\\data\\results</savingFolder>
   </graphics>
 </parameters>
