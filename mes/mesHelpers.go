@@ -85,7 +85,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
 		
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
-		pas := int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
+		pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
 
 		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
 		
