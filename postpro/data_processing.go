@@ -18,7 +18,6 @@ import (
 	"log"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -43,73 +42,45 @@ type LineProcessing struct {
 	gradient_limit               float64
 }
 
+//determine_passname
 func determine_passname(digital_output int16) (string, error) {
-	if digital_output == 249 {
+
+	switch digital_output{
+
+	case 249:
+		if previous_pass_number == 2 {
+			graphic.WriteCenteredText("Pass 3")
+		}
 		previous_pass_number = 3
 		return "Pass 3", nil
-	}
-	if digital_output == 245 {
+
+	case 245:
+		if previous_pass_number == 1 {
+			graphic.WriteCenteredText("Pass 2")
+		}
 		previous_pass_number = 2
 		return "Pass 2", nil
-	}
-	if digital_output == 243 {
+
+	case 243:
 		if previous_pass_number == 3 {
 			image_error := graphic.ChangeImage()
 			if image_error != nil {
 				return "", image_error
 			}
-			log.Println("Changed image")
 		}
 		previous_pass_number = 1
 		return "Pass 1", nil
-	}
-	if digital_output == 241 {
-		return "", nil
-	}
-	return "", errors.New("something went wrong with the passes")
-}
 
-// Take the string received and parse its datas
-func (line_processing *LineProcessing) parse_string_received(string_received string) error {
-	splited_string_array := strings.Split(string_received, "\t")
-	if len(splited_string_array) < 516 {
-		return errors.New("error : the parsed line has not enough measures")
+	case 241:
+		return "Unknown pass", nil
+
+	case 240:
+		return "Unknown pass", nil
+
+	default:
+		return "", errors.New("something went wrong with the passes : " + strconv.Itoa(int(digital_output)))
 	}
-	// Parse timestamp
-	timestamp, parsing_error := time.Parse(global.PostProParams.TimeFormat, splited_string_array[0])
-	if parsing_error != nil {
-		return parsing_error
-	}
-	line_processing.timestamp = timestamp
-	// Removed the unwanted measures
-	measures_string_array := append(
-		splited_string_array[1+global.PostProParams.FirstMeasuresRemoved:500],
-		splited_string_array[510:len(splited_string_array)-4]...,
-	)
-	// Parse temperature measures and by the same time find the max and min
-	var max_temperature float64
-	var min_temperature float64
-	line_processing.processed_temperatures_array = make([]float64, len(measures_string_array))
-	for index, temperature_string := range measures_string_array {
-		temperature_string = strings.ReplaceAll(temperature_string, ",", ".")
-		temperature_float, parsing_error := strconv.ParseFloat(temperature_string, 64)
-		if parsing_error != nil {
-			return parsing_error
-		}
-		if index == 0 { // To initialize the values
-			max_temperature = temperature_float
-			min_temperature = temperature_float
-		}
-		max_temperature = math.Max(max_temperature, temperature_float)
-		min_temperature = math.Min(min_temperature, temperature_float)
-		line_processing.processed_temperatures_array[index] = temperature_float
-	}
-	// Calcul the threshold that will be used
-	line_processing.threshold = math.Max(
-		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
-		global.PostProParams.MinTemperatureThreshold,
-	)
-	return nil
+
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
@@ -119,19 +90,9 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 	if len(int_array) < int(global.PostProParams.FirstMeasuresRemoved) {
 		return errors.New("error : the parsed line has not enough measures")
 	}
-	if global.PostProParams.Cage12Split && len(int_array) < 513 {
-		return errors.New("error : not enough measures to split cage 1 / cage 2")
-	}
 
 	line_processing.timestamp = time.Now()
 	measures_int_array := int_array[global.PostProParams.FirstMeasuresRemoved:]
-
-	if global.PostProParams.Cage12Split {
-		measures_int_array = append(
-			int_array[global.PostProParams.FirstMeasuresRemoved:500],
-			int_array[510:]...,
-		)
-	}
 
 	var max_temperature float64
 	var min_temperature float64
@@ -257,37 +218,6 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	return nil
 }
 
-// Receive the string for a single line, process it and save the values in the database
-func Process_line(string_received string, filename string) error {
-	var line_processing LineProcessing
-	line_processing.filename = filename
-
-	parsing_error := line_processing.parse_string_received(string_received)
-	if parsing_error != nil {
-		return parsing_error
-	}
-	threshold_gradient_error := line_processing.threshold_compute_gradient()
-	if threshold_gradient_error != nil {
-		return threshold_gradient_error
-	}
-	cropping_error := line_processing.gradient_cropping()
-	if cropping_error != nil {
-		return cropping_error
-	}
-	if line_processing.width > global.PostProParams.MinWidth {
-		computing_error := line_processing.compute_calculations()
-		if computing_error != nil {
-			return computing_error
-		}
-		insertion_error := DATABASE.Insert_line_processing(line_processing)
-		if insertion_error != nil {
-			return insertion_error
-		}
-	}
-
-	return nil
-}
-
 func Process_live_line(int_array_received []int16, digital_output int16) error {
 	var line_processing LineProcessing
 
@@ -309,10 +239,13 @@ func Process_live_line(int_array_received []int16, digital_output int16) error {
 			return computing_error
 		}
 
-		passname, pass_error := determine_passname(digital_output)
+		passname, pass_error := determine_passname(digital_output)	
 		if pass_error != nil {
-			log.Println("pass error")
 			return pass_error
+		}
+		
+		if global.AppParams.Verbose{
+			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
 		line_processing.filename = passname

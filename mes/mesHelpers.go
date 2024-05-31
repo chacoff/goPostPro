@@ -34,7 +34,7 @@ func HandleMesData(payload []byte) ([]uint32, []byte) {
 		log.Println("[MES Header] >> Decoded Header values:", headerValues)
 	}
 
-	if len(payload) >= FullLength { // TODO attention with the '>='
+	if len(payload) >= FullLength && FullLength != 0 { // TODO attention with the '>='
 		hexBytesBody = payload[global.AppParams.HeaderSize:FullLength] // Extract the rest of the bytes
 	}
 
@@ -76,11 +76,39 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		// Cage 3: pass1 is AI_01 and pass3 is AI_02
-		// Cage 4:    
+		// Cage 4:   
+
+		var val1 uint16
+		var val2 uint16
+		var pas int
+
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
-		val := reflectToUint16(bodyValuesStatic[7])
-		dataLTC = []uint16{500, val, 500, val, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
+		
+		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
+		// pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
+
+		if len(bodyValuesStatic) > 8 {  // ugly patch STUPID PR FUCK YOU AZURE!
+			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
+		} else{
+			pas = 2
+		}
+
+		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
+		
+		switch int(pas){
+		case 1:
+			val1 = val
+			val2 = 8996
+		case 3:
+			val1 = 8996
+			val2 = val
+		default:
+			val1 = 8997
+			val2 = 8998
+		}
+
+		dataLTC = []uint16{500, val1, 500, val2, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
@@ -131,10 +159,10 @@ func reflectToUint16(val interface{}) uint16 {
 
 	if valType.ConvertibleTo(reflect.TypeOf(uint16(0))) {
 		value = reflect.ValueOf(val).Convert(reflect.TypeOf(uint16(0))).Interface().(uint16)
-		log.Println("[LTC] LTC reflected to uint16", val)
+		// log.Println("[LTC] LTC reflected to uint16", val)
 	} else {
 		value = 1432
-		log.Println("[LTC] Type not convertible", valType)
+		// log.Println("[LTC] Type not convertible", valType)
 	}
 
 	return value

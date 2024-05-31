@@ -68,10 +68,11 @@ type DataBase struct {
 }
 
 type Graphics struct {
-	ImageHeight       int `xml:"imageHeight"`
-	ImageWidth        int `xml:"imageWidth"`
-	ThermalScaleStart int `xml:"thermalScaleStart"`
-	ThermalScaleEnd   int `xml:"thermalScaleEnd"`
+	ImageHeight       int 	 `xml:"imageHeight"`
+	ImageWidth        int 	 `xml:"imageWidth"`
+	ThermalScaleStart int 	 `xml:"thermalScaleStart"`
+	ThermalScaleEnd   int 	 `xml:"thermalScaleEnd"`
+	Savingfolder	  string `xml:"savingFolder"`
 }
 
 func LoadConfig() (Parameters, error) {

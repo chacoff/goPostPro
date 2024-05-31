@@ -91,7 +91,6 @@ func (calculations_database *CalculationsDatabase) drop_Table() error {
 
 func (calculations_database *CalculationsDatabase) clean_Table() error {
 	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
-	log.Println(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
 	_, query_error := calculations_database.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
 	return query_error
 }

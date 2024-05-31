@@ -46,5 +46,6 @@ cage 4      10.28.100.0:4604
     <imageWidth>1200</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>
     <thermalScaleEnd>1050</thermalScaleEnd>
+    <savingFolder>D:\\data\\results</savingFolder>
   </graphics>
 </parameters>

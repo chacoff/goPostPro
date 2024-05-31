@@ -76,6 +76,7 @@ func (s *Server) acceptLoop() {
 func (s *Server) readLoop(conn net.Conn) {
 	defer conn.Close()
 	buf := make([]byte, global.AppParams.MaxBufferSize)
+	
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
