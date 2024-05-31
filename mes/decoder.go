@@ -162,6 +162,7 @@ func decodePasses(data []byte, passes int) []interface{} {
 }
 
 func decodeLTC(data []byte) []interface{} {
+
 	// j=0	id_482 			format HEX	BytesGap	4
 	// j=1 	grp_mont_482 	format UTF 	BytesGap	4
 	// j=2	num_mont_482 	format UTF	BytesGap	4
@@ -173,7 +174,13 @@ func decodeLTC(data []byte) []interface{} {
 	// J=8	pass_ltc_482	format HEX	BytesGap	4	// 0, 1, 2, 3 // pass 0 means nothing was found
 
 	var _values []interface{}
-	var byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4, 4} // pattern of byte gaps to decode specific messages
+	var byteGaps []int
+	if len(data) > 40 {
+		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4, 4}
+	} else {
+		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4}
+	}
+	// pattern of byte gaps to decode specific messages
 	var index int
 	var value uint32
 
@@ -185,7 +192,7 @@ func decodeLTC(data []byte) []interface{} {
 		}
 		_data := data[index:endIndex] // Extract bytes according to the pattern
 
-		if j == 0 || j == 3 || j == 7 || j == 8{
+		if j == 0 || j == 3 || j == 7 || j == 8 {
 			value = binary.LittleEndian.Uint32(_data)
 			_values = append(_values, value)
 		} else {
