@@ -80,12 +80,19 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 		var val1 uint16
 		var val2 uint16
+		var pas int
 
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
 		
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
-		pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
+
+		if len(bodyValuesStatic) > 8 {  // TODO ugly patch
+			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
+		} else{
+			pas = 2
+		}
+		
 
 		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
 		
