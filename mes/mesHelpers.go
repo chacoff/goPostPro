@@ -87,7 +87,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
 
-		if len(bodyValuesStatic) > 8 {  // TODO ugly patch
+		if len(bodyValuesStatic) > 8 {  // 
 			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
 		} else{
 			pas = 2
