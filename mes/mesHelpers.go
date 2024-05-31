@@ -88,7 +88,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
 		// pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
 
-		if len(bodyValuesStatic) > 8 {  // ugly patch
+		if len(bodyValuesStatic) > 8 {  // ugly patch STUPID PR FUCK YOU AZURE!
 			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
 		} else{
 			pas = 2
