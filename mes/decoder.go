@@ -175,14 +175,14 @@ func decodeLTC(data []byte) []interface{} {
 
 	var _values []interface{}
 	var byteGaps []int
-	if len(data) > 40 {
-		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4, 4}
-	} else {
-		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4}
-	}
-	// pattern of byte gaps to decode specific messages
 	var index int
 	var value uint32
+
+	if len(data) > 40 {
+		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4, 4}  // pattern of byte gaps to decode LTC message with pass number included
+	} else {
+		byteGaps = []int{4, 4, 4, 4, 12, 7, 1, 4}  // pattern of byte gaps in case the LTC message does not have the pass number
+	}
 
 	j := 0
 	for _, gap := range byteGaps {

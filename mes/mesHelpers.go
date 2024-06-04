@@ -91,7 +91,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		if len(bodyValuesStatic) > 8 {  // ugly patch STUPID PR FUCK YOU AZURE!
 			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
 		} else{
-			pas = 2
+			pas = 2 // default pass if for whatever the reason there is no pass number in the MES message
 		}
 
 		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
