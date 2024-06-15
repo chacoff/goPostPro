@@ -51,7 +51,9 @@ git pull
 
         rem set build number Variables --------------------------------------
         set previousBuildNumber=%previousMajor%.%previousMinor%.%previousPatch%
+        set previousBuildNumber2=%previousMajor%,%previousMinor%,%previousPatch%
         set buildNumber=%major%.%minor%.%patch%
+        set buildNumber2=%major%,%minor%,%patch%
 
 git commit -a -m "updated build version"
 
@@ -64,6 +66,15 @@ git checkout master
 
 timeout /t 1
 
+rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
+rem First comma separate
+powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
+rem Second dot separate STR
+powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
+
+rem Build versioninfo.syso --------------------------------
+windres -i versioninfo.rc -O coff -o versioninfo.syso
+
 rem Create target folder if it doesn't exist --------------------------------
 if not exist "%previous_builds_folder%" mkdir "%previous_builds_folder%"
 
@@ -74,7 +85,8 @@ if exist "%target_folder%-%previousBuildNumber%" (
 )
 
 rem Build the Go program -----------------------------------------------------
-go build -o "%target_folder%-%buildNumber%\%executable_name%"
+rem -ldflags "-s -w" removes all debug infos and reduces the binary file size
+go build -ldflags "-s -w" -o "%target_folder%-%buildNumber%\%executable_name%"
 
 rem Copy the config file and external libs to complete the release -----------
 copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
