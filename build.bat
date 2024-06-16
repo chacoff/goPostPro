@@ -69,11 +69,12 @@ timeout /t 1
 rem copy version.info.rc --------------------------------
 copy "_Resources\versioninfo.rc" "versioninfo.rc"
 
+
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
-rem First comma separate
-powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
-rem Second dot separate STR
-powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
+_Resources/fart.exe versioninfo.rc "0,0,01" %buildNumber2%
+_Resources/fart.exe versioninfo.rc "0.0.02" %buildNumber%
+rem powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
+rem powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
 
 rem Build versioninfo.syso --------------------------------
 windres -i versioninfo.rc -O coff -o versioninfo.syso
