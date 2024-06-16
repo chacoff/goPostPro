@@ -62,7 +62,7 @@ echo Push to origin.buildVersion successful!
 
 timeout /t 1
 
-git checkout master
+git checkout dev
 
 timeout /t 1
 
@@ -71,7 +71,9 @@ copy "_Resources\versioninfo.rc" "versioninfo.rc"
 copy "_Resources\fart.exe" "fart.exe"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
+echo File Version %buildNumber2%
 .\fart.exe versioninfo.rc "0,0,01" %buildNumber2%
+echo Product Version %buildNumber%
 .\fart.exe versioninfo.rc "0.0.02" %buildNumber%
 rem powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
 rem powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
