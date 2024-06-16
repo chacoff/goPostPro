@@ -72,7 +72,7 @@ powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumb
 rem Second dot separate STR
 powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
 
-rem copy version.info.rc
+rem copy version.info.rc --------------------------------
 copy "_Resources\versioninfo.rc" "versioninfo.rc"
 
 rem Build versioninfo.syso --------------------------------
@@ -105,6 +105,10 @@ rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%b
 windres _Resources\icon.rc -O coff -o _Resources\icon.o
 gcc _Resources\launchgoPostPro.c _Resources\icon.o -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
 echo Shortcut created successfully.
+
+rem Cleaning -----------------------------------------------------------
+del /F "versioninfo.rc"
+del /F "versioninfo.syso"
 
 echo Build completed for release-%buildNumber%.
 
