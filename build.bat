@@ -72,6 +72,9 @@ powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumb
 rem Second dot separate STR
 powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
 
+rem copy version.info.rc
+copy "_Resources\versioninfo.rc" "versioninfo.rc"
+
 rem Build versioninfo.syso --------------------------------
 windres -i versioninfo.rc -O coff -o versioninfo.syso
 
