@@ -72,9 +72,9 @@ copy "_Resources\versioninfo.rc" "versioninfo.rc"
 copy "_Resources\fart.exe" "fart.exe"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
-echo File Version: %buildNumber2%
+echo Version: %buildNumber2%
 .\fart.exe versioninfo.rc "0,0,01" %buildNumber2%
-echo Product Version: %buildNumber%
+echo Version STR: %buildNumber%
 .\fart.exe versioninfo.rc "0.0.02" %buildNumber%
 
 rem Build versioninfo.syso --------------------------------
@@ -109,7 +109,7 @@ gcc _Resources\launchgoPostPro.c _Resources\icon.o -o %target_folder%-%buildNumb
 echo Shortcut created successfully.
 
 rem Cleaning -----------------------------------------------------------
-rem del /F "versioninfo.rc"
+del /F "versioninfo.rc"
 del /F "versioninfo.syso"
 del /F "fart.exe"
 
