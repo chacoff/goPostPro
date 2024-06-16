@@ -67,6 +67,7 @@ git checkout dev
 timeout /t 1
 
 rem copy version.info.rc --------------------------------
+echo Preparing versioninfo and FART
 copy "_Resources\versioninfo.rc" "versioninfo.rc"
 copy "_Resources\fart.exe" "fart.exe"
 
