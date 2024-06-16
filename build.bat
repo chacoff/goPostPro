@@ -68,11 +68,11 @@ timeout /t 1
 
 rem copy version.info.rc --------------------------------
 copy "_Resources\versioninfo.rc" "versioninfo.rc"
-copy "_Resources/fart.exe" "fart.exe"
+copy "_Resources\fart.exe" "fart.exe"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
-fart.exe versioninfo.rc "0,0,01" %buildNumber2%
-fart.exe versioninfo.rc "0.0.02" %buildNumber%
+.\fart.exe versioninfo.rc "0,0,01" %buildNumber2%
+.\fart.exe versioninfo.rc "0.0.02" %buildNumber%
 rem powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
 rem powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
 
