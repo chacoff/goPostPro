@@ -23,7 +23,13 @@ import (
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
 
-	array, digitalOutput := DecodeDiasData(payload)
+	array, digitalOutput, errD := DecodeDiasData(payload)
+
+	if errD != nil{
+		log.Println("[DIAS DECODER] error decoding dias data:", errD)
+		return
+	}
+
 	processing_list := make([][]int16, 0)
 
 	if global.PostProParams.Cage12Split && len(array) < 513 {
@@ -54,18 +60,41 @@ func ProcessDiasData(payload []byte) {
 }
 
 // DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 8 digital outputs
-func DecodeDiasData(payload []byte) ([]int16, int16) {
+func DecodeDiasData(payload []byte) ([]int16, int16, error) {
+	
+	var measurementArray []int16
+	var digitalOutput int16
+
+	if len(payload) == 0 {
+		log.Printf("[DIAS DECODER] empty payload: %d\n", payload)
+		return measurementArray, digitalOutput, errors.New("payload is empty")
+	}
+	
+	if global.AppParams.Verbose{
+		log.Println(payload)
+	}
+	
 	message := payload
 	int16_message := make([]int16, 0)
 
 	for index := 2; index < len(message); index += 2 {
-		int16_message = append(int16_message, int16(binary.LittleEndian.Uint16(message[index:index+2])))
+		val := int16(binary.LittleEndian.Uint16(message[index:index+2]))
+		if global.AppParams.Verbose{
+			log.Println(val)
+		}
+		int16_message = append(int16_message, val)
 	}
 
-	measurementArray := int16_message[:len(int16_message)-1]
-	digitalOutput := int16_message[len(int16_message)-1]
+	end := len(int16_message)-1
 
-	return measurementArray, digitalOutput
+	if global.AppParams.Verbose{
+		log.Printf("[DIAS DECODER] end of Array: %d\n", end)
+	}
+
+	measurementArray = int16_message[:end]
+	digitalOutput = int16_message[end]
+
+	return measurementArray, digitalOutput, nil
 }
 
 // EncodeToDias currently DIAS-Pyrosoft is supporting 8 Analog Inputs, i.e., LTCValues is a slice of 8 elements
