@@ -2,8 +2,8 @@
 setlocal
 setlocal enabledelayedexpansion
 
-set previousBuildNumber=1.0.042
-set number=10043
+set previousBuildNumber=1.0.057
+set number=99995
 
 set major=!number:~0,1!
 set minor=!number:~1,1!
@@ -56,7 +56,7 @@ echo XML update completed with build number: %buildNumber%
 rem Create shortcut -----------------------------------------------------------
 rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
 windres _Resources\icon.rc -O coff -o _Resources\icon.o
-gcc _Resources\launchgoPostPro.c _Resources\icon.o -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
+gcc _Resources\launchgoPostPro.c _Resources\icon.o versioninfo.syso -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
 echo Shortcut created successfully.
 
 rem Cleaning -----------------------------------------------------------

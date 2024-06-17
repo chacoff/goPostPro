@@ -104,7 +104,7 @@ echo XML update completed with build number: %buildNumber%
 rem Create shortcut -----------------------------------------------------------
 rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
 windres _Resources\icon.rc -O coff -o _Resources\icon.o
-gcc _Resources\launchgoPostPro.c _Resources\icon.o -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
+gcc _Resources\launchgoPostPro.c _Resources\icon.o versioninfo.syso -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
 echo Shortcut created successfully.
 
 rem Cleaning -----------------------------------------------------------
