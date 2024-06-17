@@ -8,6 +8,12 @@ require (
 )
 
 require (
+	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
+	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
+)
+
+require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/judwhite/go-svc v1.2.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect

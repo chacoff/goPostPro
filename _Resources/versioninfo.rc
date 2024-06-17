@@ -1,0 +1,36 @@
+#define RT_MANIFEST 24
+
+#define VER_FILEVERSION             0,0,01
+#define VER_PRODUCTVERSION          0,0,01
+
+#define VER_FILEVERSION_STR         "0.0.02\0"
+#define VER_PRODUCTVERSION_STR      "0.0.02\0"
+
+1 VERSIONINFO
+FILEVERSION     VER_FILEVERSION
+PRODUCTVERSION  VER_PRODUCTVERSION
+FILEFLAGSMASK   0X3FL
+FILEFLAGS       0L
+FILEOS          0X40004L
+FILETYPE        0X1
+FILESUBTYPE     0
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+			VALUE "CompanyName", "OpenDURRS - jaime.gomez@usach.cl\0"
+            VALUE "FileDescription", "Post processing mill 2 with MES communication\0"
+            VALUE "FileVersion",      VER_FILEVERSION_STR
+            VALUE "InternalName", "goPostPro.exe\0"
+            VALUE "LegalCopyright", "OpenDURRS (C) 2024\0"
+            VALUE "OriginalFilename", "goPostPro.exe\0"
+            VALUE "ProductName", "Post Processing mill2\0"
+            VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+            VALUE "Translation", 0x0409, 0x04B0
+    END
+END
