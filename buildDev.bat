@@ -2,70 +2,22 @@
 setlocal
 setlocal enabledelayedexpansion
 
-rem Check if parameters are provided ----------------------------------------
-if "%~1" == "" (
-    echo Usage: build.bat [executable_name]
-    echo Using default: goPostPro.exe
-    set executable_name=goPostPro.exe
-) else (
-    set executable_name=%~1
-)
+set previousBuildNumber=1.0.042
+set number=10043
 
-rem Set variables -----------------------------------------------------------
+set major=!number:~0,1!
+set minor=!number:~1,1!
+set patch=!number:~2!
+set patchv=!number:~2,1!
+set patch2=!number:~3!
+
+set buildNumber=%major%.%minor%.%patch%
+set buildNumber2=%major%,%minor%,%patchv%,%patch2%
+
 set target_folder=./BuildMachine/release
-set config_file=config.xml
 set previous_builds_folder=./BuildMachine/previousReleases
-set counter_file=buildVersion.txt
-set icon=./_Resources/beam.ico
-
-rem Taking the remote buildVersion number -----------------------------------
-git fetch
-
-git checkout buildVersion
-
-git pull
-
-    rem Generate a build number ---------------------------------------------
-    if not exist "%counter_file%" (
-      echo 1 > "%counter_file%"
-    )
-    
-    for /f "usebackq tokens=*" %%a in ("%counter_file%") do set patch_version=%%a
-    
-        set previousBuild=%patch_version%
-    
-        set previousMajor=!previousBuild:~0,1!
-        set previousMinor=!previousBuild:~1,1!
-        set previousPatch=!previousBuild:~2!
-        echo Previous Build Number: %previousMajor%.%previousMinor%.%previousPatch%
-        
-        set /a patch_version=%patch_version%+1
-        echo %patch_version% > "%counter_file%"
-        
-        set number=%patch_version%
-        set major=!number:~0,1!
-        set minor=!number:~1,1!
-        set patch=!number:~2!
-        set patchv=!number:~2,1!
-        set patch2=!number:~3!
-        echo Current Build Number: %major%.%minor%.%patch%
-        
-
-        rem set build number Variables --------------------------------------
-        set previousBuildNumber=%previousMajor%.%previousMinor%.%previousPatch%
-        set buildNumber=%major%.%minor%.%patch%
-        set buildNumber2=%major%,%minor%,%patchv%,%patch2%
-
-git commit -a -m "updated build version"
-
-git push -u origin buildVersion
-echo Push to origin.buildVersion successful!
-
-timeout /t 1
-
-git checkout master
-
-timeout /t 1
+set executable_name=goPostPro.exe
+set config_file=config.xml
 
 rem copy version.info.rc --------------------------------
 echo Preparing versioninfo and FART
