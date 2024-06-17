@@ -46,14 +46,15 @@ git pull
         set major=!number:~0,1!
         set minor=!number:~1,1!
         set patch=!number:~2!
+        set patchv=!number:~2,1!
+        set patch2=!number:~3!
         echo Current Build Number: %major%.%minor%.%patch%
         
 
         rem set build number Variables --------------------------------------
         set previousBuildNumber=%previousMajor%.%previousMinor%.%previousPatch%
-        set previousBuildNumber2=%previousMajor%,%previousMinor%,%previousPatch%
         set buildNumber=%major%.%minor%.%patch%
-        set buildNumber2=%major%,%minor%,%patch%
+        set buildNumber2=%major%,%minor%,%patchv%,%patch2%
 
 git commit -a -m "updated build version"
 
@@ -62,7 +63,7 @@ echo Push to origin.buildVersion successful!
 
 timeout /t 1
 
-git checkout dev
+git checkout master
 
 timeout /t 1
 
@@ -72,12 +73,8 @@ copy "_Resources\versioninfo.rc" "versioninfo.rc"
 copy "_Resources\fart.exe" "fart.exe"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
-echo File Version %buildNumber2%
-.\fart.exe versioninfo.rc "0,0,01" %buildNumber2%
-echo Product Version %buildNumber%
-.\fart.exe versioninfo.rc "0.0.02" %buildNumber%
-rem powershell -Command "(Get-Content versioninfo.rc) -replace '0,0,01', '%buildNumber2%' | Set-Content versioninfo.rc"
-rem powershell -Command "(Get-Content versioninfo.rc) -replace '0.0.02', '%buildNumber%' | Set-Content versioninfo.rc"
+echo Version: %buildNumber2%
+.\fart.exe versioninfo.rc "0,0,0,1" %buildNumber2%
 
 rem Build versioninfo.syso --------------------------------
 windres -i versioninfo.rc -O coff -o versioninfo.syso
