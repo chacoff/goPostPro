@@ -3,7 +3,7 @@ setlocal
 setlocal enabledelayedexpansion
 
 set previousBuildNumber=1.0.057
-set number=99995
+set number=99996
 
 set major=!number:~0,1!
 set minor=!number:~1,1!

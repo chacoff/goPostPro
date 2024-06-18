@@ -71,24 +71,22 @@ func main() {
 		for msg := range dias.Msgch {
 			// Dias payload
 
-			if len(msg.Payload) == 0{
-				break // break the loop but stays in the routine!
-			}
+			if len(msg.Payload) != 0{
+				_msg, _length := diasHelpers.DataScope(msg.Payload)
+				
+				diasHelpers.ProcessDiasData(msg.Payload)
 
-			_msg, _length := diasHelpers.DataScope(msg.Payload)
-			
-			diasHelpers.ProcessDiasData(msg.Payload)
+				if global.AppParams.Verbose {
+					log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
+				}
 
-			if global.AppParams.Verbose {
-				log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
-			}
-
-			// LTC consumer
-			select {
-			case ltc := <-LTCch:
-				LTC = ltc
-			default:
-				//
+				// LTC consumer
+				select {
+				case ltc := <-LTCch:
+					LTC = ltc
+				default:
+					//
+				}
 			}
 
 			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
