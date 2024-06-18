@@ -35,7 +35,7 @@ import (
 	"time"
 )
 
-// LTC default
+// LTC default if there is no MES message, i.e., no data from the MES-DIAS channel
 var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
 
 // init function starts Logger and DataBase
@@ -70,19 +70,23 @@ func main() {
 		defer wg.Done()
 		for msg := range dias.Msgch {
 			// Dias payload
-			_msg, _length := diasHelpers.DataScope(msg.Payload)
-			diasHelpers.ProcessDiasData(msg.Payload)
 
-			if global.AppParams.Verbose {
-				log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
-			}
+			if len(msg.Payload) != 0{
+				_msg, _length := diasHelpers.DataScope(msg.Payload)
+				
+				diasHelpers.ProcessDiasData(msg.Payload)
 
-			// LTC consumer
-			select {
-			case ltc := <-LTCch:
-				LTC = ltc
-			default:
-				//
+				if global.AppParams.Verbose {
+					log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
+				}
+
+				// LTC consumer
+				select {
+				case ltc := <-LTCch:
+					LTC = ltc
+				default:
+					//
+				}
 			}
 
 			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
@@ -101,6 +105,11 @@ func main() {
 	go func() {
 		defer wg.Done()
 		for msg := range mes.Msgch {
+
+			if len(msg.Payload) == 0{
+				break // break the loop but stays in the routine!
+			}
+
 			_payload, _len := mesHelpers.DataScope(msg.Payload)
 			log.Printf("[MES] received message from %s with length %d: %s", msg.From, _len, _payload)
 

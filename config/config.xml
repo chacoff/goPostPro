@@ -7,8 +7,8 @@ cage 4      10.28.100.0:4604
 -->
 <parameters>
   <build>
-    <version>1.0.085</version>
-    <type>beta</type>
+    <version>9.9.999</version>
+    <type>alpha</type>
   </build>
   <config>
     <cage>goPostPro - TestCage</cage>
@@ -42,8 +42,8 @@ cage 4      10.28.100.0:4604
     <cleaningPeriod>1000</cleaningPeriod>
   </database>
   <graphics>
-    <imageHeight>500</imageHeight>
-    <imageWidth>1200</imageWidth>
+    <imageHeight>2000</imageHeight>
+    <imageWidth>2000</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>
     <thermalScaleEnd>1050</thermalScaleEnd>
     <savingFolder>D:\\data\\results</savingFolder>

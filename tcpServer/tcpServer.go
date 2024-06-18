@@ -81,7 +81,7 @@ func (s *Server) readLoop(conn net.Conn) {
 		n, err := conn.Read(buf)
 		if err != nil {
 			log.Println("read error:", err)
-			break
+			continue
 		}
 
 		s.Msgch <- Message{
