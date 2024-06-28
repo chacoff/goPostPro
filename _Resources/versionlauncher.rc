@@ -30,4 +30,4 @@ BEGIN
     END
 END
 
-1 ICON "golang.ico"
+1 ICON "beam.ico"
