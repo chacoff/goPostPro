@@ -58,6 +58,7 @@ type PostPro struct {
 	GradientFactor          float64 `xml:"gradientFactor"`
 	MinWidth                int64   `xml:"minWidth"`
 	Cage12Split             bool    `xml:"cage12split"`
+	LtcOffset				int		`xml:"ltcOffset"`
 }
 
 type DataBase struct {

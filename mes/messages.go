@@ -113,7 +113,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 
 		// LTC post processing data
-		ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], addOffsetToTimestamp(listOfStamps[i], 2))
+		ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
+		ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
 		if errLtc != nil {
 			log.Println("ERROR : ", err)
 		}
