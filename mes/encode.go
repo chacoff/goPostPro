@@ -44,9 +44,12 @@ func encodeUint32(_values []interface{}) []byte {
 
 // encodeProcess encode process data containing passes, it is only to encode Body
 func encodeProcess(_values []interface{}) []byte {
+	// some of the data has to be encoded Raw, i.e., CHARS to BYTE and others using littleEndian to UINT32
+
 	_buffer := make([]byte, 0, global.AppParams.MaxBufferSize)
 
-	var rawWrite = []int{1, 2, 6, 7, 17, 18, 28, 29, 39, 40, 50, 51, 61, 62, 72, 73, 83, 84, 94, 95}
+	// var rawWrite = []int{1, 2, 6, 7, 17, 18, 28, 29, 39, 40, 50, 51, 61, 62, 72, 73, 83, 84, 94, 95}
+	var rawWrite = []int{1, 2, 6, 7, 23, 24, 40, 41, 57, 58, 74, 75, 91, 92, 108, 109, 125, 126, 142, 143, 159, 160, 176, 177, 193, 194, 210, 211}
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
 	for _, value := range _values {

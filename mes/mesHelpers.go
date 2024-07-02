@@ -76,7 +76,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		// Cage 3: pass1 is AI_01 and pass3 is AI_02
-		// Cage 4:   
+		// Cage 4: pass1 is AI_01 and pass3 is AI_02  
 
 		var val1 uint16
 		var val2 uint16
