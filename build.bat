@@ -70,11 +70,15 @@ timeout /t 1
 rem copy version.info.rc --------------------------------
 echo Preparing versioninfo and FART
 copy "_Resources\versioninfo.rc" "versioninfo.rc"
+copy "_Resources\versionlauncher.rc" "versionlauncher.rc"
 copy "_Resources\fart.exe" "fart.exe"
+copy "_Resources\beam.ico" "beam.ico"
+copy "_Resources\golang.ico" "golang.ico"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
 echo Version: %buildNumber2%
 .\fart.exe versioninfo.rc "0,0,0,1" %buildNumber2%
+.\fart.exe versionlauncher.rc "0,0,0,1" %buildNumber2%
 
 rem Build versioninfo.syso --------------------------------
 windres -i versioninfo.rc -O coff -o versioninfo.syso
@@ -96,21 +100,26 @@ rem Copy the config file and external libs to complete the release -----------
 copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
 copy "_ExternalLibs\TrayRunner\*.*" "%target_folder%-%buildNumber%"
 copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
+copy "_Resources\golang.ico" "%target_folder%-%buildNumber%\golang.ico"
 
 rem update config XML using xmlstarlet --------------------------------------
 xmlstarlet ed -L -u /parameters/build/version -v %buildNumber% %target_folder%-%buildNumber%/%config_file%
 echo XML update completed with build number: %buildNumber%
 
-rem Create shortcut -----------------------------------------------------------
-rem call ./_ExternalLibs/ShortcutJS/shortcutJS.bat -linkfile "%target_folder%-%buildNumber%\LaunchgoPostPro.lnk" -target "%~dp0%target_folder%-%buildNumber%\TrayRunner.exe" -linkarguments "goPostPro" -icon "%~dp0%target_folder%-%buildNumber%\beam.ico"
-windres _Resources\icon.rc -O coff -o _Resources\icon.o
-gcc _Resources\launchgoPostPro.c _Resources\icon.o versioninfo.syso -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
+rem Create launcher and syso file for launcher ------------------------------
+rem windres _Resources\icon.rc -O coff -o _Resources\icon.o
+windres -i versionlauncher.rc -O coff -o versionlauncher.syso
+gcc _Resources\launchgoPostPro.c versionlauncher.syso -o %target_folder%-%buildNumber%\LaunchGoPostPro.exe
 echo Shortcut created successfully.
 
-rem Cleaning -----------------------------------------------------------
+rem Cleaning -----------------------------------------------------------------
 del /F "versioninfo.rc"
 del /F "versioninfo.syso"
+del /F "versionlauncher.rc"
+del /F "versionlauncher.syso"
 del /F "fart.exe"
+del /F "beam.ico"
+del /F "golang.ico"
 
 echo Build completed for release-%buildNumber%.
 
