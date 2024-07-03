@@ -15,22 +15,53 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"goPostPro/global"
+	"goPostPro/graphic"
 	"goPostPro/postpro"
 	"log"
+
+	"strconv"
+	"strings"
 )
+
+type DigitalOutputs struct{
+	Pressence	bool
+	Pass1		bool
+	Pass2		bool
+	Pass3		bool
+	Free1		bool
+	Free2		bool
+	Free3		bool
+	Free4		bool
+	CamLine		bool
+	CamTemp		bool
+	CamStatus	bool
+	CamConn		bool
+}
+
+var Outputs DigitalOutputs
+var previous_pass_number int = 0
 
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
 
-	array, digitalOutput, errD := DecodeDiasData(payload)
+	// var arrayValues []int16
 
+	array, digitalOutput, errD := DecodeDiasData(payload)
 	if errD != nil{
 		log.Println("[DIAS DECODER] error decoding dias data:", errD)
 		return
 	}
 
+	Outputs.decodeDiasDigitalOutput(digitalOutput)
+	passname, _ := determine_passname()
+	
+
 	processing_list := make([][]int16, 0)
+
+	array = array[0:767] // the last 2 elements are to be use in VOIs
+	// arrayValues = array[767:769] // last 2 elements are VOIs
 
 	if global.PostProParams.Cage12Split && len(array) < 513 {
 		log.Println("error : not enough measures to split cage 1 / cage 2")
@@ -44,9 +75,14 @@ func ProcessDiasData(payload []byte) {
 	}
 
 	for _, measures := range processing_list {
-		processError := postpro.Process_live_line(measures, digitalOutput)
+		
+		if global.AppParams.Verbose{
+			log.Printf("[PROCESSING] pass number: %s", passname)
+		}
 
-		if errors.Is(processError, postpro.No_beam_error) {
+		processError := postpro.Process_live_line(measures, passname)
+
+		if errors.Is(processError, postpro.NoBeamError) {
 			continue
 		}
 		if processError != nil {
@@ -59,8 +95,12 @@ func ProcessDiasData(payload []byte) {
 	}
 }
 
-// DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length 767 analog outputs and 8 digital outputs
+// DecodeDiasData decodes the incoming data of DIAS-Pyrosoft: a block length, for cage3 and cage4 of 770 (AO_0 to AO_769) analog outputs and 12 digital outputs
 func DecodeDiasData(payload []byte) ([]int16, int16, error) {
+	// Length of DIAS = (digital outputs - 1)/8 + 1 + amount of analog outputs * 2
+	// AO_00 is skipped because contains the length of the payload (index = 2)
+	// AO_767 is the last element of the measurements array
+	// AO_768 and AO_769 are free VOIs
 	
 	var measurementArray []int16
 	var digitalOutput int16
@@ -70,13 +110,10 @@ func DecodeDiasData(payload []byte) ([]int16, int16, error) {
 		return measurementArray, digitalOutput, errors.New("payload is empty")
 	}
 	
-	if global.AppParams.Verbose{
-		log.Println(payload)
-	}
-	
 	message := payload
 	int16_message := make([]int16, 0)
 
+	// index = 2 instead of instead of 0 because we skip the first element because is the length of the array
 	for index := 2; index < len(message); index += 2 {
 		val := int16(binary.LittleEndian.Uint16(message[index:index+2]))
 		if global.AppParams.Verbose{
@@ -87,17 +124,22 @@ func DecodeDiasData(payload []byte) ([]int16, int16, error) {
 
 	end := len(int16_message)-1
 
-	if global.AppParams.Verbose{
-		log.Printf("[DIAS DECODER] end of Array: %d\n", end)
-	}
-
 	measurementArray = int16_message[:end]
 	digitalOutput = int16_message[end]
+
+	if global.AppParams.Verbose{
+		ui := hex.EncodeToString(payload)
+		log.Println(ui)
+		fmt.Println(len(measurementArray))
+		fmt.Println(measurementArray[0]) // element 0 is AO_01
+		fmt.Println(measurementArray[768]) // element 768 is AO_769
+		fmt.Println(digitalOutput)
+	}
 
 	return measurementArray, digitalOutput, nil
 }
 
-// EncodeToDias currently DIAS-Pyrosoft is supporting 8 Analog Inputs, i.e., LTCValues is a slice of 8 elements
+// EncodeToDias currently DIAS-Pyrosoft is supporting 12 Analog Inputs, i.e., LTCValues is a slice of 8 elements
 func EncodeToDias(LTCValues []uint16) []byte {
 	answer := make([]byte, 0)
 
@@ -113,4 +155,63 @@ func EncodeToDias(LTCValues []uint16) []byte {
 // DataScope is used only for printing byte arrays while debugging
 func DataScope(buffer []byte) (string, int) {
 	return hex.EncodeToString(buffer), len(buffer)
+}
+
+// decodeDigitalOutput gets the decimal value sent from DIAS and convert it to its binary representation to fill DigitalOutputs Struct
+func (d *DigitalOutputs) decodeDiasDigitalOutput(digits int16){
+
+	var n int64
+	var nbin string
+	var nbinSlice []string
+
+	n = int64(digits)
+	nbin = strconv.FormatInt(n, 2)
+
+	if global.AppParams.Verbose{
+		fmt.Println(nbin)
+	}
+
+	nbinSlice = strings.Split(nbin, "")
+	fmt.Println(nbinSlice)
+
+	d.Pressence, _ =  strconv.ParseBool(nbinSlice[11])
+	d.Pass1, _ =  strconv.ParseBool(nbinSlice[10])
+	d.Pass2, _ =  strconv.ParseBool(nbinSlice[9])
+	d.Pass3, _ =  strconv.ParseBool(nbinSlice[8])
+	d.Free1, _ =  strconv.ParseBool(nbinSlice[7])
+	d.Free2, _ =  strconv.ParseBool(nbinSlice[6])
+	d.Free3, _ =  strconv.ParseBool(nbinSlice[5])
+	d.Free4, _ =  strconv.ParseBool(nbinSlice[4])
+	d.CamLine, _ =  strconv.ParseBool(nbinSlice[3])
+	d.CamTemp, _ =  strconv.ParseBool(nbinSlice[2])
+	d.CamStatus, _ =  strconv.ParseBool(nbinSlice[1])
+	d.CamConn, _ =  strconv.ParseBool(nbinSlice[0])
+}
+
+//determine_passname
+func determine_passname() (string, error) {
+
+	if Outputs.Pass3 && previous_pass_number == 2{
+		graphic.WriteCenteredText("Pass 3")
+		previous_pass_number = 3
+		return "Pass 3", nil
+	}
+
+	if Outputs.Pass2 && previous_pass_number == 1{
+		graphic.WriteCenteredText("Pass 2")
+		previous_pass_number = 2
+		return "Pass 2", nil
+	}
+
+	if Outputs.Pass1 && previous_pass_number == 3{
+		image_error := graphic.ChangeImage()
+			if image_error != nil {
+				return "", image_error
+			}
+		previous_pass_number = 1
+		return "Pass 1", nil
+	}
+
+	return "", errors.New("something went wrong with the passes")
+
 }
