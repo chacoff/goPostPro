@@ -40,15 +40,22 @@ type DigitalOutputs struct{
 	CamConn		bool
 }
 
+type AnalogsVOIs struct{
+	AO_768 		uint32
+	AO_769 		uint32
+}
+
+
 var Outputs DigitalOutputs
+var Analogs AnalogsVOIs
 var previous_pass_number int = 0
 
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
 
-	// var arrayValues []int16
+	var array []int16
 
-	array, digitalOutput, errD := DecodeDiasData(payload)
+	full_array, digitalOutput, errD := DecodeDiasData(payload)
 	if errD != nil{
 		log.Println("[DIAS DECODER] error decoding dias data:", errD)
 		return
@@ -57,11 +64,10 @@ func ProcessDiasData(payload []byte) {
 	Outputs.decodeDiasDigitalOutput(digitalOutput)
 	passname, _ := determine_passname()
 	
-
 	processing_list := make([][]int16, 0)
 
-	array = array[0:767] // the last 2 elements are to be use in VOIs
-	// arrayValues = array[767:769] // last 2 elements are VOIs
+	array = full_array[0:767] // 0:767 are the measurements array block
+	Analogs.updateAnalogsVOIs(full_array[767:769])  // last 2 elements are VOIs
 
 	if global.PostProParams.Cage12Split && len(array) < 513 {
 		log.Println("error : not enough measures to split cage 1 / cage 2")
@@ -80,6 +86,7 @@ func ProcessDiasData(payload []byte) {
 			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
+		graphic.WriteCenteredText(passname)
 		processError := postpro.Process_live_line(measures, passname)
 
 		if errors.Is(processError, postpro.NoBeamError) {
@@ -157,6 +164,31 @@ func DataScope(buffer []byte) (string, int) {
 	return hex.EncodeToString(buffer), len(buffer)
 }
 
+//determine_passname
+func determine_passname() (string, error) {
+
+	if Outputs.Pass3 && previous_pass_number == 2{
+		previous_pass_number = 3
+		return "Pass 3", nil
+	}
+
+	if Outputs.Pass2 && previous_pass_number == 1{
+		previous_pass_number = 2
+		return "Pass 2", nil
+	}
+
+	if Outputs.Pass1 && previous_pass_number == 3{
+		image_error := graphic.ChangeImage()
+			if image_error != nil {
+				return "", image_error
+			}
+		previous_pass_number = 1
+		return "Pass 1", nil
+	}
+
+	return "", errors.New("something went wrong with the passes")
+}
+
 // decodeDigitalOutput gets the decimal value sent from DIAS and convert it to its binary representation to fill DigitalOutputs Struct
 func (d *DigitalOutputs) decodeDiasDigitalOutput(digits int16){
 
@@ -188,30 +220,8 @@ func (d *DigitalOutputs) decodeDiasDigitalOutput(digits int16){
 	d.CamConn, _ =  strconv.ParseBool(nbinSlice[0])
 }
 
-//determine_passname
-func determine_passname() (string, error) {
-
-	if Outputs.Pass3 && previous_pass_number == 2{
-		graphic.WriteCenteredText("Pass 3")
-		previous_pass_number = 3
-		return "Pass 3", nil
-	}
-
-	if Outputs.Pass2 && previous_pass_number == 1{
-		graphic.WriteCenteredText("Pass 2")
-		previous_pass_number = 2
-		return "Pass 2", nil
-	}
-
-	if Outputs.Pass1 && previous_pass_number == 3{
-		image_error := graphic.ChangeImage()
-			if image_error != nil {
-				return "", image_error
-			}
-		previous_pass_number = 1
-		return "Pass 1", nil
-	}
-
-	return "", errors.New("something went wrong with the passes")
-
+//updateAnalogsVOIs helps to keep up to the date the struct with analog VOIs
+func (a *AnalogsVOIs) updateAnalogsVOIs(analogs []int16){
+	a.AO_768 = uint32(analogs[0])
+	a.AO_769 = uint32(analogs[1])
 }
