@@ -8,21 +8,8 @@ require (
 )
 
 require (
-	github.com/akavel/rsrc v0.10.2 // indirect
-	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
-	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
-)
-
-require (
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/judwhite/go-svc v1.2.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mazznoer/colorgrad v0.9.1 // indirect
+	github.com/mazznoer/colorgrad v0.9.1
 	github.com/mazznoer/csscolorparser v0.1.3 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rs/zerolog v1.32.0 // indirect
 	golang.org/x/image v0.16.0
-	golang.org/x/sys v0.20.0 // indirect
 )
