@@ -63,18 +63,18 @@ func ProcessDiasData(payload []byte) {
 	passname, _ := determine_passname()
 	
 	processing_list := make([][]int16, 0)
-
-	array = full_array[0:767] // 0:767 are the measurements array block
-	Analogs.updateAnalogsVOIs(full_array[767:769])  // last 2 elements are VOIs
-
+	
 	if global.PostProParams.Cage12Split && len(array) < 513 {
 		log.Println("error : not enough measures to split cage 1 / cage 2")
 	}
 
 	if global.PostProParams.Cage12Split {
+		array = full_array
 		cage12 := append(array[:500], array[502:]...)
 		processing_list = append(processing_list, cage12)
-	} else {
+	} else { // else is cage 3 or cage4
+		array = full_array[0:767] // 0:767 are the measurements array block
+		Analogs.updateAnalogsVOIs(full_array[767:769])  // last 2 elements are VOIs
 		processing_list = append(processing_list, array)
 	}
 
