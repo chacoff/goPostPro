@@ -164,22 +164,30 @@ func DataScope(buffer []byte) (string, int) {
 //determine_passname
 func determine_passname() (string, error) {
 
+	global.SaveImage = false
+	
 	if Outputs.Pass3 && !Outputs.Pass2 && !Outputs.Pass1{
-		log.Println("[DIAS] Pass 3 active")
+		// log.Println("[DIAS] Pass 3 active")
+		global.PreviousPassNumber = 3
 		return "Pass 3", nil
 	}
 
 	if Outputs.Pass2 && !Outputs.Pass1 && !Outputs.Pass3{
-		log.Println("[DIAS] Pass 2 active")
+		// log.Println("[DIAS] Pass 2 active")
+		global.PreviousPassNumber = 2
 		return "Pass 2", nil
 	}
 
 	if Outputs.Pass1 && !Outputs.Pass2 && !Outputs.Pass3{
-		log.Println("[DIAS] Pass 1 active")
+		// log.Println("[DIAS] Pass 1 active")
+		if global.PreviousPassNumber==3{
+			global.SaveImage = true
+		}
+		global.PreviousPassNumber = 1
 		return "Pass 1", nil
 	}
 
-	log.Println("[DIAS] Attention: pass number couldn't be define")
+	// log.Println("[DIAS] Attention: pass number couldn't be define")
 	return "", errors.New("something went wrong with the passes")
 }
 
