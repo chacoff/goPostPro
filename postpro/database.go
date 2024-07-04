@@ -15,6 +15,7 @@ import (
 	"database/sql"
 	"goPostPro/global"
 	"log"
+	"math"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -174,6 +175,7 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 		}
 
 	}
+	post_pro_data.AvgStdTemp = math.Sqrt(post_pro_data.AvgStdTemp)
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
