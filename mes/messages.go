@@ -112,21 +112,21 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 
-		// LTC post processing data
-		ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
-		ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
-		if errLtc != nil {
-			log.Println("ERROR : ", err)
+		if global.NewProtocol{
+			// LTC post processing data
+			ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
+			ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
+			if errLtc != nil {
+				log.Println("ERROR : ", err)
+			}
+			_bodyAns = append(_bodyAns, ltcData.MaxTempMill3)
+			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill3))
+			_bodyAns = append(_bodyAns, ltcData.MaxTempMill1)
+			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill1))
+			_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
+			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
 		}
-		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3)
-		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill3))
-		_bodyAns = append(_bodyAns, ltcData.MaxTempMill1)
-		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill1))
-		_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
-		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
-
 	}
-
 
 	log.Println("[MES PostPro] post-pro answer", _bodyAns)
 	return _bodyAns

@@ -108,7 +108,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 			val2 = 8998
 		}
 
-		dataLTC = []uint16{500, val1, 500, val2, 44, 55, 66, 77} // DIAS IOs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
+		dataLTC = []uint16{500, val1, 500, val2, 44, 55, 66, 77} // DIAS Analog inputs: AI_00, AI_01, AI_02, AI_03, AI_04, AI_05, AI_06, AI_07,
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message

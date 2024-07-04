@@ -28,6 +28,7 @@ var (
 )
 
 var PreviousPassNumber int = 0
+var NewProtocol bool = false
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {
