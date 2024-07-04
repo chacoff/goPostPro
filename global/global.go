@@ -27,6 +27,8 @@ var (
 	Graphics      config.Graphics
 )
 
+var PreviousPassNumber int = 0
+
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {
 

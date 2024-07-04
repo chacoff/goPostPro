@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"goPostPro/global"
-	"goPostPro/graphic"
 	"goPostPro/postpro"
 	"log"
 
@@ -48,7 +47,6 @@ type AnalogsVOIs struct{
 
 var Outputs DigitalOutputs
 var Analogs AnalogsVOIs
-var previous_pass_number int = 0
 
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
@@ -86,7 +84,6 @@ func ProcessDiasData(payload []byte) {
 			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
-		graphic.WriteCenteredText(passname)
 		processError := postpro.Process_live_line(measures, passname)
 
 		if errors.Is(processError, postpro.NoBeamError) {
@@ -167,22 +164,18 @@ func DataScope(buffer []byte) (string, int) {
 //determine_passname
 func determine_passname() (string, error) {
 
-	if Outputs.Pass3 && previous_pass_number == 2{
-		previous_pass_number = 3
+	if Outputs.Pass3 && global.PreviousPassNumber == 2{
+		global.PreviousPassNumber = 3
 		return "Pass 3", nil
 	}
 
-	if Outputs.Pass2 && previous_pass_number == 1{
-		previous_pass_number = 2
+	if Outputs.Pass2 && global.PreviousPassNumber == 1{
+		global.PreviousPassNumber = 2
 		return "Pass 2", nil
 	}
 
-	if Outputs.Pass1 && previous_pass_number == 3{
-		image_error := graphic.ChangeImage()
-			if image_error != nil {
-				return "", image_error
-			}
-		previous_pass_number = 1
+	if Outputs.Pass1 && global.PreviousPassNumber == 3{
+		global.PreviousPassNumber = 1
 		return "Pass 1", nil
 	}
 
