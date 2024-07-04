@@ -164,21 +164,22 @@ func DataScope(buffer []byte) (string, int) {
 //determine_passname
 func determine_passname() (string, error) {
 
-	if Outputs.Pass3 && global.PreviousPassNumber == 2{
-		global.PreviousPassNumber = 3
+	if Outputs.Pass3 && !Outputs.Pass2 && !Outputs.Pass1{
+		log.Println("[DIAS] Pass 3 active")
 		return "Pass 3", nil
 	}
 
-	if Outputs.Pass2 && global.PreviousPassNumber == 1{
-		global.PreviousPassNumber = 2
+	if Outputs.Pass2 && !Outputs.Pass1 && !Outputs.Pass3{
+		log.Println("[DIAS] Pass 2 active")
 		return "Pass 2", nil
 	}
 
-	if Outputs.Pass1 && global.PreviousPassNumber == 3{
-		global.PreviousPassNumber = 1
+	if Outputs.Pass1 && !Outputs.Pass2 && !Outputs.Pass3{
+		log.Println("[DIAS] Pass 1 active")
 		return "Pass 1", nil
 	}
 
+	log.Println("[DIAS] Attention: pass number couldn't be define")
 	return "", errors.New("something went wrong with the passes")
 }
 
@@ -192,12 +193,16 @@ func (d *DigitalOutputs) decodeDiasDigitalOutput(digits int16){
 	n = int64(digits)
 	nbin = strconv.FormatInt(n, 2)
 
+	nbinSlice = strings.Split(nbin, "")
+
 	if global.AppParams.Verbose{
-		fmt.Println(nbin)
+		log.Printf("[DIAS] Digital outputs: %s\n", nbin)
+		log.Printf("[DIAS] Digital outputs: %s\n", nbinSlice)
 	}
 
-	nbinSlice = strings.Split(nbin, "")
-	fmt.Println(nbinSlice)
+	if len(nbinSlice) < 12{
+		nbinSlice = []string{"0","0","0","0","0","0","0","0","0","0","0","0"}
+	}
 
 	d.Pressence, _ =  strconv.ParseBool(nbinSlice[11])
 	d.Pass1, _ =  strconv.ParseBool(nbinSlice[10])

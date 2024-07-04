@@ -180,7 +180,7 @@ func Process_live_line(int_array_received []int16, passname string) error {
 
 	graphic.WriteCenteredText(passname)
 
-	if passname == "Pass 1" && global.PreviousPassNumber == 3 {
+	if passname == "Pass 1" {
 		image_error := graphic.ChangeImage()
 		if image_error != nil {
 			return image_error
