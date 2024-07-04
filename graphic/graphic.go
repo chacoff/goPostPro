@@ -55,6 +55,7 @@ func thermalColor(temperature float64) color.Color {
 	return colorgrad.Inferno().At(domain_value)
 }
 
+//lint:ignore U1000 Ignore unused function temporarily for debugging
 func WriteCenteredText(text string) error {
 	addLabel(recording_image, 900, image_line, text)
 	return nil

@@ -178,7 +178,7 @@ func (line_processing *LineProcessing) compute_calculations() error {
 func Process_live_line(int_array_received []int16, passname string) error {
 	var line_processing LineProcessing
 
-	graphic.WriteCenteredText(passname)
+	// graphic.WriteCenteredText(passname)
 
 	if passname == "Pass 1" && global.SaveImage{
 		image_error := graphic.ChangeImage()

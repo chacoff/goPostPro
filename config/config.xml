@@ -44,7 +44,7 @@ cage 4      10.28.100.0:4604
   </database>
   <graphics>
     <imageHeight>2000</imageHeight>
-    <imageWidth>2000</imageWidth>
+    <imageWidth>1600</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>
     <thermalScaleEnd>1050</thermalScaleEnd>
     <savingFolder>D:\\data\\results</savingFolder>
