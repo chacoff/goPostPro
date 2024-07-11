@@ -1,0 +1,57 @@
+SELECT dc.MONTAGE
+	  ,dcp.[DTE_CREA]
+   	,dcp.[INTERNAL_ID]
+	  	,dc.NBR_PASSE
+      ,dcp.[PASSE]
+      ,dcp.[CAGE]
+      ,cast(dcp.DATE_PASSE as date) as DTE
+      ,dcp.[ID_BB]
+ 
+  FROM [MI_FDS_TR2].[TR2].[DONNEES_CAGE_PASSE] dcp
+ 
+  INNER JOIN [MI_FDS_TR2].[TR2].[DONNEES_CAGE] dc
+  ON dcp.DTE_CREA = dc.DTE_CREA
+ 
+  where dcp.[CAGE]=4 AND dcp.[PASSE]=3 AND dcp.DATE_PASSE between '2024-06-28 00:00:00' and '2024-07-06 23:59:00'
+  order by dcp.[DTE_CREA]
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+IF OBJECT_ID(N'#QueryTable', N'U') IS NOT NULL  
+   DROP TABLE [#QueryTable];
+
+
+DECLARE @today date = GETDATE()
+DECLARE @yesterday date = DATEADD(day, -1, @today)
+DECLARE @cage int = 4
+
+CREATE TABLE #QueryTable (
+    MONTAGES varchar(50),
+	TIMINGS DateTime,
+	IDE int
+);
+
+INSERT INTO #QueryTable
+SELECT dc.MONTAGE
+	  ,dcp.[DTE_CREA]
+      ,dcp.[INTERNAL_ID]
+	  /* ,dc.NBR_PASSE */
+      /* ,dcp.[PASSE] */
+      /* ,dcp.[CAGE] */
+      /* ,cast(dcp.DATE_PASSE as date) as DTE */
+      /* ,dcp.[ID_BB] */
+ 
+  FROM [MI_FDS_TR2].[TR2].[DONNEES_CAGE_PASSE] dcp
+ 
+  INNER JOIN [MI_FDS_TR2].[TR2].[DONNEES_CAGE] dc
+  ON dcp.DTE_CREA = dc.DTE_CREA
+ 
+  where dcp.[CAGE]=4 and dcp.DATE_PASSE between '2024-06-28 00:00:00' and '2024-07-06 23:59:00'
+  order by dcp.[DTE_CREA]
+
+  SELECT MONTAGES, TIMINGS FROM #QueryTable
+  WHERE IDE IN
+  (SELECT MAX(IDE) FROM #QueryTable GROUP BY MONTAGES)
+  order by [TIMINGS]
+
+  DROP TABLE [#QueryTable]
