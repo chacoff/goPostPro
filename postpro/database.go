@@ -159,13 +159,19 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 	return queryError
 }
 
-func (calculationsDatabase *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
+// QueryDatabase will fetch data from the database to calculate the post-processing information
+func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
+
 	post_pro_data := PostProData{}
+
 	begin_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
+
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
+
 	end_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
@@ -184,17 +190,25 @@ func (calculationsDatabase *CalculationsDatabase) Query_database(begin_string_ti
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
-		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `')
-	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `'
+		WHERE Timestamp BETWEEN ? AND ?
+		AND Treated = 0)
+	WHERE Timestamp BETWEEN ? AND ?
+	AND Treated = 0
 	`,
-	)
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat),
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat))
+
 	if query_error != nil {
 		return post_pro_data, query_error
 	}
 	defer rows.Close()
+
 	// Iterate on the result and print it
 	for rows.Next() {
 		Query_Threshold_Mean := float64(0)
+
 		scan_error := rows.Scan(
 			&post_pro_data.MaxTempMill1,
 			&post_pro_data.AvgTempMill1,
@@ -211,9 +225,12 @@ func (calculationsDatabase *CalculationsDatabase) Query_database(begin_string_ti
 		}
 
 	}
+
 	post_pro_data.AvgStdTemp = math.Sqrt(post_pro_data.AvgStdTemp)
+
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
+
 	return post_pro_data, nil
 }

@@ -91,7 +91,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 
 		// Standard post processing data
-		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
+		newData, err := postpro.DATABASE.QueryDatabase(listOfStamps[i], listOfStamps[i+1])
 
 		if err != nil {
 			log.Println("ERROR : ", err)
@@ -115,7 +115,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		// LTC post-processing data >> new protocol is already included in MES
 		ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
-		ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
+		ltcData, errLtc := postpro.DATABASE.QueryDatabase(listOfStamps[i], ltcTimestamp)
 
 		if errLtc != nil {
 			log.Println("ERROR : ", err)
