@@ -108,17 +108,17 @@ func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 
 func (calculationsDatabase *CalculationsDatabase) clean_Table() error {
 
-	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+	limitTimestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
 
-	_, query_error := calculationsDatabase.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
+	_, queryError := calculationsDatabase.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limitTimestamp.Format(global.PostProParams.TimeFormat) + `';`)
 
-	return query_error
+	return queryError
 }
 
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
 
 	if preparation_error != nil {
@@ -127,9 +127,9 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0)
-	if execution_error != nil {
-		return execution_error
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0)
+	if executionError != nil {
+		return executionError
 	}
 
 	// Clean the database every x insertions
