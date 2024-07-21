@@ -116,20 +116,25 @@ func (calculationsDatabase *CalculationsDatabase) clean_Table() error {
 }
 
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
+
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
+
 	if preparation_error != nil {
 		return preparation_error
 	}
 	defer preparation.Close()
+
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
+	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0)
 	if execution_error != nil {
 		return execution_error
 	}
+
 	// Clean the database every x insertions
 	insert_since_cleaning++
+
 	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
 		cleaning_error := calculationsDatabase.clean_Table()
 		if cleaning_error != nil {
@@ -139,6 +144,7 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 		log.Println("[DATABASE] Cleaned")
 		insert_since_cleaning = 0
 	}
+
 	return nil
 }
 
