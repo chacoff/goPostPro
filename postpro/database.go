@@ -138,7 +138,7 @@ func (calculationsDatabase *CalculationsDatabase) callCleanTable() error {
 		cleaningError := calculationsDatabase.cleanTable()
 
 		if cleaningError != nil {
-			log.Println("[DATABASE] Cleaning error", cleaningError)
+			log.Println("[DATABASE] Cleaning error:", cleaningError)
 			return cleaningError
 		}
 
@@ -232,5 +232,34 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		return post_pro_data, row_error
 	}
 
+	_, _ = calculationsDatabase.updateTreated(begin_timestamp, end_timestamp)
+
 	return post_pro_data, nil
+}
+
+// updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
+func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time, end time.Time) (int64, error) {
+
+	query := `
+    UPDATE Measures
+    SET Treated = 1
+    WHERE Timestamp BETWEEN ? AND ?
+    `
+
+	result, err := calculationsDatabase.database.Exec(query,
+		begin.Format(global.PostProParams.TimeFormat),
+		end.Format(global.PostProParams.TimeFormat))
+
+	if err != nil {
+		log.Println("[DATABASE] error updating Traited status:", err)
+		return 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("[DATABASE] error getting rows affected:", err)
+		return 0, err
+	}
+
+	return rowsAffected, nil
 }
