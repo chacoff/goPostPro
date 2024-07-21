@@ -106,15 +106,6 @@ func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 	return queryError
 }
 
-func (calculationsDatabase *CalculationsDatabase) clean_Table() error {
-
-	limitTimestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
-
-	_, queryError := calculationsDatabase.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limitTimestamp.Format(global.PostProParams.TimeFormat) + `';`)
-
-	return queryError
-}
-
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
@@ -134,18 +125,38 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 
 	// Clean the database every x insertions
 	insert_since_cleaning++
+	_ = calculationsDatabase.callCleanTable()
+
+	return nil
+}
+
+// callCleanTable calls the function to clean the DB and handle the associated errors
+func (calculationsDatabase *CalculationsDatabase) callCleanTable() error {
 
 	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
-		cleaning_error := calculationsDatabase.clean_Table()
-		if cleaning_error != nil {
-			log.Println("[DATABASE] Cleaning error", cleaning_error)
-			return cleaning_error
+
+		cleaningError := calculationsDatabase.cleanTable()
+
+		if cleaningError != nil {
+			log.Println("[DATABASE] Cleaning error", cleaningError)
+			return cleaningError
 		}
+
 		log.Println("[DATABASE] Cleaned")
 		insert_since_cleaning = 0
 	}
 
 	return nil
+}
+
+// cleanTable cleans the DB after certain quantity of lines all the data before certain period of time to keep it small with the current exchange data only
+func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
+
+	limitTimestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+
+	_, queryError := calculationsDatabase.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limitTimestamp.Format(global.PostProParams.TimeFormat) + `';`)
+
+	return queryError
 }
 
 func (calculationsDatabase *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
