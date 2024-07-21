@@ -49,12 +49,12 @@ func headerType(_size uint32, _id uint32, _counter uint32) []interface{} {
 func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTimeStamp string) []interface{} {
 
 	// n is number of passes
-	
+
 	// j	DESCRIPTION						TYPE
 	// 0	Unique product ID				UINT32
 	// 1	Rolling campaign profile		STRING
 	// 2	Rolling campaign number			STRING
-	// 3	Roll stand number				UINT32				
+	// 3	Roll stand number				UINT32
 	// 4	Pass counter					UINT32
 	// 5	Pass number n					UINT32
 	// 6	Pass date n						STRING 23 40 57 74 91 108 125 142 159 176 193 210
@@ -74,13 +74,12 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// 20	Min Temp web pass n LTC			UINT32
 	// 21	Avg Temp web pass n LTC			UINT32
 
-
 	var _bodyAns []interface{}
 
 	passCounter := _bodyStatic[4].(uint32) /// pass counter
 	beamId := _bodyStatic[0].(uint32)
 	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
-	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp)  // passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
+	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp) // passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
 	log.Println("[MES PostPro] process timestamps", listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
@@ -88,14 +87,16 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	_bodyAns = append(_bodyAns, _bodyStatic[2]) // rolling campaign number
 	_bodyAns = append(_bodyAns, _bodyStatic[3]) // roll stand number
 	_bodyAns = append(_bodyAns, _bodyStatic[4]) // pass counter
-	
+
 	for i := 0; i < int(passCounter); i++ {
 
 		// Standard post processing data
 		newData, err := postpro.DATABASE.Query_database(listOfStamps[i], listOfStamps[i+1])
+
 		if err != nil {
 			log.Println("ERROR : ", err)
 		}
+
 		newData.PassNumber = uint32(i + 1)
 		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
 		newData.Dummy = "du"
@@ -112,20 +113,20 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 
-		if global.NewProtocol{
-			// LTC post processing data
-			ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
-			ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
-			if errLtc != nil {
-				log.Println("ERROR : ", err)
-			}
-			_bodyAns = append(_bodyAns, ltcData.MaxTempMill3)
-			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill3))
-			_bodyAns = append(_bodyAns, ltcData.MaxTempMill1)
-			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill1))
-			_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
-			_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
+		// LTC post-processing data >> new protocol is already included in MES
+		ltcTimestamp := addOffsetToTimestamp(listOfStamps[i], global.PostProParams.LtcOffset)
+		ltcData, errLtc := postpro.DATABASE.Query_database(listOfStamps[i], ltcTimestamp)
+
+		if errLtc != nil {
+			log.Println("ERROR : ", err)
 		}
+
+		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3)
+		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill3))
+		_bodyAns = append(_bodyAns, ltcData.MaxTempMill1)
+		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill1))
+		_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
+		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
 	}
 
 	log.Println("[MES PostPro] post-pro answer", _bodyAns)
@@ -149,8 +150,8 @@ func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastSt
 }
 
 // add offset in timestamp to calculate the instance LTC
-func addOffsetToTimestamp(timestamp string, offset int) string{
-	
+func addOffsetToTimestamp(timestamp string, offset int) string {
+
 	newStamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, timestamp)
 
 	if parsing_error != nil {
