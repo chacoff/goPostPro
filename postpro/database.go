@@ -37,9 +37,17 @@ type PostProData struct {
 	PixWidth     float64
 }
 
+type CalculationsDatabase struct {
+	database *sql.DB
+}
+
+// StartDatabase starts db at init of the software
 func StartDatabase() error {
+
 	DATABASE = CalculationsDatabase{}
-	opening_error := DATABASE.open_database()
+
+	opening_error := DATABASE.openDatabase()
+
 	if opening_error != nil {
 		return opening_error
 	}
@@ -47,29 +55,33 @@ func StartDatabase() error {
 	// if drop_error != nil {
 	// 	return drop_error
 	// }
+
 	creation_error := DATABASE.create_Table()
 	if creation_error != nil {
 		return creation_error
 	}
 	log.Println("[DATABASE] init with success")
+
 	return nil
 }
 
-type CalculationsDatabase struct {
-	database *sql.DB
-}
+// openDatabase opens the DB while the software init itself
+func (calculationsDatabase *CalculationsDatabase) openDatabase() error {
 
-func (calculations_database *CalculationsDatabase) open_database() error {
-	database, opening_error := sql.Open("sqlite3", global.DBParams.Path)
-	if opening_error != nil {
-		return opening_error
+	database, openingError := sql.Open("sqlite3", global.DBParams.Path)
+
+	if openingError != nil {
+		return openingError
 	}
-	calculations_database.database = database
+
+	calculationsDatabase.database = database
+
 	return nil
 }
 
-func (calculations_database *CalculationsDatabase) create_Table() error {
-	_, query_error := calculations_database.database.Exec(`
+func (calculationsDatabase *CalculationsDatabase) create_Table() error {
+
+	_, queryError := calculationsDatabase.database.Exec(`
 		CREATE TABLE IF NOT EXISTS Measures (
 			Timestamp TEXT,
 			Tr1_Max   INTEGER,
@@ -80,61 +92,91 @@ func (calculations_database *CalculationsDatabase) create_Table() error {
 			Tr3_Mean  INTEGER,
 			Width     INTEGER,
 			Threshold INTEGER,
-			Filename  TEXT
+			Filename  TEXT,
+			Treated   INTEGER CHECK (Treated IN (0, 1))
 		);`)
-	return query_error
+
+	return queryError
 }
 
-func (calculations_database *CalculationsDatabase) drop_Table() error {
-	_, query_error := calculations_database.database.Exec(`DROP TABLE IF EXISTS Measures;`)
-	return query_error
+func (calculationsDatabase *CalculationsDatabase) dropTable() error {
+
+	_, queryError := calculationsDatabase.database.Exec(`DROP TABLE IF EXISTS Measures;`)
+
+	return queryError
 }
 
-func (calculations_database *CalculationsDatabase) clean_Table() error {
-	limit_timestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
-	_, query_error := calculations_database.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limit_timestamp.Format(global.PostProParams.TimeFormat) + `';`)
-	return query_error
-}
+func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 
-func (calculations_database *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
-	preparation, preparation_error := calculations_database.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+	preparation, preparation_error := calculationsDatabase.database.Prepare(
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
+
 	if preparation_error != nil {
 		return preparation_error
 	}
 	defer preparation.Close()
+
 	// Execute it with the given values
-	_, execution_error := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename)
-	if execution_error != nil {
-		return execution_error
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0)
+	if executionError != nil {
+		return executionError
 	}
+
 	// Clean the database every x insertions
 	insert_since_cleaning++
-	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
-		cleaning_error := calculations_database.clean_Table()
-		if cleaning_error != nil {
-			log.Println("[DATABASE] Cleaning error", cleaning_error)
-			return cleaning_error
-		}
-		log.Println("[DATABASE] Cleaned")
-		insert_since_cleaning = 0
-	}
+	_ = calculationsDatabase.callCleanTable()
+
 	return nil
 }
 
-func (calculations_database *CalculationsDatabase) Query_database(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
-	post_pro_data := PostProData{}
-	begin_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
-	if parsing_error != nil {
-		return post_pro_data, parsing_error
+// callCleanTable calls the function to clean the DB and handle the associated errors
+func (calculationsDatabase *CalculationsDatabase) callCleanTable() error {
+
+	if insert_since_cleaning >= global.DBParams.CleaningPeriod {
+
+		cleaningError := calculationsDatabase.cleanTable()
+
+		if cleaningError != nil {
+			log.Println("[DATABASE] Cleaning error:", cleaningError)
+			return cleaningError
+		}
+
+		log.Println("[DATABASE] Cleaned")
+		insert_since_cleaning = 0
 	}
-	end_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+
+	return nil
+}
+
+// cleanTable cleans the DB after certain quantity of lines all the data before certain period of time to keep it small with the current exchange data only
+func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
+
+	limitTimestamp := time.Now().Add(time.Duration(-global.DBParams.CleaningHoursKept) * time.Hour)
+
+	_, queryError := calculationsDatabase.database.Exec(`DELETE FROM Measures WHERE Timestamp<'` + limitTimestamp.Format(global.PostProParams.TimeFormat) + `';`)
+
+	return queryError
+}
+
+// QueryDatabase will fetch data from the database to calculate the post-processing information
+func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
+
+	post_pro_data := PostProData{}
+
+	begin_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
+
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
 
-	rows, query_error := calculations_database.database.Query(`
+	end_timestamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+
+	if parsing_error != nil {
+		return post_pro_data, parsing_error
+	}
+
+	rows, query_error := calculationsDatabase.database.Query(`
 	SELECT
 		COALESCE(MAX(Tr1_Max), 0) AS Query_Tr1_Max,
 		COALESCE(AVG(Tr1_Mean), 0) AS Query_Tr1_Mean,
@@ -148,17 +190,25 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
-		WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `')
-	WHERE Timestamp BETWEEN '` + begin_timestamp.Format(global.PostProParams.TimeFormat) + `' AND '` + end_timestamp.Format(global.PostProParams.TimeFormat) + `'
+		WHERE Timestamp BETWEEN ? AND ?
+		AND Treated = 0)
+	WHERE Timestamp BETWEEN ? AND ?
+	AND Treated = 0
 	`,
-	)
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat),
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat))
+
 	if query_error != nil {
 		return post_pro_data, query_error
 	}
 	defer rows.Close()
+
 	// Iterate on the result and print it
 	for rows.Next() {
 		Query_Threshold_Mean := float64(0)
+
 		scan_error := rows.Scan(
 			&post_pro_data.MaxTempMill1,
 			&post_pro_data.AvgTempMill1,
@@ -175,9 +225,41 @@ func (calculations_database *CalculationsDatabase) Query_database(begin_string_t
 		}
 
 	}
+
 	post_pro_data.AvgStdTemp = math.Sqrt(post_pro_data.AvgStdTemp)
+
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
+
+	_, _ = calculationsDatabase.updateTreated(begin_timestamp, end_timestamp)
+
 	return post_pro_data, nil
+}
+
+// updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
+func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time, end time.Time) (int64, error) {
+
+	query := `
+    UPDATE Measures
+    SET Treated = 1
+    WHERE Timestamp BETWEEN ? AND ?
+    `
+
+	result, err := calculationsDatabase.database.Exec(query,
+		begin.Format(global.PostProParams.TimeFormat),
+		end.Format(global.PostProParams.TimeFormat))
+
+	if err != nil {
+		log.Println("[DATABASE] error updating Traited status:", err)
+		return 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("[DATABASE] error getting rows affected:", err)
+		return 0, err
+	}
+
+	return rowsAffected, nil
 }
