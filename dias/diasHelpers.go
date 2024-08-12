@@ -27,12 +27,12 @@ import (
 // Digital outputs of DIAS
 type DigitalOutputs struct {
 	Pressence bool // Pressence
-	Pass1     bool // Pass 1 pressence
-	Pass2     bool // Pass 2 pressence
-	Pass3     bool // Pass 3 pressence
+	Pass1     bool // Pass 1 presence
+	Pass2     bool // Pass 2 presence
+	Pass3     bool // Pass 3 presence
 	Free1     bool // go LTC pass 1
 	Free2     bool // go LTC pass 3
-	Free3     bool
+	Free3     bool // moving Presence
 	Free4     bool
 	CamLine   bool // Line status
 	CamTemp   bool // Temperature status
@@ -88,7 +88,9 @@ func ProcessDiasData(payload []byte) {
 		processError := postpro.Process_live_line(measures, passname)
 
 		// Insert here True/False boolean moving
-		// _, = postpro.updateMovingBool()
+		// if Outputs.Free3{
+		// 	_ = postpro.updateMovingBool()
+		// }
 
 		if errors.Is(processError, postpro.NoBeamError) {
 			continue
