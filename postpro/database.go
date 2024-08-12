@@ -93,7 +93,8 @@ func (calculationsDatabase *CalculationsDatabase) create_Table() error {
 			Width     INTEGER,
 			Threshold INTEGER,
 			Filename  TEXT,
-			Treated   INTEGER CHECK (Treated IN (0, 1))
+			Treated   INTEGER CHECK (Treated IN (0, 1)),
+			Moving	  INTEGER CHECK (Treated IN (0, 1))
 		);`)
 
 	return queryError
@@ -109,7 +110,7 @@ func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
 
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated, Moving) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
 
 	if preparation_error != nil {
@@ -118,7 +119,7 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0)
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0, 0)
 	if executionError != nil {
 		return executionError
 	}

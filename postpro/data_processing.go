@@ -41,9 +41,14 @@ type LineProcessing struct {
 
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
+
+	var max_temperature float64
+	var min_temperature float64
+
 	if len(int_array) < int(global.PostProParams.MinWidth) {
 		return errors.New("error : the parsed line has not enough measures")
 	}
+
 	if len(int_array) < int(global.PostProParams.FirstMeasuresRemoved) {
 		return errors.New("error : the parsed line has not enough measures")
 	}
@@ -51,15 +56,17 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 	line_processing.timestamp = time.Now()
 	measures_int_array := int_array[global.PostProParams.FirstMeasuresRemoved:]
 
-	var max_temperature float64
-	var min_temperature float64
 	line_processing.processed_temperatures_array = make([]float64, len(measures_int_array))
+
 	for index, temperature_int := range measures_int_array {
+		
 		temperature_float := float64(temperature_int)
+
 		if index == 0 { // To initialize the values
 			max_temperature = temperature_float
 			min_temperature = temperature_float
 		}
+		
 		max_temperature = math.Max(max_temperature, temperature_float)
 		min_temperature = math.Min(min_temperature, temperature_float)
 		line_processing.processed_temperatures_array[index] = temperature_float

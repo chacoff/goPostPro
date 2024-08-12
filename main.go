@@ -71,9 +71,9 @@ func main() {
 		for msg := range dias.Msgch {
 			// Dias payload
 
-			if len(msg.Payload) != 0{
+			if len(msg.Payload) != 0 {
 				_msg, _length := diasHelpers.DataScope(msg.Payload)
-				
+
 				diasHelpers.ProcessDiasData(msg.Payload)
 
 				if global.AppParams.Verbose {
@@ -88,6 +88,9 @@ func main() {
 					//
 				}
 			}
+
+			// Local Debug only!
+			//time.Sleep(8 * time.Second)
 
 			_, err := msg.Conn.Write(diasHelpers.EncodeToDias(LTC))
 			if err != nil {
@@ -106,7 +109,7 @@ func main() {
 		defer wg.Done()
 		for msg := range mes.Msgch {
 
-			if len(msg.Payload) == 0{
+			if len(msg.Payload) == 0 {
 				break // break the loop but stays in the routine!
 			}
 
