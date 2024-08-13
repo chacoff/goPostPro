@@ -264,7 +264,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	log.Println("LTC Timestamp:", timestampLTC)
 
-	return timestampLTC.Format(global.PostProParams.TimeFormat)
+	return timestampLTC.Format(global.DBParams.TimeFormatRequest)
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
