@@ -239,6 +239,34 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	return post_pro_data, nil
 }
 
+// FindLTCRow finds the LTC row in within the timestamps of the passes
+func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string) string {
+
+	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
+	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+
+	var timestampLTC time.Time
+	err := calculationsDatabase.database.QueryRow(`
+		SELECT Timestamp FROM Measures
+		WHERE Moving = 1 AND Timestamp BETWEEN ? AND ?
+		LIMIT 1
+		`,
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat)).Scan(&timestampLTC)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("[LTC] No matching LTC timestamp found")
+		} else {
+			log.Println("[LTC] Error querying database:", err)
+		}
+	}
+
+	log.Println("LTC Timestamp:", timestampLTC)
+
+	return timestampLTC.Format(global.PostProParams.TimeFormat)
+}
+
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
 func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time, end time.Time) (int64, error) {
 
