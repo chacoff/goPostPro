@@ -53,6 +53,7 @@ var Analogs AnalogsVOIs
 func ProcessDiasData(payload []byte) {
 
 	var array []int16
+	var isMoving int
 
 	full_array, digitalOutput, errD := DecodeDiasData(payload)
 	if errD != nil {
@@ -85,12 +86,13 @@ func ProcessDiasData(payload []byte) {
 			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
-		processError := postpro.Process_live_line(measures, passname)
+		if Outputs.Free3{
+			isMoving = 1
+		} else{
+			isMoving = 0
+		}
 
-		// Insert here True/False boolean moving
-		// if Outputs.Free3{
-		// 	_ = postpro.updateMovingBool()
-		// }
+		processError := postpro.Process_live_line(measures, passname, isMoving)
 
 		if errors.Is(processError, postpro.NoBeamError) {
 			continue

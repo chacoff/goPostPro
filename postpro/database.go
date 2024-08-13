@@ -100,6 +100,7 @@ func (calculationsDatabase *CalculationsDatabase) create_Table() error {
 	return queryError
 }
 
+//lint:ignore U1000 Ignore unused function temporarily for debugging
 func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 
 	_, queryError := calculationsDatabase.database.Exec(`DROP TABLE IF EXISTS Measures;`)
@@ -119,7 +120,7 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0, 0)
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0, line.isMoving)
 	if executionError != nil {
 		return executionError
 	}

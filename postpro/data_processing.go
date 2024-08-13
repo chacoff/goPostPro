@@ -37,8 +37,8 @@ type LineProcessing struct {
 	width                        int64
 	threshold                    float64
 	gradient_limit               float64
+	isMoving                     int
 }
-
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
 
@@ -59,14 +59,14 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 	line_processing.processed_temperatures_array = make([]float64, len(measures_int_array))
 
 	for index, temperature_int := range measures_int_array {
-		
+
 		temperature_float := float64(temperature_int)
 
 		if index == 0 { // To initialize the values
 			max_temperature = temperature_float
 			min_temperature = temperature_float
 		}
-		
+
 		max_temperature = math.Max(max_temperature, temperature_float)
 		min_temperature = math.Min(min_temperature, temperature_float)
 		line_processing.processed_temperatures_array[index] = temperature_float
@@ -182,18 +182,18 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	return nil
 }
 
-func Process_live_line(int_array_received []int16, passname string) error {
+func Process_live_line(int_array_received []int16, passname string, isMoving int) error {
 	var line_processing LineProcessing
 
 	// graphic.WriteCenteredText(passname)
 
-	if passname == "Pass 1" && global.SaveImage{
+	if passname == "Pass 1" && global.SaveImage {
 		image_error := graphic.ChangeImage()
 		if image_error != nil {
 			return image_error
 		}
 	}
-	
+
 	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
 		return parsing_error
@@ -216,6 +216,7 @@ func Process_live_line(int_array_received []int16, passname string) error {
 		}
 
 		line_processing.filename = passname
+		line_processing.isMoving = isMoving
 
 		insertion_error := DATABASE.Insert_line_processing(line_processing)
 		if insertion_error != nil {
