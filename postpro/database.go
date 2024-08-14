@@ -234,8 +234,6 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		return post_pro_data, row_error
 	}
 
-	_, _ = calculationsDatabase.updateTreated(begin_timestamp, end_timestamp)
-
 	return post_pro_data, nil
 }
 
@@ -270,7 +268,10 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
-func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time, end time.Time) (int64, error) {
+func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string, endStr string) (int64, error) {
+
+	begin, _ := time.Parse(global.DBParams.TimeFormatRequest, beginStr)
+	end, _ := time.Parse(global.DBParams.TimeFormatRequest, endStr)
 
 	query := `
     UPDATE Measures

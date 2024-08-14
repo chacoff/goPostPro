@@ -80,7 +80,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	beamId := _bodyStatic[0].(uint32)
 	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 	listOfStamps := parseTimeStamps(passCounter, _bodyDynamic, lastTimeStamp) // passDates are available in positions 1, 4, 7, 10, 13, 16, 19 ... = pass+(i*2)
-	log.Println("[MES PostPro] process timestamps", listOfStamps)
+	log.Printf("[PostPro] BeamID %d Process timestamps %s", beamId, listOfStamps)
 
 	_bodyAns = append(_bodyAns, _bodyStatic[0]) // unique product ID
 	_bodyAns = append(_bodyAns, _bodyStatic[1]) // rolling campaign profile
@@ -91,7 +91,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 
 		// Standard post processing data
-		log.Printf("[PostPro] BeamID %d Pass: %d between timestamps %s - %s", beamId, passCounter, listOfStamps[i], listOfStamps[i+1])
+		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, listOfStamps[i], listOfStamps[i+1])
 		newData, err := postpro.DATABASE.QueryDatabase(listOfStamps[i], listOfStamps[i+1])
 
 		if err != nil {
@@ -114,13 +114,15 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 
+		log.Printf("[PostPro] BeamID %d Pass: %d/%d partial PostPro answer: %v", beamId, i+1, passCounter, _bodyAns)
+
 		// LTC post-processing data >> new protocol is already included in MES
 		ltcTimestamp := postpro.DATABASE.FindLTCRow(listOfStamps[i], listOfStamps[i+1])
 
 		ltcTimestamp_begin := addOffsetToTimestamp(ltcTimestamp, min(0, global.PostProParams.LtcOffset))
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
-		log.Printf("[PostPro LTC] BeamID %d Pass: %d between timestamps %s - %s", beamId, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
 		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end)
 
 		if errLtc != nil {
@@ -133,9 +135,15 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempMill1))
 		_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
 		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
+
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
+
 	}
 
-	log.Println("[MES PostPro] post-pro answer", _bodyAns)
+	// @jaime: TODO, marked as Treated all rows between first and last timestamp
+	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
+
+	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
 	return _bodyAns
 }
 
