@@ -264,11 +264,15 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	log.Println("LTC Timestamp:", timestampLTC)
 
+<<<<<<< HEAD
 	formattedTimestampLTC, _ := formatTimestamp(timestampLTC)
 
 	log.Println("LTC Timestamp formatted:", formattedTimestampLTC)
 
 	return formattedTimestampLTC
+=======
+	return timestampLTC.Format(global.DBParams.TimeFormatRequest)
+>>>>>>> 89339a8885b835f46e2912ce0a696583c8164d3d
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
