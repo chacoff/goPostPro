@@ -245,7 +245,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 
-	var timestampLTC time.Time
+	var timestampLTC string
 	err := calculationsDatabase.database.QueryRow(`
 		SELECT Timestamp FROM Measures
 		WHERE Moving = 1 AND Timestamp BETWEEN ? AND ?
@@ -264,7 +264,11 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	log.Println("LTC Timestamp:", timestampLTC)
 
-	return timestampLTC.Format(global.PostProParams.TimeFormat)
+	formattedTimestampLTC, _ := formatTimestamp(timestampLTC)
+
+	log.Println("LTC Timestamp formatted:", formattedTimestampLTC)
+
+	return formattedTimestampLTC
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
@@ -292,4 +296,16 @@ func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time,
 	}
 
 	return rowsAffected, nil
+}
+
+// formatTimeStamp
+func formatTimestamp(input string) (string, error) {
+	// Parse the input string
+	t, err := time.Parse("2006-01-02 15:04:05,000", input)
+	if err != nil {
+		return "", err
+	}
+
+	// Format to the desired output
+	return t.Format(global.PostProParams.TimeFormat), nil
 }
