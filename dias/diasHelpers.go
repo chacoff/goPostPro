@@ -48,6 +48,7 @@ type AnalogsVOIs struct {
 
 var Outputs DigitalOutputs
 var Analogs AnalogsVOIs
+var previousPassname string
 
 // ProcessDiasData gets the payload, decode the data and process live to input the data in the DB
 func ProcessDiasData(payload []byte) {
@@ -63,6 +64,11 @@ func ProcessDiasData(payload []byte) {
 
 	Outputs.decodeDiasDigitalOutput(digitalOutput)
 	passname, _ := determine_passname()
+	
+	if !(passname == previousPassname) {
+		log.Printf("[DIAS] %s", passname)
+		previousPassname = passname
+	}
 
 	processing_list := make([][]int16, 0)
 
@@ -86,11 +92,7 @@ func ProcessDiasData(payload []byte) {
 			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
-		if Outputs.Free3{
-			isMoving = 1
-		} else{
-			isMoving = 0
-		}
+		isMoving = btoi(Outputs.Free3)
 
 		processError := postpro.Process_live_line(measures, passname, isMoving)
 
@@ -166,25 +168,30 @@ func DataScope(buffer []byte) (string, int) {
 	return hex.EncodeToString(buffer), len(buffer)
 }
 
+// btoi Boolean to integer helper function. Returns 1 if the IO boolean is active and 0 if inactive
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 // determine_passname
 func determine_passname() (string, error) {
 
 	global.SaveImage = false
 
 	if Outputs.Pass3 && !Outputs.Pass2 && !Outputs.Pass1 {
-		// log.Println("[DIAS] Pass 3 active")
 		global.PreviousPassNumber = 3
 		return "Pass 3", nil
 	}
 
 	if Outputs.Pass2 && !Outputs.Pass1 && !Outputs.Pass3 {
-		// log.Println("[DIAS] Pass 2 active")
 		global.PreviousPassNumber = 2
 		return "Pass 2", nil
 	}
 
 	if Outputs.Pass1 && !Outputs.Pass2 && !Outputs.Pass3 {
-		// log.Println("[DIAS] Pass 1 active")
 		if global.PreviousPassNumber == 3 {
 			global.SaveImage = true
 		}
