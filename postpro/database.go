@@ -262,17 +262,11 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 		}
 	}
 
-	log.Println("LTC Timestamp:", timestampLTC)
-
-<<<<<<< HEAD
+	// log.Println("LTC Timestamp:", timestampLTC)
 	formattedTimestampLTC, _ := formatTimestamp(timestampLTC)
-
-	log.Println("LTC Timestamp formatted:", formattedTimestampLTC)
+	// log.Println("LTC Timestamp formatted:", formattedTimestampLTC)
 
 	return formattedTimestampLTC
-=======
-	return timestampLTC.Format(global.DBParams.TimeFormatRequest)
->>>>>>> 89339a8885b835f46e2912ce0a696583c8164d3d
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
@@ -302,7 +296,7 @@ func (calculationsDatabase *CalculationsDatabase) updateTreated(begin time.Time,
 	return rowsAffected, nil
 }
 
-// formatTimeStamp
+// formatTimeStamp bug fix while parsing the timestamps between strings and time.Time types
 func formatTimestamp(input string) (string, error) {
 	// Parse the input string
 	t, err := time.Parse("2006-01-02 15:04:05,000", input)
@@ -311,5 +305,5 @@ func formatTimestamp(input string) (string, error) {
 	}
 
 	// Format to the desired output
-	return t.Format(global.PostProParams.TimeFormat), nil
+	return t.Format(global.DBParams.TimeFormatRequest), nil
 }

@@ -91,6 +91,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 
 		// Standard post processing data
+		log.Printf("[PostPro] BeamID %d Pass: %d between timestamps %s - %s", beamId, passCounter, listOfStamps[i], listOfStamps[i+1])
 		newData, err := postpro.DATABASE.QueryDatabase(listOfStamps[i], listOfStamps[i+1])
 
 		if err != nil {
@@ -119,6 +120,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		ltcTimestamp_begin := addOffsetToTimestamp(ltcTimestamp, min(0, global.PostProParams.LtcOffset))
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d between timestamps %s - %s", beamId, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
 		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end)
 
 		if errLtc != nil {
@@ -159,7 +161,7 @@ func addOffsetToTimestamp(timestamp string, offset int) string {
 	newStamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, timestamp)
 
 	if parsing_error != nil {
-		log.Println("ERROR: ", parsing_error)
+		log.Println("[PARSING] error: ", parsing_error)
 	}
 
 	newStamp = newStamp.Add(time.Duration(offset) * time.Second)
