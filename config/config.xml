@@ -21,9 +21,9 @@ cage 4      10.28.100.0:4604
   </config>
   <logger>
     <fileName>logs/livePostPro.log</fileName>
-    <maxSize>10</maxSize>
-    <maxBackups>5</maxBackups>
-    <maxAge>30</maxAge>
+    <maxSize>2</maxSize>
+    <maxBackups>60</maxBackups>
+    <maxAge>120</maxAge>
     <compress>true</compress>
   </logger>
   <postpro>
@@ -49,4 +49,9 @@ cage 4      10.28.100.0:4604
     <thermalScaleEnd>1050</thermalScaleEnd>
     <savingFolder>D:\\data\\results</savingFolder>
   </graphics>
+  <profiles>
+    <default>700</default>
+    <AS500>500</AS500>
+    <3870NAZ>700</3870NAZ>
+  </profiles>
 </parameters>

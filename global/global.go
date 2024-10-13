@@ -13,8 +13,9 @@ package global
 
 import (
 	"goPostPro/config"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // Appconfig Main Software
@@ -29,6 +30,9 @@ var (
 
 var PreviousPassNumber int = 0
 var SaveImage bool = false
+var CurrentPass string = "Pass undefined"
+var PreviousLastTimeStamp string = "20220124080500"
+var ProcessID uint32 = 997788
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {

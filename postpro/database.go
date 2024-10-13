@@ -13,6 +13,7 @@ package postpro
 
 import (
 	"database/sql"
+	"fmt"
 	"goPostPro/global"
 	"log"
 	"math"
@@ -93,6 +94,7 @@ func (calculationsDatabase *CalculationsDatabase) create_Table() error {
 			Width     INTEGER,
 			Threshold INTEGER,
 			Filename  TEXT,
+			ProcessID TEXT,
 			Treated   INTEGER CHECK (Treated IN (0, 1)),
 			Moving	  INTEGER CHECK (Treated IN (0, 1))
 		);`)
@@ -109,9 +111,10 @@ func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 }
 
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
+	// TODO add sheetpile ID in the DB
 
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, Treated, Moving) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, ProcessID, Treated, Moving) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
 
 	if preparation_error != nil {
@@ -120,7 +123,19 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), int64(line.max_Tr1), int64(line.mean_Tr1), int64(line.mean_Web), int64(line.min_Web), int64(line.max_Tr3), int64(line.mean_Tr3), int64(line.width), int64(line.threshold), line.filename, 0, line.isMoving)
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), 
+										  int64(line.max_Tr1), 
+										  int64(line.mean_Tr1), 
+										  int64(line.mean_Web), 
+										  int64(line.min_Web), 
+										  int64(line.max_Tr3), 
+										  int64(line.mean_Tr3), 
+										  int64(line.width), 
+										  int64(line.threshold), 
+										  line.filename,
+										  fmt.Sprint(global.ProcessID),
+										  0, 
+										  line.isMoving)
 	if executionError != nil {
 		return executionError
 	}
@@ -162,7 +177,10 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 }
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
-func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string) (PostProData, error) {
+func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
+
+	passF := fmt.Sprintf("Pass %d", pass+1)
+	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
 
 	post_pro_data := PostProData{}
 
@@ -193,14 +211,22 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
 		WHERE Timestamp BETWEEN ? AND ?
-		AND Treated = 0)
+		AND Treated = 0
+		AND Filename = ?
+		AND ProcessID = ?)
 	WHERE Timestamp BETWEEN ? AND ?
 	AND Treated = 0
+	AND Filename = ?
+	AND ProcessID = ?
 	`,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
 		end_timestamp.Format(global.PostProParams.TimeFormat),
+		passF,
+		global.ProcessID,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
-		end_timestamp.Format(global.PostProParams.TimeFormat))
+		end_timestamp.Format(global.PostProParams.TimeFormat),
+		passF,
+		global.ProcessID)
 
 	if query_error != nil {
 		return post_pro_data, query_error
@@ -238,17 +264,21 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 }
 
 // FindLTCRow finds the LTC row in within the timestamps of the passes
-func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string) string {
+func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int) string {
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 
+	passF := fmt.Sprintf("Pass %d", pass+1)
+	log.Printf("[DATABASE] Processing LTC pass: %s for process ID %d", passF, global.ProcessID)
+
 	var timestampLTC string
 	err := calculationsDatabase.database.QueryRow(`
 		SELECT Timestamp FROM Measures
-		WHERE Moving = 1 AND Timestamp BETWEEN ? AND ?
+		WHERE Moving = 1 AND Filename = ? AND Timestamp BETWEEN ? AND ?
 		LIMIT 1
 		`,
+		passF,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
 		end_timestamp.Format(global.PostProParams.TimeFormat)).Scan(&timestampLTC)
 
@@ -262,7 +292,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	// log.Println("LTC Timestamp:", timestampLTC)
 	formattedTimestampLTC, _ := formatTimestamp(timestampLTC)
-	// log.Println("LTC Timestamp formatted:", formattedTimestampLTC)
+	log.Printf("[DATABASE] Processing LTC Timestamp: %s for pass %s for process ID %d", formattedTimestampLTC, passF, global.ProcessID)
 
 	return formattedTimestampLTC
 }

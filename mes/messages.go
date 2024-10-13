@@ -91,8 +91,10 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	for i := 0; i < int(passCounter); i++ {
 
 		// Standard post processing data
-		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, listOfStamps[i], listOfStamps[i+1])
-		newData, err := postpro.DATABASE.QueryDatabase(listOfStamps[i], listOfStamps[i+1])
+		// log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, listOfStamps[i], listOfStamps[i+1])
+		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, global.PreviousLastTimeStamp, lastTimeStamp)
+		// newData, err := postpro.DATABASE.QueryDatabase(listOfStamps[i], listOfStamps[i+1], i)
+		newData, err := postpro.DATABASE.QueryDatabase(global.PreviousLastTimeStamp, lastTimeStamp, i)
 
 		if err != nil {
 			log.Println("ERROR : ", err)
@@ -117,13 +119,14 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d partial PostPro answer: %v", beamId, i+1, passCounter, _bodyAns)
 
 		// LTC post-processing data >> new protocol is already included in MES
-		ltcTimestamp := postpro.DATABASE.FindLTCRow(listOfStamps[i], listOfStamps[i+1])
+		// ltcTimestamp := postpro.DATABASE.FindLTCRow(listOfStamps[i], listOfStamps[i+1])
+		ltcTimestamp := postpro.DATABASE.FindLTCRow(global.PreviousLastTimeStamp, lastTimeStamp, i)
 
 		ltcTimestamp_begin := addOffsetToTimestamp(ltcTimestamp, min(0, global.PostProParams.LtcOffset))
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
-		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end)
+		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i)
 
 		if errLtc != nil {
 			log.Println("ERROR : ", err)
@@ -144,6 +147,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
 
 	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
+	global.PreviousLastTimeStamp = lastTimeStamp
 	return _bodyAns
 }
 

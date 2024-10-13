@@ -24,7 +24,8 @@ type Parameters struct {
 	PostPro  PostPro   `xml:"postpro"`
 	DataBase DataBase  `xml:"database"`
 	Logs     LogParams `xml:"logger"`
-	Graphics  Graphics  `xml:"graphics"`
+	Graphics Graphics  `xml:"graphics"`
+	Profiles Profiles  `xml:"profiles"`
 }
 
 type Build struct {
@@ -74,6 +75,12 @@ type Graphics struct {
 	ThermalScaleStart int 	 `xml:"thermalScaleStart"`
 	ThermalScaleEnd   int 	 `xml:"thermalScaleEnd"`
 	Savingfolder	  string `xml:"savingFolder"`
+}
+
+type Profiles struct {
+	Default string	`xml:"default"`
+	AS500 	string	`xml:"AS500"`
+	E870NAZ	string	`xml:"3870NAZ"`	// 3870NAZ
 }
 
 func LoadConfig() (Parameters, error) {

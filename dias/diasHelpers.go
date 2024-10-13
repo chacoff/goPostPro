@@ -64,9 +64,9 @@ func ProcessDiasData(payload []byte) {
 
 	Outputs.decodeDiasDigitalOutput(digitalOutput)
 	passname, _ := determine_passname()
-	
+
 	if !(passname == previousPassname) {
-		log.Printf("[DIAS] %s", passname)
+		log.Printf("[DIAS] %s - Process id %d", passname, global.ProcessID)
 		previousPassname = passname
 	}
 
@@ -183,11 +183,13 @@ func determine_passname() (string, error) {
 
 	if Outputs.Pass3 && !Outputs.Pass2 && !Outputs.Pass1 {
 		global.PreviousPassNumber = 3
+		global.CurrentPass = "Pass 3"
 		return "Pass 3", nil
 	}
 
 	if Outputs.Pass2 && !Outputs.Pass1 && !Outputs.Pass3 {
 		global.PreviousPassNumber = 2
+		global.CurrentPass = "Pass 2"
 		return "Pass 2", nil
 	}
 
@@ -196,11 +198,12 @@ func determine_passname() (string, error) {
 			global.SaveImage = true
 		}
 		global.PreviousPassNumber = 1
+		global.CurrentPass = "Pass 1"
 		return "Pass 1", nil
 	}
 
-	// log.Println("[DIAS] Attention: pass number couldn't be define")
-	return "", errors.New("something went wrong with the passes")
+	// log.Println("[DIAS] Attention: pass number couldn't be define, using global.CurrentPass")
+	return global.CurrentPass, errors.New("using global.CurrentPass. Most likely an IO error")
 }
 
 // decodeDigitalOutput gets the decimal value sent from DIAS and convert it to its binary representation to fill DigitalOutputs Struct

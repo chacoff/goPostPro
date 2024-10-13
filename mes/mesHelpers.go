@@ -55,6 +55,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	switch messageType {
 	case 4701, 4711, 4721: // watchdog: only header
+		log.Printf("[MES Watchdog] >> Watchdog message %d - type %d", messageCounter, messageTypeAns)
 		response = encodeUint32(headerType(40, messageTypeAns, messageCounter))
 		echo = true
 
@@ -76,7 +77,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4704, 4714: // process message: header + LTC - Cage3 and Cage4 only
 		// Cage 3: pass1 is AI_01 and pass3 is AI_02
-		// Cage 4: pass1 is AI_01 and pass3 is AI_02  
+		// Cage 4: pass1 is AI_01 and pass3 is AI_02
 
 		var val1 uint16
 		var val2 uint16
@@ -84,19 +85,24 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
-		
+
+		processID, _ := bodyValuesStatic[0].(uint32)
+		global.ProcessID = processID
+
+		log.Printf("[PROCESS] Current Process ID is: %d", global.ProcessID)
+
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
 		// pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
 
-		if len(bodyValuesStatic) > 8 {  // ugly patch STUPID PR FUCK YOU AZURE!
+		if len(bodyValuesStatic) > 8 { // ugly patch STUPID PR FUCK YOU AZURE!
 			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
-		} else{
+		} else {
 			pas = 2 // default pass if for whatever the reason there is no pass number in the MES message
 		}
 
-		log.Printf("[LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
-		
-		switch int(pas){
+		log.Printf("[MES LTC] LTC reflected to uint16 %d for pass %d\n", val, pas)
+
+		switch int(pas) {
 		case 1:
 			val1 = val
 			val2 = 8996
@@ -112,7 +118,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		echo = false
 
 	case 4703, 4713, 4723: // acknowledge data message
-		log.Println("[MES ACK] MES received process data properly")
+		log.Printf("[MES ACK] MES received process data properly for process ID %d", global.ProcessID)
 		echo = false
 
 	default:

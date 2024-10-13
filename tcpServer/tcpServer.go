@@ -12,8 +12,10 @@
 package tcpServer
 
 import (
+	"io"
 	"log"
 	"net"
+	"time"
 
 	"goPostPro/global"
 )
@@ -76,12 +78,24 @@ func (s *Server) acceptLoop() {
 func (s *Server) readLoop(conn net.Conn) {
 	defer conn.Close()
 	buf := make([]byte, global.AppParams.MaxBufferSize)
-	
+
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
-			log.Println("read error:", err)
-			continue
+
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				log.Println("Timeout read error, retrying:", err)
+				time.Sleep(2 * time.Second) // delay to avoid tight loop in temporary errors
+				continue
+			}
+
+			if err == io.EOF {
+				log.Println("Connection closed by the Client")
+				break
+			}
+
+			log.Println("Read error, closing connection:", err) // non temporary error, closes the connection
+			break
 		}
 
 		s.Msgch <- Message{
