@@ -51,7 +51,5 @@ cage 4      10.28.100.0:4604
   </graphics>
   <profiles>
     <default>700</default>
-    <AS500>500</AS500>
-    <3870NAZ>700</3870NAZ>
   </profiles>
 </parameters>
