@@ -308,7 +308,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_t
 
 	var LTCrealized uint32
 	err := calculationsDatabase.database.QueryRow(`
-		SELECT Web_Mean FROM Measures
+		SELECT Tr3_Max FROM Measures
 		WHERE Moving = 1 
 		AND Filename = ?
 		AND Timestamp BETWEEN ? AND ?
