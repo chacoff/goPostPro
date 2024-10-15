@@ -33,6 +33,7 @@ var SaveImage bool = false
 var CurrentPass string = "Pass undefined"
 var PreviousLastTimeStamp string = "20220124080500"
 var ProcessID uint32 = 997788
+var LTCpass int = 0
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {

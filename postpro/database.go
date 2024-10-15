@@ -297,6 +297,41 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 	return formattedTimestampLTC
 }
 
+// FindLTCrealized finds the LTC temperature of the sheetpile about to exist the cage according the pass
+func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_timestamp string, end_string_timestamp string, pass int) uint32 {
+
+	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
+	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+
+	passF := fmt.Sprintf("Pass %d", pass+1)
+	log.Printf("[DATABASE] Processing LTC-realized for pass: %s for process ID %d", passF, global.ProcessID)
+
+	var LTCrealized uint32
+	err := calculationsDatabase.database.QueryRow(`
+		SELECT Web_Mean FROM Measures
+		WHERE Moving = 1 
+		AND Filename = ?
+		AND Timestamp BETWEEN ? AND ?
+		ORDER BY Timestamp DESC
+		LIMIT 1
+		`,
+		passF,
+		begin_timestamp.Format(global.PostProParams.TimeFormat),
+		end_timestamp.Format(global.PostProParams.TimeFormat)).Scan(&LTCrealized)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("[LTC] No matching LTC timestamp found")
+		} else {
+			log.Println("[LTC] Error querying database:", err)
+		}
+	}
+
+	log.Printf("[DATABASE] Processed LTC-realized: %d for pass %s for process ID %d", LTCrealized, passF, global.ProcessID)
+
+	return LTCrealized
+}
+
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
 func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string, endStr string) (int64, error) {
 

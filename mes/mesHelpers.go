@@ -87,7 +87,10 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
 
 		processID, _ := bodyValuesStatic[0].(uint32)
+		LTCpass, _ := bodyValuesStatic[8].(int)
+
 		global.ProcessID = processID
+		global.LTCpass = LTCpass
 
 		log.Printf("[PROCESS] Current Process ID is: %d", global.ProcessID)
 
