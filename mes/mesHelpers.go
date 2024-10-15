@@ -90,14 +90,19 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		LTCpass, _ := bodyValuesStatic[8].(int)
 
 		global.ProcessID = processID
-		global.LTCpass = LTCpass
+
+		if LTCpass == 0 {
+			global.LTCpass = 1
+		} else{
+			global.LTCpass = LTCpass
+		}
 
 		log.Printf("[PROCESS] Current Process ID is: %d", global.ProcessID)
 
 		val := reflectToUint16(bodyValuesStatic[7]) // LTC temperature
 		// pas := reflectToUint16(bodyValuesStatic[8]) // LTC pass
 
-		if len(bodyValuesStatic) > 8 { // ugly patch STUPID PR FUCK YOU AZURE!
+		if len(bodyValuesStatic) > 8 { // ugly patch
 			pas = int(reflectToUint16(bodyValuesStatic[8])) // LTC pass
 		} else {
 			pas = 2 // default pass if for whatever the reason there is no pass number in the MES message

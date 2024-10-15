@@ -265,6 +265,7 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 
 // FindLTCRow finds the LTC row in within the timestamps of the passes
 func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int) string {
+	// @jaime: pay attention the 'pass' here is actually the counter of the passes to process, the counter starts from 0, that's why later is pass+1
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
@@ -299,11 +300,12 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 // FindLTCrealized finds the LTC temperature of the sheetpile about to exist the cage according the pass
 func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_timestamp string, end_string_timestamp string, pass int) uint32 {
+	// 'pass' here is the actual pass from the LTC message
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 
-	passF := fmt.Sprintf("Pass %d", pass+1)
+	passF := fmt.Sprintf("Pass %d", pass)
 	log.Printf("[DATABASE] Processing LTC-realized for pass: %s for process ID %d", passF, global.ProcessID)
 
 	var LTCrealized uint32
