@@ -299,6 +299,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 }
 
 // FindLTCrealized finds the LTC temperature of the sheetpile about to exist the cage according the pass
+// lint:ignore U1000 Ignore unused function temporarily for debugging
 func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_timestamp string, end_string_timestamp string, pass int) uint32 {
 	// 'pass' here is the actual pass from the LTC message
 
@@ -314,7 +315,6 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_t
 		WHERE Moving = 1 
 		AND Filename = ?
 		AND Timestamp BETWEEN ? AND ?
-		ORDER BY Timestamp DESC
 		LIMIT 1
 		`,
 		passF,

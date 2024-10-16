@@ -73,7 +73,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// 19	Avg Temp mill1 pass n LTC		UINT32
 	// 20	Min Temp web pass n LTC			UINT32
 	// 21	Avg Temp web pass n LTC			UINT32
-	// 22	LTC Realized					UINT32
+	// 22	LTC Pass number pass n			UINT32
+	// 23	LTC Realized pass n				UINT32
 
 	var _bodyAns []interface{}
 
@@ -140,13 +141,16 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
 		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
 
+		_bodyAns = append(_bodyAns, newData.PassNumber)   // LTC request
+		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC request
+
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
 
 	}
 
 	// LTC realized, calculated at the of the sheetpile in the cage
-	var LTCRealized uint32 = postpro.DATABASE.FindLTCrealized(global.PreviousLastTimeStamp, lastTimeStamp, global.LTCpass)
-	_bodyAns = append(_bodyAns, LTCRealized)
+	// var LTCRealized uint32 = postpro.DATABASE.FindLTCrealized(global.PreviousLastTimeStamp, lastTimeStamp, global.LTCpass)
+	// _bodyAns = append(_bodyAns, LTCRealized)
 
 	// @jaime: TODO, marked as Treated all rows between first and last timestamp
 	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
