@@ -57,9 +57,9 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// 2	Rolling campaign number			STRING
 	// 3	Roll stand number				UINT32
 	// 4	Pass counter					UINT32
-	// 5	Pass number n					UINT32 LOOP STARTS HERE
-	// 6	Pass date n						STRING 25 42 59 76 93 110 127 144 161 178 195 212
-	// 7	Dummy							STRING 26 43 60 77 94 111 128 145 162 179 196 213
+	// 5	Pass number n					UINT32 24 LOOP STARTS HERE
+	// 6	Pass date n						STRING 25 44 63 82 101 120 139 158 177 196 215 234
+	// 7	Dummy							STRING 26 45 64 83 102 121 140 159 178 197 216 235
 	// 8	Max Temp mill3 pass n			UINT32
 	// 9	Avg Temp mill3 pass n			UINT32
 	// 10	Max Temp mill1 pass n			UINT32

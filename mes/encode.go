@@ -50,7 +50,7 @@ func encodeProcess(_values []interface{}) []byte {
 	var rawWrite []int
 
 	// new Protocol is already integrated in MES. See protocol to have a better view: processType()
-	rawWrite = []int{1, 2, 6, 7, 25, 26, 42, 43, 59, 60, 76, 77, 93, 94, 110, 111, 127, 128, 144, 145, 161, 162, 178, 179, 195, 196, 212, 213}
+	rawWrite = []int{1, 2, 6, 7, 25, 26, 44, 45, 63, 64, 82, 83, 101, 102, 120, 121, 139, 140, 158, 159, 177, 178, 196, 197, 215, 216, 234, 235}
 	// rawWrite = []int{1, 2, 6, 7, 17, 18, 28, 29, 39, 40, 50, 51, 61, 62, 72, 73, 83, 84, 94, 95}
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
@@ -72,6 +72,7 @@ func encodeProcess(_values []interface{}) []byte {
 	return _buffer
 }
 
+// isInSlice checks if an element is inside of a slice
 func isInSlice(slice []int, elem int) bool {
 	for _, v := range slice {
 		if v == elem {
