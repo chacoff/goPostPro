@@ -180,10 +180,11 @@ func parseTimeStamps(passCounter uint32, bodyValuesDynamic []interface{}, lastSt
 // addOffsetToTimestamp adds offset in timestamp to calculate the instance LTC
 func addOffsetToTimestamp(timestamp string, offset int) string {
 
+	log.Printf("[LTC offset] timestamp to parse: %s", timestamp)
 	newStamp, parsing_error := time.Parse(global.DBParams.TimeFormatRequest, timestamp)
 
 	if parsing_error != nil {
-		log.Println("[PARSING] error: ", parsing_error)
+		log.Println("[LTC offset] parsing error: ", parsing_error)
 	}
 
 	newStamp = newStamp.Add(time.Duration(offset) * time.Second)

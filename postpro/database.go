@@ -271,17 +271,18 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
 
 	passF := fmt.Sprintf("Pass %d", pass+1)
-	log.Printf("[DATABASE] Processing LTC pass: %s for process ID %d", passF, global.ProcessID)
+	log.Printf("[LTC] Processing LTC pass: %s for process ID %d between %s - %s", passF, global.ProcessID, begin_string_timestamp, end_string_timestamp)
 
 	var timestampLTC string
 	err := calculationsDatabase.database.QueryRow(`
 		SELECT Timestamp FROM Measures
-		WHERE Moving = 1 AND Filename = ? AND Timestamp BETWEEN ? AND ?
+		WHERE Moving = 1 AND Filename = ? AND Timestamp BETWEEN ? AND ? AND ProcessID = ?
 		LIMIT 1
 		`,
 		passF,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
-		end_timestamp.Format(global.PostProParams.TimeFormat)).Scan(&timestampLTC)
+		end_timestamp.Format(global.PostProParams.TimeFormat),
+		global.ProcessID).Scan(&timestampLTC)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -293,7 +294,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	// log.Println("LTC Timestamp:", timestampLTC)
 	formattedTimestampLTC, _ := formatTimestamp(timestampLTC)
-	log.Printf("[DATABASE] Processing LTC Timestamp: %s for pass %s for process ID %d", formattedTimestampLTC, passF, global.ProcessID)
+	log.Printf("[LTC] Processing LTC Timestamp: %s for pass %s for process ID %d", formattedTimestampLTC, passF, global.ProcessID)
 
 	return formattedTimestampLTC
 }
