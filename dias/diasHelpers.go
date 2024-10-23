@@ -92,7 +92,7 @@ func ProcessDiasData(payload []byte) {
 			log.Printf("[PROCESSING] pass number: %s", passname)
 		}
 
-		isMoving = btoi(Outputs.Free3)
+		isMoving = btoi(Outputs.Free3) // Moving Presence flag from DIAS
 
 		processError := postpro.Process_live_line(measures, passname, isMoving)
 

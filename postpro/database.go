@@ -179,8 +179,9 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
 func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
-
-	passF := fmt.Sprintf("Pass %d", pass+1)
+	
+	passF := passFormater(pass)
+	
 	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
 
 	post_pro_data := PostProData{}
@@ -264,16 +265,30 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	return post_pro_data, nil
 }
 
+// passFormater formats the pass as a string to be used in the DB-query
+func passFormater(pass int) string {
+	
+	var passF string
+
+	if global.PostProParams.Cage12Split{
+		passF = "Pass undefined"
+	} else {
+		passF = fmt.Sprintf("Pass %d", pass+1)
+	}
+
+	return passF
+}
+
 // FindLTCRow finds the LTC row in within the timestamps of the passes
 func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int) string {
 	// @jaime: pay attention the 'pass' here is actually the counter of the passes to process, the counter starts from 0, that's why later is pass+1
-
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(5 * time.Millisecond)
+	
+	passF := passFormater(pass)
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
-
-	passF := fmt.Sprintf("Pass %d", pass+1)
+	
 	log.Printf("[LTC] Processing LTC %s for process ID %d between %s - %s", passF, global.ProcessID, begin_string_timestamp, end_string_timestamp)
 
 	var timestampLTC string
