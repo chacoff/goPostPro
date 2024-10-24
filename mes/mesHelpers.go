@@ -86,6 +86,10 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
 
+		// Reset the Sheetpile passes since LTC marks the beginning of a new up coming sheetpile
+		global.PreviousPassNumber = 3
+		global.CurrentPass = "Pass 1"
+
 		processID, _ := bodyValuesStatic[0].(uint32)
 		LTCpass, _ := bodyValuesStatic[8].(int)
 
