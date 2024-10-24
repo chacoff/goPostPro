@@ -396,6 +396,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_t
 }
 
 // updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
+// lint:ignore U1000 Ignore unused function temporarily for debugging
 func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string, endStr string) (int64, error) {
 
 	begin, _ := time.Parse(global.DBParams.TimeFormatRequest, beginStr)
