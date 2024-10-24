@@ -15,6 +15,8 @@ import (
 	"database/sql"
 	"fmt"
 	"goPostPro/global"
+	"goPostPro/graphic"
+	"image/color"
 	"log"
 	"math"
 	"time"
@@ -123,19 +125,19 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), 
-										  int64(line.max_Tr1), 
-										  int64(line.mean_Tr1), 
-										  int64(line.mean_Web), 
-										  int64(line.min_Web), 
-										  int64(line.max_Tr3), 
-										  int64(line.mean_Tr3), 
-										  int64(line.width), 
-										  int64(line.threshold), 
-										  line.filename,
-										  fmt.Sprint(global.ProcessID),
-										  0, 
-										  line.isMoving)
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat),
+		int64(line.max_Tr1),
+		int64(line.mean_Tr1),
+		int64(line.mean_Web),
+		int64(line.min_Web),
+		int64(line.max_Tr3),
+		int64(line.mean_Tr3),
+		int64(line.width),
+		int64(line.threshold),
+		line.filename,
+		fmt.Sprint(global.ProcessID),
+		0,
+		line.isMoving)
 	if executionError != nil {
 		return executionError
 	}
@@ -195,6 +197,8 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
+	log.Println("postpro :")
+	graphic.DrawBetweenTimestamps(begin_timestamp, end_timestamp, color.RGBA64{0, 255, 0, 255}, 1)
 
 	rows, query_error := calculationsDatabase.database.Query(`
 	SELECT
@@ -269,6 +273,8 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+	log.Println("LTC ROW :")
+	graphic.DrawBetweenTimestamps(begin_timestamp, end_timestamp, color.RGBA64{255, 0, 0, 255}, 4)
 
 	passF := fmt.Sprintf("Pass %d", pass+1)
 	log.Printf("[DATABASE] Processing LTC pass: %s for process ID %d", passF, global.ProcessID)
@@ -305,6 +311,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_t
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
+	//graphic.DrawBetweenTimestamps(begin_timestamp, end_timestamp, color.RGBA64{255, 0, 0, 255}, 4)
 
 	passF := fmt.Sprintf("Pass %d", pass)
 	log.Printf("[DATABASE] Processing LTC-realized for pass: %s for process ID %d", passF, global.ProcessID)

@@ -29,19 +29,19 @@ import (
 
 // Variables used to write correctly in the global image
 var (
-	recording_image *image.RGBA
-	image_line      int       = 0
-	first_timestamp time.Time = time.Now()
-	offset          int       = 0
-	beam_id         string    = ""
+	recording_image       *image.RGBA
+	timestamp_image_lines []time.Time
+	image_line            int       = 0
+	first_timestamp       time.Time = time.Now()
+	offset                int       = 0
+	beam_id               string    = ""
 
 	// Font variables
 	dpi                        = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
 	fontfile                   = flag.String("fontfile", "Poppins-SemiBold.ttf", "filename of the ttf font")
 	hinting                    = flag.String("hinting", "none", "none | full")
 	size                       = flag.Float64("size", 48, "font size in points")
-	red                        = color.RGBA{255, 0, 0, 255}
-	fg, _                      = image.NewUniform(red), image.White
+	fg, _                      = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
 	c        *freetype.Context = freetype.NewContext()
 )
 
@@ -73,14 +73,11 @@ func GraphicInit() {
 	case "full":
 		c.SetHinting(font.HintingFull)
 	}
-	log.Println("Initialised context")
-	WriteCenteredText("TESTSTETST", c)
-	ChangeImage()
-	log.Println("Changed image")
 }
 
-func addLabel(x, y int, label string, c *freetype.Context) {
+func addLabel(x, y int, label string, color *image.Uniform, c *freetype.Context) {
 	c.SetDst(recording_image)
+	c.SetSrc(color)
 	size := 12.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
 	if _, err := c.DrawString(label, pt); err != nil {
@@ -95,21 +92,50 @@ func thermalColor(temperature float64) color.Color {
 }
 
 //lint:ignore U1000 Ignore unused function temporarily for debugging
-func WriteCenteredText(text string, c *freetype.Context) error {
-	//addLabel(recording_image, 900, image_line, text, c)
-	addLabel(900, 100, text, c)
+func WriteCenteredText(text string, color color.Color, c *freetype.Context) error {
+	addLabel(800, image_line, text, image.NewUniform(color), c)
 	return nil
+}
+
+func DrawHLine(line int, color color.Color) {
+	for horizontal_pixel := 0; horizontal_pixel < global.Graphics.ImageWidth; horizontal_pixel++ {
+		recording_image.Set(horizontal_pixel, image_line, color)
+	}
+}
+
+func DrawHLineAtTimestamp(timestamp time.Time, color color.Color) int {
+	for index := 0; index < len(timestamp_image_lines); index++ {
+		if timestamp.Before(timestamp_image_lines[index]) {
+			log.Println("ICI à la ligne ------> ", index)
+			log.Println("Debut : ", timestamp_image_lines[0])
+			log.Println("Fin : ", timestamp_image_lines[len(timestamp_image_lines)-1])
+			DrawHLine(index, color)
+			return index
+		}
+	}
+	log.Println("ICI à la ligne ------> NOT FOUND")
+	log.Println("Debut : ", timestamp_image_lines[0])
+	log.Println("Fin : ", timestamp_image_lines[len(timestamp_image_lines)-1])
+	DrawHLine(len(timestamp_image_lines)-1, color)
+	return image_line
+}
+
+func DrawBetweenTimestamps(begin_timestamp time.Time, end_timestamp time.Time, color color.Color, column int) {
+	log.Println("Draw between : ", begin_timestamp, " -> ", end_timestamp)
+	begin_line := DrawHLineAtTimestamp(begin_timestamp, color)
+	end_line := DrawHLineAtTimestamp(end_timestamp, color)
+	for line := begin_line; line < end_line; line++ {
+		recording_image.Set(column, line, color)
+	}
 }
 
 // saveImage saves the global image with the timestamps of beginning and end of measurement
 func saveImage() error {
-
 	var filename string
 	var savingFolder string = global.Graphics.Savingfolder
 
 	//Create the file
-	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line + 300}}
-	WriteCenteredText("TESTRECORD", c)
+	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line}}
 
 	if beam_id == "" {
 		filename = savingFolder + "/000000[ "
@@ -136,6 +162,7 @@ func saveImage() error {
 // NewImage creates a new image by reseting the variables used
 func NewImage() error {
 	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	timestamp_image_lines = make([]time.Time, 0)
 	image_line = 0
 	first_timestamp = time.Now()
 	beam_id = ""
@@ -155,6 +182,8 @@ func ChangeImage() error {
 		log.Println(saving_error)
 		return saving_error
 	}
+	log.Println(len(timestamp_image_lines))
+	log.Println("Nombre de timestamps : ", timestamp_image_lines)
 	creation_error := NewImage()
 	if creation_error != nil {
 		log.Println(creation_error)
@@ -166,6 +195,7 @@ func ChangeImage() error {
 // NewLine goes to the next line of the image or create a new image if we reached the bottom of the picture
 func NewLine() error {
 	image_line++
+	timestamp_image_lines = append(timestamp_image_lines, time.Now())
 	if image_line == global.Graphics.ImageHeight {
 		ChangeImage()
 	}
