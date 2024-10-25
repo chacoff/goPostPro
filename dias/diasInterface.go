@@ -1,5 +1,5 @@
 /*
- * File:    diasHelpers.go
+ * File:    diasInterface.go
  * Date:    May 10, 2024
  * Author:  J.
  * Email:   jaime.gomez@usach.cl

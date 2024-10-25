@@ -1,5 +1,5 @@
 /*
- * File:    mesHelpers.go
+ * File:    mesInterface.go
  * Date:    May 10, 2024
  * Author:  J.
  * Email:   jaime.gomez@usach.cl
@@ -97,7 +97,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 		if LTCpass == 0 {
 			global.LTCpass = 1
-		} else{
+		} else {
 			global.LTCpass = LTCpass
 		}
 
