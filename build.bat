@@ -19,15 +19,10 @@ set counter_file=R:/gopostpro/buildVersion.txt
 set icon=./_Resources/beam.ico
 
 rem Taking the remote buildVersion number -----------------------------------
-rem git fetch
-
-rem git checkout buildVersion
-
-rem git pull
 
     rem Generate a build number ---------------------------------------------
     if not exist "%counter_file%" (
-      echo 1 > "%counter_file%"
+      echo 10000 > "%counter_file%"
     )
     
     for /f "usebackq tokens=*" %%a in ("%counter_file%") do set patch_version=%%a
@@ -56,16 +51,9 @@ rem git pull
         set buildNumber=%major%.%minor%.%patch%
         set buildNumber2=%major%,%minor%,%patchv%,%patch2%
 
-git commit -a -m "updated build version"
-
-git push -u origin buildVersion
 echo Push to origin.buildVersion successful!
 
 timeout /t 1
-
-rem git checkout master
-
-rem timeout /t 1
 
 rem copy version.info.rc --------------------------------
 echo Preparing versioninfo and FART
