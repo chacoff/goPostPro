@@ -15,15 +15,15 @@ rem Set variables -----------------------------------------------------------
 set target_folder=./BuildMachine/release
 set config_file=config.xml
 set previous_builds_folder=./BuildMachine/previousReleases
-set counter_file=buildVersion.txt
+set counter_file=R:/gopostpro/buildVersion.txt
 set icon=./_Resources/beam.ico
 
 rem Taking the remote buildVersion number -----------------------------------
-git fetch
+rem git fetch
 
-git checkout buildVersion
+rem git checkout buildVersion
 
-git pull
+rem git pull
 
     rem Generate a build number ---------------------------------------------
     if not exist "%counter_file%" (
@@ -63,9 +63,9 @@ echo Push to origin.buildVersion successful!
 
 timeout /t 1
 
-git checkout master
+rem git checkout master
 
-timeout /t 1
+rem timeout /t 1
 
 rem copy version.info.rc --------------------------------
 echo Preparing versioninfo and FART
