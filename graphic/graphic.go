@@ -30,7 +30,9 @@ import (
 // Variables used to write correctly in the global image
 var (
 	recording_image       *image.RGBA
-	timestamp_image_lines []time.Time
+	image_lines_timestamps_associated []string
+	Hlines_index []int
+	Hlines_colors []color.Color
 	image_line            int       = 0
 	first_timestamp       time.Time = time.Now()
 	offset                int       = 0
@@ -81,7 +83,7 @@ func addLabel(x, y int, label string, color *image.Uniform, c *freetype.Context)
 	size := 12.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
 	if _, err := c.DrawString(label, pt); err != nil {
-		// handle error
+		log.Println("[GRAPHIC] Error writing in the image")
 	}
 }
 
@@ -103,29 +105,22 @@ func DrawHLine(line int, color color.Color) {
 	}
 }
 
-func DrawHLineAtTimestamp(timestamp time.Time, color color.Color) int {
-	for index := 0; index < len(timestamp_image_lines); index++ {
-		if timestamp.Before(timestamp_image_lines[index]) {
-			log.Println("ICI à la ligne ------> ", index)
-			log.Println("Debut : ", timestamp_image_lines[0])
-			log.Println("Fin : ", timestamp_image_lines[len(timestamp_image_lines)-1])
-			DrawHLine(index, color)
-			return index
-		}
+func DrawHLineAtTimestamp(timestamp_string string, color color.Color){
+	log.Println("[GRAPHIC]Cherche -> ", timestamp_string, "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+	timestamp, err := time.Parse(global.DBParams.TimeFormatRequest, timestamp_string)
+	if err != nil {
+		log.Println(err)
 	}
-	log.Println("ICI à la ligne ------> NOT FOUND")
-	log.Println("Debut : ", timestamp_image_lines[0])
-	log.Println("Fin : ", timestamp_image_lines[len(timestamp_image_lines)-1])
-	DrawHLine(len(timestamp_image_lines)-1, color)
-	return image_line
-}
-
-func DrawBetweenTimestamps(begin_timestamp time.Time, end_timestamp time.Time, color color.Color, column int) {
-	log.Println("Draw between : ", begin_timestamp, " -> ", end_timestamp)
-	begin_line := DrawHLineAtTimestamp(begin_timestamp, color)
-	end_line := DrawHLineAtTimestamp(end_timestamp, color)
-	for line := begin_line; line < end_line; line++ {
-		recording_image.Set(column, line, color)
+	for index := 0; index < len(image_lines_timestamps_associated); index++ {
+		index_time_object, err := time.Parse(global.PostProParams.TimeFormat, image_lines_timestamps_associated[index])
+		if err != nil {
+			log.Println(err)
+		}
+		if timestamp.Before(index_time_object) {
+			log.Println("[GRAPHIC]Trouve : ", index)
+			Hlines_index = append(Hlines_index, index)
+			Hlines_colors = append(Hlines_colors, color)
+		}
 	}
 }
 
@@ -133,6 +128,7 @@ func DrawBetweenTimestamps(begin_timestamp time.Time, end_timestamp time.Time, c
 func saveImage() error {
 	var filename string
 	var savingFolder string = global.Graphics.Savingfolder
+	DrawAllHLines()
 
 	//Create the file
 	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line}}
@@ -162,7 +158,9 @@ func saveImage() error {
 // NewImage creates a new image by reseting the variables used
 func NewImage() error {
 	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
-	timestamp_image_lines = make([]time.Time, 0)
+	image_lines_timestamps_associated = make([]string, 0)
+	Hlines_index = make([]int, 0)
+	Hlines_colors = make([]color.Color, 0)
 	image_line = 0
 	first_timestamp = time.Now()
 	beam_id = ""
@@ -182,8 +180,6 @@ func ChangeImage() error {
 		log.Println(saving_error)
 		return saving_error
 	}
-	log.Println(len(timestamp_image_lines))
-	log.Println("Nombre de timestamps : ", timestamp_image_lines)
 	creation_error := NewImage()
 	if creation_error != nil {
 		log.Println(creation_error)
@@ -193,9 +189,9 @@ func ChangeImage() error {
 }
 
 // NewLine goes to the next line of the image or create a new image if we reached the bottom of the picture
-func NewLine() error {
+func NewLine(timestamp time.Time) error {
 	image_line++
-	timestamp_image_lines = append(timestamp_image_lines, time.Now())
+	image_lines_timestamps_associated = append(image_lines_timestamps_associated, timestamp.Format(global.PostProParams.TimeFormat))
 	if image_line == global.Graphics.ImageHeight {
 		ChangeImage()
 	}
@@ -232,4 +228,10 @@ func DrawRegions(max_tr1 int, max_tr3 int) error {
 	recording_image.Set(offset+max_tr1, image_line, color.RGBA{0, 255, 255, 255})
 	recording_image.Set(offset+max_tr3, image_line, color.RGBA{0, 255, 255, 255})
 	return nil
+}
+
+func DrawAllHLines(){
+	for line:=0; line<len(Hlines_index); line++{
+		DrawHLine(Hlines_index[line], Hlines_colors[line])
+	}
 }

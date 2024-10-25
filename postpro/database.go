@@ -20,6 +20,9 @@ import (
 	"strings"
 	"time"
 
+	"goPostPro/graphic"
+	"image/color"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -124,19 +127,19 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	defer preparation.Close()
 
 	// Execute it with the given values
-	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat), 
-										  int64(line.max_Tr1), 
-										  int64(line.mean_Tr1), 
-										  int64(line.mean_Web), 
-										  int64(line.min_Web), 
-										  int64(line.max_Tr3), 
-										  int64(line.mean_Tr3), 
-										  int64(line.width), 
-										  int64(line.threshold), 
-										  line.filename,
-										  fmt.Sprint(global.ProcessID),
-										  0, 
-										  line.isMoving)
+	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat),
+		int64(line.max_Tr1),
+		int64(line.mean_Tr1),
+		int64(line.mean_Web),
+		int64(line.min_Web),
+		int64(line.max_Tr3),
+		int64(line.mean_Tr3),
+		int64(line.width),
+		int64(line.threshold),
+		line.filename,
+		fmt.Sprint(global.ProcessID),
+		0,
+		line.isMoving)
 	if executionError != nil {
 		return executionError
 	}
@@ -179,9 +182,9 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
 func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
-	
+
 	passF := passFormater(pass)
-	
+
 	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
 
 	post_pro_data := PostProData{}
@@ -197,6 +200,9 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	if parsing_error != nil {
 		return post_pro_data, parsing_error
 	}
+
+	graphic.DrawHLineAtTimestamp(begin_string_timestamp, color.RGBA64{255, 0, 0, 255})
+	graphic.DrawHLineAtTimestamp(end_string_timestamp, color.RGBA64{0, 255, 0, 255})
 
 	rows, query_error := calculationsDatabase.database.Query(`
 	SELECT
@@ -267,10 +273,10 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 
 // passFormater formats the pass as a string to be used in the DB-query
 func passFormater(pass int) string {
-	
+
 	var passF string
 
-	if global.PostProParams.Cage12Split{
+	if global.PostProParams.Cage12Split {
 		passF = "Pass undefined"
 	} else {
 		passF = fmt.Sprintf("Pass %d", pass+1)
@@ -283,12 +289,12 @@ func passFormater(pass int) string {
 func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int) string {
 	// @jaime: pay attention the 'pass' here is actually the counter of the passes to process, the counter starts from 0, that's why later is pass+1
 	time.Sleep(5 * time.Millisecond)
-	
+
 	passF := passFormater(pass)
 
 	begin_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, begin_string_timestamp)
 	end_timestamp, _ := time.Parse(global.DBParams.TimeFormatRequest, end_string_timestamp)
-	
+
 	log.Printf("[LTC] Processing LTC %s for process ID %d between %s - %s", passF, global.ProcessID, begin_string_timestamp, end_string_timestamp)
 
 	var timestampLTC string
@@ -314,7 +320,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 	log.Printf("[LTC] Found the following LTC timestamp reference: %s", timestampLTC)
 	formattedTimestampLTC, errFormat := formatTimestamp(timestampLTC)
 
-	if errFormat != nil{
+	if errFormat != nil {
 		log.Printf("[LTC] error formating LTC timestamp: %s. Error: %s ", timestampLTC, errFormat)
 	}
 
@@ -326,7 +332,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 // formatTimeStamp bug fix while parsing the timestamps between strings and time.Time types
 func formatTimestamp(input string) (string, error) {
 	// Parse the input string
-	
+
 	input = padMilliseconds(input)
 
 	t, err := time.Parse("2006-01-02 15:04:05,000", input)
@@ -338,16 +344,16 @@ func formatTimestamp(input string) (string, error) {
 	return t.Format(global.DBParams.TimeFormatRequest), nil
 }
 
-//padMilliseconds, helper function to pad milliseconds part with zeros or add ",000" if missing
+// padMilliseconds, helper function to pad milliseconds part with zeros or add ",000" if missing
 func padMilliseconds(input string) string {
 
-	if strings.Contains(input, ",") {  // Check if the input contains a comma (indicating milliseconds)
+	if strings.Contains(input, ",") { // Check if the input contains a comma (indicating milliseconds)
 		parts := strings.Split(input, ",")
 		if len(parts) != 2 {
 			return input
 		}
 
-		ms := parts[1]  // Pad the milliseconds part with zeros to ensure it has exactly 3 digits
+		ms := parts[1] // Pad the milliseconds part with zeros to ensure it has exactly 3 digits
 		for len(ms) < 3 {
 			ms += "0"
 		}
@@ -425,5 +431,3 @@ func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string,
 
 	return rowsAffected, nil
 }
-
-
