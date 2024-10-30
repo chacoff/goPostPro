@@ -29,14 +29,14 @@ import (
 
 // Variables used to write correctly in the global image
 var (
-	recording_image       *image.RGBA
+	recording_image                   *image.RGBA
 	image_lines_timestamps_associated []string
-	Hlines_index []int
-	Hlines_colors []color.Color
-	image_line            int       = 0
-	first_timestamp       time.Time = time.Now()
-	offset                int       = 0
-	beam_id               string    = ""
+	Hlines_index                      []int
+	Hlines_colors                     []color.Color
+	image_line                        int       = 0
+	first_timestamp                   time.Time = time.Now()
+	offset                            int       = 0
+	beam_id                           string    = ""
 
 	// Font variables
 	dpi                        = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
@@ -105,7 +105,7 @@ func DrawHLine(line int, color color.Color) {
 	}
 }
 
-func DrawHLineAtTimestamp(timestamp_string string, color color.Color){
+func DrawHLineAtTimestamp(timestamp_string string, color color.Color) {
 	log.Println("[GRAPHIC]Cherche -> ", timestamp_string, "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
 	timestamp, err := time.Parse(global.DBParams.TimeFormatRequest, timestamp_string)
 	if err != nil {
@@ -117,7 +117,7 @@ func DrawHLineAtTimestamp(timestamp_string string, color color.Color){
 			log.Println(err)
 		}
 		if timestamp.Before(index_time_object) {
-			log.Println("[GRAPHIC]Trouve : ", index)
+			// log.Println("[GRAPHIC]Trouve : ", index)
 			Hlines_index = append(Hlines_index, index)
 			Hlines_colors = append(Hlines_colors, color)
 		}
@@ -230,8 +230,8 @@ func DrawRegions(max_tr1 int, max_tr3 int) error {
 	return nil
 }
 
-func DrawAllHLines(){
-	for line:=0; line<len(Hlines_index); line++{
+func DrawAllHLines() {
+	for line := 0; line < len(Hlines_index); line++ {
 		DrawHLine(Hlines_index[line], Hlines_colors[line])
 	}
 }

@@ -62,6 +62,7 @@ copy "_Resources\versionlauncher.rc" "versionlauncher.rc"
 copy "_Resources\fart.exe" "fart.exe"
 copy "_Resources\beam.ico" "beam.ico"
 copy "_Resources\golang.ico" "golang.ico"
+copy "_Resources\Poppins-SemiBold.ttf" "Poppins-SemiBold.ttf"
 
 rem Update and Generate versioninfo.rc, versioninfo.syso --------------------------------
 echo Version: %buildNumber2%
@@ -89,6 +90,7 @@ copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
 copy "_ExternalLibs\TrayRunner\*.*" "%target_folder%-%buildNumber%"
 copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
 copy "_Resources\golang.ico" "%target_folder%-%buildNumber%\golang.ico"
+copy "_Resources\Poppins-SemiBold.ttf" "%target_folder%-%buildNumber%\Poppins-SemiBold.ttf"
 
 rem update config XML using xmlstarlet --------------------------------------
 xmlstarlet ed -L -u /parameters/build/version -v %buildNumber% %target_folder%-%buildNumber%/%config_file%
@@ -108,6 +110,7 @@ del /F "versionlauncher.syso"
 del /F "fart.exe"
 del /F "beam.ico"
 del /F "golang.ico"
+del /F "Poppins-SemiBold.ttf"
 
 echo Build completed for release-%buildNumber%.
 
