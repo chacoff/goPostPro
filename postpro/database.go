@@ -20,9 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"goPostPro/graphic"
-	"image/color"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -40,6 +37,8 @@ type PostProData struct {
 	AvgTempWeb   float64
 	AvgStdTemp   float64
 	PixWidth     float64
+	FirstTimestampDatabase string
+	LastTimeStampDatabase string
 }
 
 type CalculationsDatabase struct {
@@ -201,9 +200,6 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		return post_pro_data, parsing_error
 	}
 
-	graphic.DrawHLineAtTimestamp(begin_string_timestamp, color.RGBA64{255, 0, 0, 255})
-	graphic.DrawHLineAtTimestamp(end_string_timestamp, color.RGBA64{0, 255, 0, 255})
-
 	rows, query_error := calculationsDatabase.database.Query(`
 	SELECT
 		COALESCE(MAX(Tr1_Max), 0) AS Query_Tr1_Max,
@@ -214,7 +210,9 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		COALESCE(AVG(Tr3_Mean), 0) AS Query_Tr3_Mean,
 		COALESCE(AVG((Web_Mean-Query_Web_Mean)*(Web_Mean-Query_Web_Mean)), 0) AS Query_Web_Variance,
 		COALESCE(AVG(Width), 0) AS Query_Width_Mean,
-		COALESCE(AVG(Threshold), 0) AS Query_Threshold_Mean
+		COALESCE(AVG(Threshold), 0) AS Query_Threshold_Mean,
+		COALESCE(MIN(Timestamp), 0) AS First_timestamp,
+		COALESCE(MAX(Timestamp), 0) AS Last_timestamp
 	FROM Measures,
 		(SELECT AVG(Web_Mean) AS Query_Web_Mean
 		FROM Measures
@@ -254,7 +252,10 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 			&post_pro_data.AvgTempMill3,
 			&post_pro_data.AvgStdTemp,
 			&post_pro_data.PixWidth,
-			&Query_Threshold_Mean)
+			&Query_Threshold_Mean,
+			&post_pro_data.FirstTimestampDatabase,
+			&post_pro_data.LastTimeStampDatabase,
+		)
 
 		if scan_error != nil {
 			return post_pro_data, scan_error

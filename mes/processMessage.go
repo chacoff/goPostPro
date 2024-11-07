@@ -140,6 +140,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC request
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
+		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", i+1)
+		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "                   end", i+1)
 
 	}
 

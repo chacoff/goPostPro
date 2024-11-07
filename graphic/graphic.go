@@ -32,7 +32,8 @@ var (
 	recording_image                   *image.RGBA
 	image_lines_timestamps_associated []string
 	Hlines_index                      []int
-	Hlines_colors                     []color.Color
+	Hlines_colors                     []color.RGBA
+	Hlines_label                      []string
 	image_line                        int       = 0
 	first_timestamp                   time.Time = time.Now()
 	offset                            int       = 0
@@ -77,10 +78,10 @@ func GraphicInit() {
 	}
 }
 
-func addLabel(x, y int, label string, color *image.Uniform, c *freetype.Context) {
+func addLabel(x, y int, label string, colori color.RGBA, c *freetype.Context) {
 	c.SetDst(recording_image)
-	c.SetSrc(color)
-	size := 12.0 // font size in pixels
+	c.SetSrc(image.NewUniform(colori))
+	size := 6.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
 	if _, err := c.DrawString(label, pt); err != nil {
 		log.Println("[GRAPHIC] Error writing in the image")
@@ -94,32 +95,47 @@ func thermalColor(temperature float64) color.Color {
 }
 
 //lint:ignore U1000 Ignore unused function temporarily for debugging
-func WriteCenteredText(text string, color color.Color, c *freetype.Context) error {
-	addLabel(800, image_line, text, image.NewUniform(color), c)
+func WriteCenteredText(text string, color color.RGBA, c *freetype.Context) error {
+	//addLabel(800, image_line, text, image.NewUniform(color), c)
 	return nil
 }
 
-func DrawHLine(line int, color color.Color) {
+func DrawHLine(line int, colori color.Color) {
 	for horizontal_pixel := 0; horizontal_pixel < global.Graphics.ImageWidth; horizontal_pixel++ {
-		recording_image.Set(horizontal_pixel, image_line, color)
+		recording_image.Set(horizontal_pixel, line-1, colori)
+		recording_image.Set(horizontal_pixel, line, colori)
+		recording_image.Set(horizontal_pixel, line+1, colori)
 	}
 }
 
-func DrawHLineAtTimestamp(timestamp_string string, color color.Color) {
-	log.Println("[GRAPHIC]Cherche -> ", timestamp_string, "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
-	timestamp, err := time.Parse(global.DBParams.TimeFormatRequest, timestamp_string)
+func DrawHLineAtTimestamp(timestamp_string string, label string, pass int) {
+	timestamp, err := time.Parse(global.PostProParams.TimeFormat, timestamp_string)
 	if err != nil {
 		log.Println(err)
 	}
+	log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+
+	colori := color.RGBA{0, 0, 0, 255}
+	if pass == 1 {
+		colori = color.RGBA{255, 0, 0, 255}
+	}
+	if pass == 2 {
+		colori = color.RGBA{0, 255, 0, 255}
+	}
+	if pass == 3 {
+		colori = color.RGBA{0, 0, 255, 255}
+	}
+
 	for index := 0; index < len(image_lines_timestamps_associated); index++ {
 		index_time_object, err := time.Parse(global.PostProParams.TimeFormat, image_lines_timestamps_associated[index])
 		if err != nil {
 			log.Println(err)
 		}
 		if timestamp.Before(index_time_object) {
-			// log.Println("[GRAPHIC]Trouve : ", index)
 			Hlines_index = append(Hlines_index, index)
-			Hlines_colors = append(Hlines_colors, color)
+			Hlines_colors = append(Hlines_colors, colori)
+			Hlines_label = append(Hlines_label, label)
+			return
 		}
 	}
 }
@@ -160,7 +176,7 @@ func NewImage() error {
 	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
 	image_lines_timestamps_associated = make([]string, 0)
 	Hlines_index = make([]int, 0)
-	Hlines_colors = make([]color.Color, 0)
+	Hlines_colors = make([]color.RGBA, 0)
 	image_line = 0
 	first_timestamp = time.Now()
 	beam_id = ""
@@ -233,5 +249,7 @@ func DrawRegions(max_tr1 int, max_tr3 int) error {
 func DrawAllHLines() {
 	for line := 0; line < len(Hlines_index); line++ {
 		DrawHLine(Hlines_index[line], Hlines_colors[line])
+		addLabel(600, Hlines_index[line]+20, Hlines_label[line], Hlines_colors[line], c)
+		log.Println("[GRAPHIC] Draw line at index ", Hlines_index[line], " in ", Hlines_colors[line])
 	}
 }
