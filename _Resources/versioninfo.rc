@@ -17,7 +17,7 @@ BEGIN
         BLOCK "040904B0"
         BEGIN
 			VALUE "CompanyName", "Segnor - jaime.gomez@usach.cl\0"
-            VALUE "FileDescription", "Post processing mill 2 with MES communication\0"
+            VALUE "FileDescription", "goPostPro\0"
             VALUE "InternalName", "goPostPro.exe\0"
             VALUE "LegalCopyright", "Segnor (C) 2024\0"
             VALUE "OriginalFilename", "goPostPro.exe\0"
