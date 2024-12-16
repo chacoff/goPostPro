@@ -15,6 +15,7 @@ import (
 	"database/sql"
 	"fmt"
 	"goPostPro/global"
+	"goPostPro/graphic"
 	"log"
 	"math"
 	"strings"
@@ -260,6 +261,7 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		if scan_error != nil {
 			return post_pro_data, scan_error
 		}
+		graphic.AddInformation("Mean Threshold : " + fmt.Sprintf("%.2f", Query_Threshold_Mean))
 
 	}
 
@@ -268,6 +270,7 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
+	
 
 	return post_pro_data, nil
 }

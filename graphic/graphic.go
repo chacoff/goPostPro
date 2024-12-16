@@ -16,6 +16,7 @@ import (
 	"goPostPro/global"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"log"
 	"os"
@@ -29,27 +30,32 @@ import (
 
 // Variables used to write correctly in the global image
 var (
-	recording_image                   *image.RGBA
+	result_image                      *image.RGBA
+	over_result_image                 *image.RGBA
+	report_image                      *image.RGBA
+	base_image                        *image.RGBA
+	gradient_image                    *image.RGBA
+	final_image                       *image.RGBA
 	image_lines_timestamps_associated []string
-	Hlines_index                      []int
-	Hlines_colors                     []color.RGBA
-	Hlines_label                      []string
-	image_line                        int       = 0
-	first_timestamp                   time.Time = time.Now()
-	offset                            int       = 0
-	beam_id                           string    = ""
+	image_line                        int        = 0
+	first_timestamp                   time.Time  = time.Now()
+	beam_id                           string     = ""
+	offset                                       = 0
+	informations_displayed                       = 0
+	pass_color                        color.RGBA = color.RGBA{255, 0, 0, 255}
 
 	// Font variables
-	dpi                        = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
-	fontfile                   = flag.String("fontfile", "Poppins-SemiBold.ttf", "filename of the ttf font")
-	hinting                    = flag.String("hinting", "none", "none | full")
-	size                       = flag.Float64("size", 48, "font size in points")
-	fg, _                      = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
-	c        *freetype.Context = freetype.NewContext()
+	dpi                          = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
+	fontfile                     = flag.String("fontfile", "Poppins-SemiBold.ttf", "filename of the ttf font")
+	hinting                      = flag.String("hinting", "none", "none | full")
+	size                         = flag.Float64("size", 24, "font size in points")
+	title_size                   = flag.Float64("title_size", 72, "font size in points")
+	fg, _                        = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
+	c          *freetype.Context = freetype.NewContext()
 )
 
 func GraphicInit() {
-	NewImage()
+
 	flag.Parse()
 	fontBytes, err := os.ReadFile(*fontfile)
 	if err != nil {
@@ -67,9 +73,10 @@ func GraphicInit() {
 	c.SetDPI(*dpi)
 	c.SetFont(f)
 	c.SetFontSize(*size)
-	c.SetClip(recording_image.Bounds())
-	c.SetDst(recording_image)
+	c.SetClip(over_result_image.Rect.Bounds())
+	c.SetDst(over_result_image)
 	c.SetSrc(fg)
+	NewImage()
 	switch *hinting {
 	default:
 		c.SetHinting(font.HintingNone)
@@ -78,19 +85,60 @@ func GraphicInit() {
 	}
 }
 
-func addLabel(x, y int, label string, colori color.RGBA, c *freetype.Context) {
-	c.SetDst(recording_image)
+func addLabel(img *image.RGBA, x, y int, label string, colori color.RGBA) {
+	c.SetDst(img)
 	c.SetSrc(image.NewUniform(colori))
 	size := 6.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
 	if _, err := c.DrawString(label, pt); err != nil {
+		log.Println("[GRAPHIC] Error writing in the image : ", err)
+	}
+}
+
+func imagesTitles() {
+	c.SetFontSize(*title_size)
+	offset_title := 100
+	addLabel(final_image, offset_title, 50, "Processing", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image, 800, 50, "Values", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image, global.Graphics.ImageWidth*2+offset_title, 50, "Recording", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image, global.Graphics.ImageWidth*3+offset_title, 50, "Gradient", color.RGBA{255, 255, 255, 255})
+	c.SetFontSize(*size)
+}
+
+func SetPassColor(pass int) {
+	colori := color.RGBA{0, 0, 0, 255}
+	if pass == 1 {
+		colori = color.RGBA{255, 0, 0, 255}
+	}
+	if pass == 2 {
+		colori = color.RGBA{0, 255, 0, 255}
+	}
+	if pass == 3 {
+		colori = color.RGBA{0, 0, 255, 255}
+	}
+	pass_color = colori
+}
+
+func AddInformation(text string) {
+	c.SetDst(report_image)
+	c.SetSrc(image.NewUniform(pass_color))
+	size := 6.0 // font size in pixels
+	pt := freetype.Pt(20, 10+informations_displayed*20+int(c.PointToFixed(size)>>6))
+	if _, err := c.DrawString(text, pt); err != nil {
 		log.Println("[GRAPHIC] Error writing in the image")
 	}
+	informations_displayed++
 }
 
 // Used to convert a temperature into a thermal color
 func thermalColor(temperature float64) color.Color {
 	domain_value := (temperature - float64(global.Graphics.ThermalScaleStart)) / (float64(global.Graphics.ThermalScaleEnd) - float64(global.Graphics.ThermalScaleStart))
+	return colorgrad.Inferno().At(domain_value)
+}
+
+func thermalColorGradient(temperature float64) color.Color {
+	dividing_scale_value := 5
+	domain_value := (temperature - float64(0)) / (float64(global.Graphics.ThermalScaleEnd/dividing_scale_value) - float64(0))
 	return colorgrad.Inferno().At(domain_value)
 }
 
@@ -102,29 +150,18 @@ func WriteCenteredText(text string, color color.RGBA, c *freetype.Context) error
 
 func DrawHLine(line int, colori color.Color) {
 	for horizontal_pixel := 0; horizontal_pixel < global.Graphics.ImageWidth; horizontal_pixel++ {
-		recording_image.Set(horizontal_pixel, line-1, colori)
-		recording_image.Set(horizontal_pixel, line, colori)
-		recording_image.Set(horizontal_pixel, line+1, colori)
+		over_result_image.Set(horizontal_pixel, line-1, colori)
+		over_result_image.Set(horizontal_pixel, line, colori)
+		over_result_image.Set(horizontal_pixel, line+1, colori)
 	}
 }
 
-func DrawHLineAtTimestamp(timestamp_string string, label string, pass int) {
+func DrawHLineAtTimestamp(timestamp_string string, label string, label_offset int) {
 	timestamp, err := time.Parse(global.PostProParams.TimeFormat, timestamp_string)
 	if err != nil {
 		log.Println(err)
 	}
 	log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
-
-	colori := color.RGBA{0, 0, 0, 255}
-	if pass == 1 {
-		colori = color.RGBA{255, 0, 0, 255}
-	}
-	if pass == 2 {
-		colori = color.RGBA{0, 255, 0, 255}
-	}
-	if pass == 3 {
-		colori = color.RGBA{0, 0, 255, 255}
-	}
 
 	for index := 0; index < len(image_lines_timestamps_associated); index++ {
 		index_time_object, err := time.Parse(global.PostProParams.TimeFormat, image_lines_timestamps_associated[index])
@@ -132,9 +169,8 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, pass int) {
 			log.Println(err)
 		}
 		if timestamp.Before(index_time_object) {
-			Hlines_index = append(Hlines_index, index)
-			Hlines_colors = append(Hlines_colors, colori)
-			Hlines_label = append(Hlines_label, label)
+			DrawHLine(index, pass_color)
+			addLabel(over_result_image, 100, index+offset, label, pass_color)
 			return
 		}
 	}
@@ -144,10 +180,14 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, pass int) {
 func saveImage() error {
 	var filename string
 	var savingFolder string = global.Graphics.Savingfolder
-	DrawAllHLines()
 
 	//Create the file
-	recording_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{recording_image.Rect.Dx(), image_line}}
+	final_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{final_image.Rect.Dx(), max(800, image_line)}}
+	draw.Draw(final_image, result_image.Bounds().Add(image.Pt(0, 50)), result_image, image.Point{0, 0}, draw.Over)
+	draw.Draw(final_image, over_result_image.Bounds().Add(image.Pt(0, 50)), over_result_image, image.Point{0, 0}, draw.Over)
+	draw.Draw(final_image, report_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth, 50)), report_image, image.Point{0, 0}, draw.Over)
+	draw.Draw(final_image, base_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth*2, 50)), base_image, image.Point{0, 0}, draw.Over)
+	draw.Draw(final_image, gradient_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth*3, 50)), gradient_image, image.Point{0, 0}, draw.Over)
 
 	if beam_id == "" {
 		filename = savingFolder + "/000000[ "
@@ -163,7 +203,7 @@ func saveImage() error {
 	}
 	defer imageFile.Close()
 	//Write our image in the file
-	encoding_error := png.Encode(imageFile, recording_image)
+	encoding_error := png.Encode(imageFile, final_image)
 	if encoding_error != nil {
 		return encoding_error
 	}
@@ -173,11 +213,18 @@ func saveImage() error {
 
 // NewImage creates a new image by reseting the variables used
 func NewImage() error {
-	recording_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	result_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	over_result_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	report_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	base_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	gradient_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	final_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth * 4, global.Graphics.ImageHeight + 20}})
+
+	imagesTitles()
+
 	image_lines_timestamps_associated = make([]string, 0)
-	Hlines_index = make([]int, 0)
-	Hlines_colors = make([]color.RGBA, 0)
 	image_line = 0
+	informations_displayed = 0
 	first_timestamp = time.Now()
 	beam_id = ""
 	return nil
@@ -218,7 +265,7 @@ func NewLine(timestamp time.Time) error {
 // DrawBeforeProcessing draws the left part which is the original thermal image
 func DrawBeforeProcessing(temperature_array []float64) error {
 	for index := 0; index < len(temperature_array); index++ {
-		recording_image.Set(index, image_line, thermalColor(temperature_array[index]))
+		base_image.Set(index, image_line, thermalColor(temperature_array[index]))
 	}
 	return nil
 }
@@ -226,30 +273,29 @@ func DrawBeforeProcessing(temperature_array []float64) error {
 // DrawAfterProcessing draws the right part which is the image after thresholding
 func DrawAfterProcessing(processed_temperature_array []float64) error {
 	for index := 0; index < len(processed_temperature_array); index++ {
-		recording_image.Set(global.Graphics.ImageWidth/2+index, image_line, thermalColor(processed_temperature_array[index]))
+		result_image.Set(index, image_line, thermalColor(processed_temperature_array[index]))
+	}
+	return nil
+}
+
+func DrawGradient(temperature_array []float64) error {
+	for index := 0; index < len(temperature_array); index++ {
+		gradient_image.Set(index, image_line, thermalColorGradient(temperature_array[index]))
 	}
 	return nil
 }
 
 // DrawBorders draws the borders of the detected product
 func DrawBorders(left_index int, right_index int) error {
-	offset = global.Graphics.ImageWidth/2 + left_index
-	recording_image.Set(offset, image_line, color.RGBA{0, 255, 0, 255})
-	recording_image.Set(global.Graphics.ImageWidth/2+right_index, image_line, color.RGBA{0, 255, 0, 255})
+	over_result_image.Set(left_index, image_line, color.RGBA{0, 255, 0, 255})
+	over_result_image.Set(right_index, image_line, color.RGBA{0, 255, 0, 255})
+	offset = left_index
 	return nil
 }
 
 // DrawRegions draws the limits used (max of each side) for the web
 func DrawRegions(max_tr1 int, max_tr3 int) error {
-	recording_image.Set(offset+max_tr1, image_line, color.RGBA{0, 255, 255, 255})
-	recording_image.Set(offset+max_tr3, image_line, color.RGBA{0, 255, 255, 255})
+	over_result_image.Set(offset+max_tr1, image_line, color.RGBA{0, 255, 255, 255})
+	over_result_image.Set(offset+max_tr3, image_line, color.RGBA{0, 255, 255, 255})
 	return nil
-}
-
-func DrawAllHLines() {
-	for line := 0; line < len(Hlines_index); line++ {
-		DrawHLine(Hlines_index[line], Hlines_colors[line])
-		addLabel(600, Hlines_index[line]+20, Hlines_label[line], Hlines_colors[line], c)
-		log.Println("[GRAPHIC] Draw line at index ", Hlines_index[line], " in ", Hlines_colors[line])
-	}
 }

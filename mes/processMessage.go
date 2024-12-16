@@ -44,6 +44,7 @@
 package mes
 
 import (
+	"fmt"
 	"goPostPro/global"
 	"goPostPro/graphic"
 	"goPostPro/postpro"
@@ -76,6 +77,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 
 	for i := 0; i < int(passCounter); i++ {
+		graphic.SetPassColor(i+1)
 
 		if global.PostProParams.Cage12Split {
 			beginStamp = listOfStamps[i]
@@ -140,8 +142,9 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC request
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
-		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", i+1)
-		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "                   end", i+1)
+		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100)
+		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)
+		display_query_informations(newData)
 
 	}
 
@@ -155,4 +158,17 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
 	global.PreviousLastTimeStamp = lastTimeStamp
 	return _bodyAns
+}
+
+func display_query_informations(post_pro_data postpro.PostProData) {
+	graphic.AddInformation("Max Tr1 : " + fmt.Sprintf("%d", post_pro_data.MaxTempMill1))
+	graphic.AddInformation("Avg Tr1 : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempMill1))
+	graphic.AddInformation("Avg Web : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempWeb))
+	graphic.AddInformation("Min Web : " + fmt.Sprintf("%d", post_pro_data.MinTempWeb))
+	graphic.AddInformation("Max Tr3 : " + fmt.Sprintf("%d", post_pro_data.MaxTempMill3))
+	graphic.AddInformation("Avg Tr3 : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempMill3))
+	graphic.AddInformation("Avg Std : " + fmt.Sprintf("%.2f", post_pro_data.AvgStdTemp))
+	graphic.AddInformation("Avg Width : " + fmt.Sprintf("%.2f", post_pro_data.PixWidth))
+	graphic.AddInformation("First Timestamp : " + post_pro_data.FirstTimestampDatabase)
+	graphic.AddInformation("Last Timestamp : " + post_pro_data.LastTimeStampDatabase)
 }

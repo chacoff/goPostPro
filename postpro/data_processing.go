@@ -104,6 +104,7 @@ func (line_processing *LineProcessing) threshold_compute_gradient() error {
 	if global.PostProParams.GradientFactor <= 0 {
 		return errors.New("error : the gradient limit factor is not valid")
 	}
+	graphic.DrawGradient(line_processing.gradient_temperatures_array)
 	line_processing.gradient_limit = max_gradient / global.PostProParams.GradientFactor
 	return nil
 }
@@ -120,7 +121,7 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 			higher_index_crop = index
 		}
 	}
-	// QUESTION : Should we take one processed temperature before to have the values that led to the first gradient?
+
 	graphic.DrawAfterProcessing(line_processing.processed_temperatures_array)
 	graphic.DrawBorders(lower_index_crop, higher_index_crop)
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
