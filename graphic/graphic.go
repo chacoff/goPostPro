@@ -73,7 +73,7 @@ func GraphicInit() {
 	c.SetDPI(*dpi)
 	c.SetFont(f)
 	c.SetFontSize(*size)
-	c.SetClip(over_result_image.Rect.Bounds())
+	//c.SetClip(over_result_image.Rect.Bounds())
 	c.SetDst(over_result_image)
 	c.SetSrc(fg)
 	NewImage()
