@@ -15,9 +15,17 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"time"
 
 	"goPostPro/global"
+)
+
+var (
+	recordingOn        bool      = false
+	timestampRecording time.Time = time.Now()
+	recordingFile      *os.File
 )
 
 type Message struct {
@@ -105,5 +113,83 @@ func (s *Server) readLoop(conn net.Conn) {
 		}
 
 		// conn.Write([]byte("Message ECHO\n"))
+	}
+}
+
+func StartRecording() {
+	if recordingOn {
+		return
+	}
+	file, err := os.OpenFile(global.Graphics.Savingfolder+"/recording.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	recordingFile = file
+	if err != nil {
+		log.Println("Error opening file :", err)
+		return
+	}
+	recordingOn = true
+	timestampRecording = time.Now()
+}
+
+func StopRecording(resultFolder string) {
+	if !recordingOn {
+		return
+	}
+	err := recordingFile.Close()
+	if err != nil {
+		log.Println("Error closing file :", err)
+		return
+	}
+	recordingOn = false
+
+	saveRecording(resultFolder)
+
+}
+
+func saveRecording(resultFolder string) {
+	// Chemin du fichier à déplacer
+	sourceFile := global.Graphics.Savingfolder + "/recording.txt"
+	// Dossier cible
+	targetDir := global.Graphics.Savingfolder + "/" + resultFolder
+
+	targetFile := filepath.Join(targetDir, timestampRecording.Format("2006_01_02-15_04_05")) + ".txt" // "a/fichier.txt"
+	log.Println(targetFile)
+
+	// Vérifier si le dossier existe, sinon le créer
+	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
+		err := os.Mkdir(targetDir, 0755) // Permissions standard pour un dossier
+		if err != nil {
+			log.Println("Erreur lors de la création du dossier :", err)
+			return
+		}
+		log.Println("Dossier créé :", targetDir)
+	}
+
+	// Déplacer le fichier
+	err := os.Rename(sourceFile, targetFile)
+	if err != nil {
+		log.Println("Erreur lors du déplacement du fichier :", err)
+		return
+	}
+
+	log.Println("Fichier déplacé avec succès dans :", targetFile)
+}
+
+func CheckToStopRecording(resultFolder string) {
+	diff := time.Since(timestampRecording)
+
+	// Comparer la différence avec 5 minutes
+	if diff > 5*time.Minute {
+		StopRecording(resultFolder)
+	}
+}
+
+func WritePayload(payload []byte) {
+	if !recordingOn {
+		return
+	}
+	_, err := recordingFile.Write(payload)
+	if err != nil {
+		log.Println("Erreur lors de l'écriture dans le fichier :", err)
+		return
 	}
 }

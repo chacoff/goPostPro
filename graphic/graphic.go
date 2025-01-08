@@ -14,6 +14,7 @@ package graphic
 import (
 	"flag"
 	"goPostPro/global"
+	"goPostPro/tcpServer"
 	"image"
 	"image/color"
 	"image/draw"
@@ -238,6 +239,7 @@ func ChangeName(beam_id_string string) error {
 
 // ChangeImage
 func ChangeImage() error {
+	tcpServer.StartRecording()
 	saving_error := saveImage()
 	if saving_error != nil {
 		log.Println(saving_error)
