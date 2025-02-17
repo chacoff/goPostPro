@@ -12,6 +12,7 @@
 package tcpServer
 
 import (
+	"encoding/hex"
 	"io"
 	"log"
 	"net"
@@ -183,11 +184,11 @@ func CheckToStopRecording(resultFolder string) {
 	}
 }
 
-func WritePayload(payload []byte) {
+func WritePayload(payload []byte, sender string) {
 	if !recordingOn {
 		return
 	}
-	_, err := recordingFile.Write(payload)
+	_, err := recordingFile.WriteString("\n" + time.Now().Format("2006-01-02 15:04:05,999") + " | " + sender + " | " + hex.EncodeToString(payload))
 	if err != nil {
 		log.Println("Erreur lors de l'écriture dans le fichier :", err)
 		return

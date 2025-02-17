@@ -76,7 +76,7 @@ func main() {
 				_msg, _length := diasHelpers.DataScope(msg.Payload)
 
 				diasHelpers.ProcessDiasData(msg.Payload)
-				tcpServer.WritePayload(msg.Payload)
+				tcpServer.WritePayload(msg.Payload, "DIAS = "+global.AppParams.AddressDias)
 
 				if global.AppParams.Verbose {
 					log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
@@ -119,7 +119,7 @@ func main() {
 			log.Printf("[MES] received message from %s with length %d: %s", msg.From, _len, _payload)
 
 			header, hexBody := mesHelpers.HandleMesData(msg.Payload)
-			tcpServer.WritePayload(msg.Payload)
+			tcpServer.WritePayload(msg.Payload, "MES = "+global.AppParams.Address)
 			echo, response, dataLTC, msgType, msgCounter := mesHelpers.HandleAnswerToMes(header, hexBody)
 
 			// LTC producer
