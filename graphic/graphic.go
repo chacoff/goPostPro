@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
 	"github.com/mazznoer/colorgrad"
@@ -31,12 +32,12 @@ import (
 
 // Variables used to write correctly in the global image
 var (
-	result_image                      *image.RGBA
-	over_result_image                 *image.RGBA
-	report_image                      *image.RGBA
-	base_image                        *image.RGBA
-	gradient_image                    *image.RGBA
-	final_image                       *image.RGBA
+	result_image                      *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	over_result_image                 *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	report_image                      *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	base_image                        *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	gradient_image                    *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	final_image                       *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
 	image_lines_timestamps_associated []string
 	image_line                        int        = 0
 	first_timestamp                   time.Time  = time.Now()
@@ -53,6 +54,7 @@ var (
 	title_size                   = flag.Float64("title_size", 72, "font size in points")
 	fg, _                        = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
 	c          *freetype.Context = freetype.NewContext()
+	font_file  *truetype.Font
 )
 
 func GraphicInit() {
@@ -70,14 +72,16 @@ func GraphicInit() {
 	}
 
 	// Initialize the context.
-
 	c.SetDPI(*dpi)
 	c.SetFont(f)
+	font_file = f
+	log.Println("font set")
 	c.SetFontSize(*size)
 	//c.SetClip(over_result_image.Rect.Bounds())
 	c.SetDst(over_result_image)
 	c.SetSrc(fg)
 	NewImage()
+	ChangeImage()
 	switch *hinting {
 	default:
 		c.SetHinting(font.HintingNone)
@@ -89,6 +93,7 @@ func GraphicInit() {
 func addLabel(img *image.RGBA, x, y int, label string, colori color.RGBA) {
 	c.SetDst(img)
 	c.SetSrc(image.NewUniform(colori))
+	c.SetFont(font_file)
 	size := 6.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
 	if _, err := c.DrawString(label, pt); err != nil {
@@ -150,6 +155,7 @@ func WriteCenteredText(text string, color color.RGBA, c *freetype.Context) error
 }
 
 func DrawHLine(line int, colori color.Color) {
+	over_result_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
 	for horizontal_pixel := 0; horizontal_pixel < global.Graphics.ImageWidth; horizontal_pixel++ {
 		over_result_image.Set(horizontal_pixel, line-1, colori)
 		over_result_image.Set(horizontal_pixel, line, colori)
