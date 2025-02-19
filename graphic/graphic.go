@@ -168,7 +168,9 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, label_offset in
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+	if len(image_lines_timestamps_associated) > 0 {
+		log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+	}
 
 	for index := 0; index < len(image_lines_timestamps_associated); index++ {
 		index_time_object, err := time.Parse(global.PostProParams.TimeFormat, image_lines_timestamps_associated[index])
