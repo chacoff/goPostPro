@@ -77,8 +77,8 @@ func ProcessDiasData(payload []byte) {
 		cage12 := append(array[:500], array[502:]...)
 		processing_list = append(processing_list, cage12)
 	} else { // else is cage 3 or cage4
-		array = full_array[0:767]                      // 0:767 are the measurements array block
-		Analogs.updateAnalogsVOIs(full_array[767:769]) // last 2 elements are VOIs
+		array = full_array[0:len(full_array)-3]                      // 0:767 are the measurements array block
+		Analogs.updateAnalogsVOIs(full_array[len(full_array)-2:]) // last 2 elements are VOIs
 		processing_list = append(processing_list, array)
 	}
 
@@ -143,7 +143,7 @@ func DecodeDiasData(payload []byte) ([]int16, int16, error) {
 		log.Println(ui)
 		fmt.Println(len(measurementArray))
 		fmt.Println(measurementArray[0])   // element 0 is AO_01
-		fmt.Println(measurementArray[768]) // element 768 is AO_769
+		///fmt.Println(measurementArray[768]) // element 768 is AO_769
 		fmt.Println(digitalOutput)
 	}
 

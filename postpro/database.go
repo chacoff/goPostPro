@@ -126,6 +126,8 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 	}
 	defer preparation.Close()
 
+	line.timestamp = line.timestamp.Add(-global.ReRunSynchDifference)
+
 	// Execute it with the given values
 	_, executionError := preparation.Exec(line.timestamp.Format(global.PostProParams.TimeFormat),
 		int64(line.max_Tr1),
@@ -182,7 +184,7 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
 func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
-
+	fmt.Println(global.ReRunSynchDifference)
 	passF := passFormater(pass)
 
 	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)

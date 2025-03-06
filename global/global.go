@@ -14,6 +14,7 @@ package global
 import (
 	"goPostPro/config"
 	"log"
+	"time"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -34,6 +35,7 @@ var CurrentPass string = "Pass undefined"
 var PreviousLastTimeStamp string = "20220124080500"
 var ProcessID uint32 = 997788
 var LTCpass int = 0
+var ReRunSynchDifference time.Duration = time.Duration(time.Second*0)
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {

@@ -89,14 +89,14 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		// Standard post processing data
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, beginStamp, endStamp)
-		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i)
+		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i) //TO DO : Add rerun offset
 
 		if err != nil {
 			log.Println("ERROR : ", err)
 		}
 
 		newData.PassNumber = uint32(i + 1)
-		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405"),
+		newData.PassDate = listOfStamps[i] // time.Now().Format("20060102150405")
 		newData.Dummy = "du"
 
 		_bodyAns = append(_bodyAns, newData.PassNumber)
@@ -142,8 +142,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC request
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
-		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100)
-		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)
+		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100) //TO DO : Add rerun offset
+		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)//TO DO : Add rerun offset
 		display_query_informations(newData)
 
 	}

@@ -40,7 +40,7 @@ var (
 	final_image                       *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
 	image_lines_timestamps_associated []string
 	image_line                        int        = 0
-	first_timestamp                   time.Time  = time.Now()
+	first_timestamp                   time.Time  = time.Now().Add(-global.ReRunSynchDifference)
 	beam_id                           string     = ""
 	offset                                       = 0
 	informations_displayed                       = 0
@@ -204,7 +204,7 @@ func saveImage() error {
 		filename = savingFolder + "/" + beam_id + "["
 	}
 
-	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + "].png"
+	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Add(-global.ReRunSynchDifference).Format("15-04-05") + "].png"
 
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
@@ -234,7 +234,7 @@ func NewImage() error {
 	image_lines_timestamps_associated = make([]string, 0)
 	image_line = 0
 	informations_displayed = 0
-	first_timestamp = time.Now()
+	first_timestamp = time.Now().Add(-global.ReRunSynchDifference)
 	beam_id = ""
 	return nil
 }

@@ -221,7 +221,7 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 		if insertion_error != nil {
 			return insertion_error
 		}
-		graphic.NewLine(line_processing.timestamp)
+		graphic.NewLine(line_processing.timestamp.Add(-global.ReRunSynchDifference))
 
 	}
 

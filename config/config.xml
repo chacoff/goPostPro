@@ -7,11 +7,11 @@ cage 4      10.28.100.0:4604
 -->
 <parameters>
   <build>
-    <version>9.9.999</version>
+    <version>1.0.065</version>
     <type>alpha</type>
   </build>
   <config>
-    <cage>goPostPro - TestCage</cage>
+    <cage>goPostPro - Cage4</cage>
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <addressDias>127.0.0.1:2002</addressDias>
@@ -34,7 +34,7 @@ cage 4      10.28.100.0:4604
     <gradientFactor>3</gradientFactor>
     <minwidth>2</minwidth>
     <cage12split>false</cage12split>
-    <ltcOffset>-2</ltcOffset>
+    <ltcOffset>-40</ltcOffset>
   </postpro>
   <database>
     <path>./processed.db</path>
@@ -47,9 +47,6 @@ cage 4      10.28.100.0:4604
     <imageWidth>1600</imageWidth>
     <thermalScaleStart>650</thermalScaleStart>
     <thermalScaleEnd>1050</thermalScaleEnd>
-    <savingFolder>D:\\data\\results</savingFolder>
+    <savingFolder>C:\\data\\results</savingFolder>
   </graphics>
-  <profiles>
-    <default>700</default>
-  </profiles>
 </parameters>
