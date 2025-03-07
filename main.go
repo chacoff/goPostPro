@@ -29,6 +29,7 @@ import (
 	"goPostPro/graphic"
 	mesHelpers "goPostPro/mes"
 	"goPostPro/postpro"
+	"goPostPro/tcpServer"
 	server "goPostPro/tcpServer"
 	"log"
 	"sync"
@@ -37,6 +38,7 @@ import (
 
 // LTC default if there is no MES message, i.e., no data from the MES-DIAS channel
 var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
+
 
 // init function starts Logger and DataBase
 func init() {
@@ -58,6 +60,7 @@ func main() {
 	// Init servers
 	dias := server.NewServer(global.AppParams.AddressDias, "DIAS")
 	mes := server.NewServer(global.AppParams.Address, "MES")
+	rerun_channel := server.NewServer("127.0.0.1:4444", "RERUN")
 
 	// Define waiting groups
 	var wg sync.WaitGroup
@@ -75,6 +78,7 @@ func main() {
 				_msg, _length := diasHelpers.DataScope(msg.Payload)
 
 				diasHelpers.ProcessDiasData(msg.Payload)
+				tcpServer.WritePayload(msg.Payload, "DIAS = "+global.AppParams.AddressDias)
 
 				if global.AppParams.Verbose {
 					log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)
@@ -117,6 +121,7 @@ func main() {
 			log.Printf("[MES] received message from %s with length %d: %s", msg.From, _len, _payload)
 
 			header, hexBody := mesHelpers.HandleMesData(msg.Payload)
+			tcpServer.WritePayload(msg.Payload, "MES = "+global.AppParams.Address)
 			echo, response, dataLTC, msgType, msgCounter := mesHelpers.HandleAnswerToMes(header, hexBody)
 
 			// LTC producer
@@ -139,6 +144,18 @@ func main() {
 		close(LTCch)
 	}()
 
+	go func() {
+		defer wg.Done()
+		for msg := range rerun_channel.Msgch {
+
+			if len(msg.Payload) == 0 {
+				break // break the loop but stays in the routine!
+			}
+
+			global.ReRunSynchDifference, _ = time.ParseDuration(string(msg.Payload))
+		}
+	}()
+
 	// Dias server start
 	go func() {
 		defer wg.Done()
@@ -152,6 +169,14 @@ func main() {
 		defer wg.Done()
 		if err := mes.Start(); err != nil {
 			log.Panicln("mes server error:", err)
+		}
+	}()
+
+	// Rerun server start
+	go func() {
+		defer wg.Done()
+		if err := rerun_channel.Start(); err != nil {
+			log.Panicln("rerun server error:", err)
 		}
 	}()
 

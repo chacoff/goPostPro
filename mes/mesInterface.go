@@ -19,6 +19,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"goPostPro/tcpServer"
+)
+
+var(
+	CurrentRollingProfile string = ""
 )
 
 // HandleMesData ensures the header is at least 40bytes before decoding it. It returns the body in bytes
@@ -62,6 +67,8 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+		CurrentRollingProfile = bodyValuesStatic[1].(string)
+		tcpServer.StopRecording(CurrentRollingProfile)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -137,6 +144,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES Unknown] Unknown message", messageType, messageCounter)
 		echo = false
 	}
+	tcpServer.CheckToStopRecording("limit")
 
 	return echo, response, dataLTC, messageType, messageCounter
 }

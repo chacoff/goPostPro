@@ -75,6 +75,8 @@ del /F "fart.exe"
 del /F "beam.ico"
 del /F "golang.ico"
 del /F "Poppins-SemiBold.ttf"
+del /F "%target_folder%-%buildNumber%\processed.db"
+del /F "%target_folder%-%buildNumber%\logs\livePostPro.log"
 
 echo Build completed for release-%buildNumber%.
 

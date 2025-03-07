@@ -14,6 +14,7 @@ package graphic
 import (
 	"flag"
 	"goPostPro/global"
+	"goPostPro/tcpServer"
 	"image"
 	"image/color"
 	"image/draw"
@@ -23,6 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 
 	"github.com/mazznoer/colorgrad"
@@ -30,63 +32,70 @@ import (
 
 // Variables used to write correctly in the global image
 var (
-	result_image                      *image.RGBA
-	over_result_image                 *image.RGBA
-	report_image                      *image.RGBA
-	base_image                        *image.RGBA
-	gradient_image                    *image.RGBA
-	final_image                       *image.RGBA
+	result_image                      *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	over_result_image                 *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	report_image                      *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	base_image                        *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	gradient_image                    *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
+	final_image                       *image.RGBA = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{1000, 1000}})
 	image_lines_timestamps_associated []string
 	image_line                        int        = 0
-	first_timestamp                   time.Time  = time.Now()
+	first_timestamp                   time.Time  = time.Now().Add(-global.ReRunSynchDifference)
 	beam_id                           string     = ""
 	offset                                       = 0
 	informations_displayed                       = 0
 	pass_color                        color.RGBA = color.RGBA{255, 0, 0, 255}
 
 	// Font variables
-	dpi                          = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
-	fontfile                     = flag.String("fontfile", "Poppins-SemiBold.ttf", "filename of the ttf font")
-	hinting                      = flag.String("hinting", "none", "none | full")
-	size                         = flag.Float64("size", 24, "font size in points")
-	title_size                   = flag.Float64("title_size", 72, "font size in points")
-	fg, _                        = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
-	c          *freetype.Context = freetype.NewContext()
+	dpi        = flag.Float64("dpi", 72, "screen resolution in Dots Per Inch")
+	fontfile   = flag.String("fontfile", "Poppins-SemiBold.ttf", "filename of the ttf font")
+	hinting    = flag.String("hinting", "none", "none | full")
+	size       = flag.Float64("size", 24, "font size in points")
+	title_size = flag.Float64("title_size", 72, "font size in points")
+	fg, _      = image.NewUniform(color.RGBA{255, 0, 0, 255}), image.White
+
+	result_image_context      = createNewContext(result_image)
+	over_result_image_context = createNewContext(over_result_image)
+	report_image_context      = createNewContext(report_image)
+	base_image_context        = createNewContext(base_image)
+	gradient_image_context    = createNewContext(gradient_image)
+	final_image_context       = createNewContext(final_image)
+
+	font_file *truetype.Font
 )
 
-func GraphicInit() {
+func createNewContext(img *image.RGBA) *freetype.Context {
+	c := freetype.NewContext()
 
-	flag.Parse()
+	c.SetDPI(*dpi)
 	fontBytes, err := os.ReadFile(*fontfile)
 	if err != nil {
 		log.Println(err)
-		return
+		return c
 	}
 	f, err := freetype.ParseFont(fontBytes)
 	if err != nil {
 		log.Println(err)
-		return
+		return c
 	}
-
-	// Initialize the context.
-
-	c.SetDPI(*dpi)
-	c.SetFont(f)
 	c.SetFontSize(*size)
-	//c.SetClip(over_result_image.Rect.Bounds())
-	c.SetDst(over_result_image)
+	c.SetFont(f)
+	c.SetDst(img)
+	c.SetClip(img.Rect.Bounds())
 	c.SetSrc(fg)
-	NewImage()
-	switch *hinting {
-	default:
-		c.SetHinting(font.HintingNone)
-	case "full":
-		c.SetHinting(font.HintingFull)
-	}
+	c.SetHinting(font.HintingNone)
+
+	return c
 }
 
-func addLabel(img *image.RGBA, x, y int, label string, colori color.RGBA) {
-	c.SetDst(img)
+func GraphicInit() {
+	flag.Parse()
+	// Initialize the context.
+	final_image_context.SetFontSize(*title_size)
+	NewImage()
+}
+
+func addLabel(c *freetype.Context, x, y int, label string, colori color.RGBA) {
 	c.SetSrc(image.NewUniform(colori))
 	size := 6.0 // font size in pixels
 	pt := freetype.Pt(x, y+int(c.PointToFixed(size)>>6))
@@ -96,13 +105,11 @@ func addLabel(img *image.RGBA, x, y int, label string, colori color.RGBA) {
 }
 
 func imagesTitles() {
-	c.SetFontSize(*title_size)
 	offset_title := 100
-	addLabel(final_image, offset_title, 50, "Processing", color.RGBA{255, 255, 255, 255})
-	addLabel(final_image, 800, 50, "Values", color.RGBA{255, 255, 255, 255})
-	addLabel(final_image, global.Graphics.ImageWidth*2+offset_title, 50, "Recording", color.RGBA{255, 255, 255, 255})
-	addLabel(final_image, global.Graphics.ImageWidth*3+offset_title, 50, "Gradient", color.RGBA{255, 255, 255, 255})
-	c.SetFontSize(*size)
+	addLabel(final_image_context, offset_title, 50, "Processing", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image_context, global.Graphics.ImageWidth+offset_title, 50, "Values", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image_context, global.Graphics.ImageWidth*2+offset_title, 50, "Recording", color.RGBA{255, 255, 255, 255})
+	addLabel(final_image_context, global.Graphics.ImageWidth*3+offset_title, 50, "Gradient", color.RGBA{255, 255, 255, 255})
 }
 
 func SetPassColor(pass int) {
@@ -120,11 +127,10 @@ func SetPassColor(pass int) {
 }
 
 func AddInformation(text string) {
-	c.SetDst(report_image)
-	c.SetSrc(image.NewUniform(pass_color))
+	report_image_context.SetSrc(image.NewUniform(pass_color))
 	size := 6.0 // font size in pixels
-	pt := freetype.Pt(20, 10+informations_displayed*20+int(c.PointToFixed(size)>>6))
-	if _, err := c.DrawString(text, pt); err != nil {
+	pt := freetype.Pt(20, 10+informations_displayed*20+int(report_image_context.PointToFixed(size)>>6))
+	if _, err := report_image_context.DrawString(text, pt); err != nil {
 		log.Println("[GRAPHIC] Error writing in the image")
 	}
 	informations_displayed++
@@ -142,12 +148,6 @@ func thermalColorGradient(temperature float64) color.Color {
 	return colorgrad.Inferno().At(domain_value)
 }
 
-//lint:ignore U1000 Ignore unused function temporarily for debugging
-func WriteCenteredText(text string, color color.RGBA, c *freetype.Context) error {
-	//addLabel(800, image_line, text, image.NewUniform(color), c)
-	return nil
-}
-
 func DrawHLine(line int, colori color.Color) {
 	for horizontal_pixel := 0; horizontal_pixel < global.Graphics.ImageWidth; horizontal_pixel++ {
 		over_result_image.Set(horizontal_pixel, line-1, colori)
@@ -161,7 +161,9 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, label_offset in
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+	if len(image_lines_timestamps_associated) > 0 {
+		log.Println("[GRAPHIC]Cherche -> ", timestamp.Format(global.PostProParams.TimeFormat), "         Lignes de mesures de l'image : ", image_lines_timestamps_associated[0], " -> ", image_lines_timestamps_associated[len(image_lines_timestamps_associated)-1])
+	}
 
 	for index := 0; index < len(image_lines_timestamps_associated); index++ {
 		index_time_object, err := time.Parse(global.PostProParams.TimeFormat, image_lines_timestamps_associated[index])
@@ -170,7 +172,7 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, label_offset in
 		}
 		if timestamp.Before(index_time_object) {
 			DrawHLine(index, pass_color)
-			addLabel(over_result_image, 100, index+offset, label, pass_color)
+			addLabel(over_result_image_context, 100, index+offset, label, pass_color)
 			return
 		}
 	}
@@ -188,6 +190,7 @@ func saveImage() error {
 	draw.Draw(final_image, report_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth, 50)), report_image, image.Point{0, 0}, draw.Over)
 	draw.Draw(final_image, base_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth*2, 50)), base_image, image.Point{0, 0}, draw.Over)
 	draw.Draw(final_image, gradient_image.Bounds().Add(image.Pt(global.Graphics.ImageWidth*3, 50)), gradient_image, image.Point{0, 0}, draw.Over)
+	imagesTitles()
 
 	if beam_id == "" {
 		filename = savingFolder + "/000000[ "
@@ -195,7 +198,7 @@ func saveImage() error {
 		filename = savingFolder + "/" + beam_id + "["
 	}
 
-	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Format("15-04-05") + "].png"
+	filename = filename + first_timestamp.Format("15-04-05") + "_" + time.Now().Add(-global.ReRunSynchDifference).Format("15-04-05") + "].png"
 
 	imageFile, creation_error := os.Create(filename)
 	if creation_error != nil {
@@ -214,18 +217,24 @@ func saveImage() error {
 // NewImage creates a new image by reseting the variables used
 func NewImage() error {
 	result_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	result_image_context = createNewContext(result_image)
 	over_result_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	over_result_image_context = createNewContext(over_result_image)
 	report_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	report_image_context = createNewContext(report_image)
 	base_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	base_image_context = createNewContext(base_image)
 	gradient_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth, global.Graphics.ImageHeight}})
+	gradient_image_context = createNewContext(gradient_image)
 	final_image = image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{global.Graphics.ImageWidth * 4, global.Graphics.ImageHeight + 20}})
+	final_image_context = createNewContext(final_image)
 
 	imagesTitles()
 
 	image_lines_timestamps_associated = make([]string, 0)
 	image_line = 0
 	informations_displayed = 0
-	first_timestamp = time.Now()
+	first_timestamp = time.Now().Add(-global.ReRunSynchDifference)
 	beam_id = ""
 	return nil
 }
@@ -238,6 +247,7 @@ func ChangeName(beam_id_string string) error {
 
 // ChangeImage
 func ChangeImage() error {
+	tcpServer.StartRecording()
 	saving_error := saveImage()
 	if saving_error != nil {
 		log.Println(saving_error)
