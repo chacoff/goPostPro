@@ -184,7 +184,6 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
 func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
-	fmt.Println(global.ReRunSynchDifference)
 	passF := passFormater(pass)
 
 	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
