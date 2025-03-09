@@ -1,6 +1,7 @@
 package klusters
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
@@ -12,14 +13,21 @@ import (
 	"github.com/muesli/kmeans"
 )
 
-// getData function is used to get all the data between timestamps prior clustering the new passes
-func getData(beginTS string, endTS string) ([]string, error) {
-	var timeStamps []string
-
+// getDB gets an instance of the DB from postpro package
+func getDB() (*sql.DB, error) {
 	db := postpro.GetDB()
 	if db == nil {
 		return nil, errors.New("database not initialized")
 	}
+
+	return db, nil
+}
+
+// getData function is used to get all the data between timestamps prior clustering the new passes
+func getData(beginTS string, endTS string) ([]string, error) {
+
+	var timeStamps []string
+	db, _ := getDB()
 
 	sqlQuery := `SELECT Timestamp, Filename FROM Measures WHERE Timestamp BETWEEN ? AND ?`
 	rows, queryError := db.Query(sqlQuery, beginTS, endTS)
@@ -45,8 +53,25 @@ func getData(beginTS string, endTS string) ([]string, error) {
 	return timeStamps, nil
 }
 
+// updatePass updates the pass according the cluster result
+func updatePass(beginTS string, endTS string, pass string) error {
+
+	db, _ := getDB()
+	fmt.Printf("Updating %s between %s and %s\n", pass, beginTS, endTS)
+
+	sqlQuery := `UPDATE Measures SET Filename = ? WHERE Timestamp BETWEEN ? AND ?`
+	_, err := db.Exec(sqlQuery, pass, beginTS, endTS)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ReClusterPasses will re-assign the pass by using kmeans over the timestamps of the measures
 func ReClusterPasses(beginTS string, endTS string, k int) {
+	var firstCoordinates clusters.Coordinates
+	var lastCoordinates clusters.Coordinates
 
 	fmt.Printf("Cluster between %s and %s\n", beginTS, endTS)
 
@@ -73,23 +98,20 @@ func ReClusterPasses(beginTS string, endTS string, k int) {
 	// Output results
 	for i, c := range clustersPasses {
 		fmt.Printf("Cluster %d:\n", i+1)
-		//for _, obs := range c.Observations {
-		//	coordinates := obs.(clusters.Coordinates)
-		//	fmt.Printf("  %.2f - %s\n", coordinates[0], timestampMap[coordinates[0]])
-		//}
 
 		if len(c.Observations) > 0 {
 			firstObs := c.Observations[0]
 			lastObs := c.Observations[len(c.Observations)-1]
 
-			firstCoordinates := firstObs.(clusters.Coordinates)
-			lastCoordinates := lastObs.(clusters.Coordinates)
-
-			fmt.Printf("  First: %.2f - %s\n", firstCoordinates[0], timestampMap[firstCoordinates[0]])
-			fmt.Printf("  Last: %.2f - %s\n", lastCoordinates[0], timestampMap[lastCoordinates[0]])
+			firstCoordinates = firstObs.(clusters.Coordinates)
+			lastCoordinates = lastObs.(clusters.Coordinates)
 		}
 
-		fmt.Printf("Centered at: %.3f\n", c.Center[0])
+		pass := fmt.Sprintf("Pass %d:\n", i+1)
+		errorUpdate := updatePass(timestampMap[firstCoordinates[0]], timestampMap[lastCoordinates[0]], pass)
+		if errorUpdate != nil {
+			return
+		}
 	}
 }
 
