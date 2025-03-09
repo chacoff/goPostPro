@@ -1,10 +1,10 @@
 package klusters
 
 import (
-	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	"os"
+	"goPostPro/postpro"
 	"strings"
 	"time"
 
@@ -12,20 +12,53 @@ import (
 	"github.com/muesli/kmeans"
 )
 
-type db struct {
-	database *sql.DB
+// getData function is used to get all the data between timestamps prior clustering the new passes
+func getData(beginTS string, endTS string) ([]string, error) {
+	var timeStamps []string
+
+	db := postpro.GetDB()
+	if db == nil {
+		return nil, errors.New("database not initialized")
+	}
+
+	sqlQuery := `SELECT Timestamp, Filename FROM Measures WHERE Timestamp BETWEEN ? AND ?`
+	rows, queryError := db.Query(sqlQuery, beginTS, endTS)
+
+	if queryError != nil {
+		return nil, queryError
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var timeStamp, fileName string
+		scanError := rows.Scan(&timeStamp, &fileName)
+		if scanError != nil {
+			return nil, scanError
+		}
+		timeStamps = append(timeStamps, timeStamp)
+	}
+
+	if rowError := rows.Err(); rowError != nil {
+		return nil, rowError
+	}
+
+	return timeStamps, nil
 }
 
-var dataBase db = db{}
+// ReClusterPasses will re-assign the pass by using kmeans over the timestamps of the measures
+func ReClusterPasses(beginTS string, endTS string, k int) {
 
-func klustering() {
+	fmt.Printf("Cluster between %s and %s\n", beginTS, endTS)
 
-	timestamps := returnTS()
+	timestamps, errorGetData := getData(beginTS, endTS)
+	if errorGetData != nil {
+		fmt.Println("Error getting data from DB to start clustering")
+		return
+	}
 	unixTimes, timestampMap := returnUnixTS(timestamps)
 
 	// Clustering, convert 1D data to clusters.Observations
 	var observations clusters.Observations
-	var k int = 3
 
 	for _, value := range unixTimes {
 		observations = append(observations, clusters.Coordinates{value})
@@ -58,22 +91,6 @@ func klustering() {
 
 		fmt.Printf("Centered at: %.3f\n", c.Center[0])
 	}
-}
-
-func returnTS() []string {
-	dataBase = db{}
-	openError := dataBase.openDatabase()
-	if openError != nil {
-		return nil
-	}
-
-	timestamps, queryError := dataBase.getData()
-	if queryError != nil {
-		fmt.Printf("Error querying database: %v\n", queryError)
-		return nil
-	}
-
-	return timestamps
 }
 
 func returnUnixTS(ts []string) ([]float64, map[float64]string) {
@@ -115,52 +132,4 @@ func parseFlexibleTimestamp(ts string) (time.Time, error) {
 	}
 
 	return time.Time{}, lastErr
-}
-
-func (db *db) openDatabase() error {
-	database, openingError := sql.Open("sqlite3", "processed.db")
-
-	if openingError != nil {
-		return openingError
-	}
-
-	db.database = database
-	return nil
-}
-
-func (db *db) getData() ([]string, error) {
-	var timeStamps []string
-
-	sqlQuery, _ := loadSQLFile("sql\\getData.sql")
-	rows, queryError := db.database.Query(sqlQuery)
-
-	if queryError != nil {
-		return nil, queryError
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var timeStamp, fileName string
-		scanError := rows.Scan(&timeStamp, &fileName)
-		if scanError != nil {
-			return nil, scanError
-		}
-		timeStamps = append(timeStamps, timeStamp)
-	}
-
-	if rowError := rows.Err(); rowError != nil {
-		return nil, rowError
-	}
-
-	return timeStamps, nil
-}
-
-func loadSQLFile(filePath string) (string, error) {
-
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", err
-	}
-
-	return string(content), nil
 }
