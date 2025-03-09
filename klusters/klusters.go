@@ -1,3 +1,14 @@
+/*
+ * File:    klusters.go
+ * Date:    March 09, 2025
+ * Author:  J.
+ * Email:   jaime.gomez@usach.cl
+ * Project: goPostPro
+ * Description:
+ *   Using K-means clusters all measures in order to re-assign the Pass number
+ *
+ */
+
 package klusters
 
 import (
