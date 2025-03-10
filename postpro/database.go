@@ -27,23 +27,27 @@ import (
 var insert_since_cleaning int = 0
 
 type PostProData struct {
-	PassNumber   uint32
-	PassDate     string
-	Dummy        string
-	MaxTempMill3 uint32
-	AvgTempMill3 float64
-	MaxTempMill1 uint32
-	AvgTempMill1 float64
-	MinTempWeb   uint32
-	AvgTempWeb   float64
-	AvgStdTemp   float64
-	PixWidth     float64
+	PassNumber             uint32
+	PassDate               string
+	Dummy                  string
+	MaxTempMill3           uint32
+	AvgTempMill3           float64
+	MaxTempMill1           uint32
+	AvgTempMill1           float64
+	MinTempWeb             uint32
+	AvgTempWeb             float64
+	AvgStdTemp             float64
+	PixWidth               float64
 	FirstTimestampDatabase string
-	LastTimeStampDatabase string
+	LastTimeStampDatabase  string
 }
 
 type CalculationsDatabase struct {
 	database *sql.DB
+}
+
+func GetDB() *sql.DB {
+	return DATABASE.database
 }
 
 // StartDatabase starts db at init of the software
@@ -271,7 +275,6 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
-	
 
 	return post_pro_data, nil
 }
@@ -406,7 +409,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCrealized(begin_string_t
 	return LTCrealized
 }
 
-// updateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
+// UpdateTreated updates all the treated rows with a 1 to avoid include them in future post-processing
 // lint:ignore U1000 Ignore unused function temporarily for debugging
 func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string, endStr string) (int64, error) {
 

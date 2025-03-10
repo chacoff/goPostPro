@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"goPostPro/global"
 	"goPostPro/graphic"
+	"goPostPro/klusters"
 	"goPostPro/postpro"
 	"log"
 	"strconv"
@@ -76,15 +77,18 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 
+	// timestamps between previous and current process message timestamp
+	beginStamp = global.PreviousLastTimeStamp
+	endStamp = lastTimeStamp
+
+	klusters.ReClusterPasses(beginStamp, endStamp, 3)
+
 	for i := 0; i < int(passCounter); i++ {
-		graphic.SetPassColor(i+1)
+		graphic.SetPassColor(i + 1)
 
 		if global.PostProParams.Cage12Split {
 			beginStamp = listOfStamps[i]
 			endStamp = listOfStamps[i+1]
-		} else {
-			beginStamp = global.PreviousLastTimeStamp
-			endStamp = lastTimeStamp
 		}
 
 		// Standard post processing data
