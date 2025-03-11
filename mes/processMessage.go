@@ -47,7 +47,6 @@ import (
 	"fmt"
 	"goPostPro/global"
 	"goPostPro/graphic"
-	"goPostPro/klusters"
 	"goPostPro/postpro"
 	"log"
 	"strconv"
@@ -81,8 +80,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	beginStamp = global.PreviousLastTimeStamp
 	endStamp = lastTimeStamp
 
-	fmt.Printf("-- Calling a new reCluster between %s and %s\n", beginStamp, endStamp)
-	klusters.ReClusterPasses(beginStamp, endStamp, 3)
+	fmt.Printf("-- Calling a new reCluster between %s and %s for Beam %d\n", beginStamp, endStamp, beamId)
+	//klusters.ReClusterPasses(beginStamp, endStamp, 3, beamId)
 
 	for i := 0; i < int(passCounter); i++ {
 		graphic.SetPassColor(i + 1)

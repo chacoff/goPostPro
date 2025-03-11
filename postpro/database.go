@@ -104,7 +104,8 @@ func (calculationsDatabase *CalculationsDatabase) create_Table() error {
 			Filename  TEXT,
 			ProcessID TEXT,
 			Treated   INTEGER CHECK (Treated IN (0, 1)),
-			Moving	  INTEGER CHECK (Treated IN (0, 1))
+			Moving	  INTEGER CHECK (Treated IN (0, 1)),
+		    Cluster	  TEXT                                
 		);`)
 
 	return queryError
@@ -119,10 +120,9 @@ func (calculationsDatabase *CalculationsDatabase) dropTable() error {
 }
 
 func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line LineProcessing) error {
-	// TODO add sheetpile ID in the DB
 
 	preparation, preparation_error := calculationsDatabase.database.Prepare(
-		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, ProcessID, Treated, Moving) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO Measures(Timestamp, Tr1_Max, Tr1_Mean, Web_Mean, Web_Min, Tr3_Max, Tr3_Mean, Width, Threshold, Filename, ProcessID, Treated, Moving, Cluster) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	)
 
 	if preparation_error != nil {
@@ -145,7 +145,8 @@ func (calculationsDatabase *CalculationsDatabase) Insert_line_processing(line Li
 		line.filename,
 		fmt.Sprint(global.ProcessID),
 		0,
-		line.isMoving)
+		line.isMoving,
+		line.cluster)
 	if executionError != nil {
 		return executionError
 	}
@@ -438,4 +439,30 @@ func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string,
 	}
 
 	return rowsAffected, nil
+}
+
+func (calculationsDatabase *CalculationsDatabase) UpdateProcessID(processID uint32) error {
+
+	query := `
+    UPDATE Measures
+    SET ProcessID = ?
+    WHERE ProcessID = 997788
+    `
+
+	result, err := calculationsDatabase.database.Exec(query, processID)
+
+	if err != nil {
+		log.Println("[DATABASE] error updating Traited status:", err)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("[DATABASE] error getting rows affected:", err)
+		return err
+	}
+
+	fmt.Printf("[info] affected %d rows\n", rowsAffected)
+
+	return nil
 }

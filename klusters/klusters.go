@@ -12,8 +12,6 @@
 package klusters
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"goPostPro/postpro"
@@ -24,67 +22,67 @@ import (
 	"github.com/muesli/kmeans"
 )
 
-// getDB gets an instance of the DB from postpro package
-func getDB() (*sql.DB, error) {
-	db := postpro.GetDB()
-	if db == nil {
-		return nil, errors.New("database not initialized")
-	}
-
-	return db, nil
-}
-
-// getData function is used to get all the data between timestamps prior clustering the new passes
-func getData(beginTS string, endTS string) ([]string, error) {
-
-	var timeStamps []string
-	db, _ := getDB()
-
-	sqlQuery := `SELECT Timestamp, Filename FROM Measures WHERE Timestamp BETWEEN ? AND ?`
-	rows, queryError := db.Query(sqlQuery, beginTS, endTS)
-
-	if queryError != nil {
-		return nil, queryError
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var timeStamp, fileName string
-		scanError := rows.Scan(&timeStamp, &fileName)
-		if scanError != nil {
-			return nil, scanError
-		}
-		timeStamps = append(timeStamps, timeStamp)
-	}
-
-	if rowError := rows.Err(); rowError != nil {
-		return nil, rowError
-	}
-
-	return timeStamps, nil
-}
-
-// updatePass updates the pass according the cluster result
-func updatePass(beginTS string, endTS string, pass string) error {
-
-	db, _ := getDB()
-	fmt.Printf("Updating %s between %s and %s\n", pass, beginTS, endTS)
-
-	sqlQuery := `UPDATE Measures SET Filename = ? WHERE Timestamp BETWEEN ? AND ?`
-	_, err := db.Exec(sqlQuery, pass, beginTS, endTS)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+//// getDB gets an instance of the DB from postpro package
+//func getDB() (*sql.DB, error) {
+//	db := postpro.GetDB()
+//	if db == nil {
+//		return nil, errors.New("database not initialized")
+//	}
+//
+//	return db, nil
+//}
+//
+//// getData function is used to get all the data between timestamps prior clustering the new passes
+//func getData(beginTS string, endTS string, beamID uint32) ([]string, error) {
+//
+//	var timeStamps []string
+//	db, _ := getDB()
+//
+//	sqlQuery := `SELECT Timestamp, Filename FROM Measures WHERE Timestamp BETWEEN ? AND ? AND ProcessID = ?`
+//	rows, queryError := db.Query(sqlQuery, beginTS, endTS, beamID)
+//
+//	if queryError != nil {
+//		return nil, queryError
+//	}
+//	defer rows.Close()
+//
+//	for rows.Next() {
+//		var timeStamp, fileName string
+//		scanError := rows.Scan(&timeStamp, &fileName)
+//		if scanError != nil {
+//			return nil, scanError
+//		}
+//		timeStamps = append(timeStamps, timeStamp)
+//	}
+//
+//	if rowError := rows.Err(); rowError != nil {
+//		return nil, rowError
+//	}
+//
+//	return timeStamps, nil
+//}
+//
+//// updatePass updates the pass according the cluster result
+//func updatePass(beginTS string, endTS string, pass string, beamID uint32) error {
+//
+//	db, _ := getDB()
+//	fmt.Printf("Updating %s between %s and %s for Beam %d\n", pass, beginTS, endTS, beamID)
+//
+//	sqlQuery := `UPDATE Measures SET Filename = ? WHERE Timestamp BETWEEN ? AND ? AND ProcessID = ?`
+//	_, err := db.Exec(sqlQuery, pass, beginTS, endTS, beamID)
+//	if err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}
 
 // ReClusterPasses will re-assign the pass by using kmeans over the timestamps of the measures
-func ReClusterPasses(beginTS string, endTS string, k int) {
+func ReClusterPasses(beginTS string, endTS string, k int, beamID uint32) {
 	var firstCoordinates clusters.Coordinates
 	var lastCoordinates clusters.Coordinates
 
-	timestamps, errorGetData := getData(beginTS, endTS)
+	timestamps, errorGetData := postpro.DATABASE.GetData(beginTS, endTS, beamID)
 	if errorGetData != nil {
 		fmt.Println("Error getting data from DB to start clustering")
 		return
@@ -116,7 +114,7 @@ func ReClusterPasses(beginTS string, endTS string, k int) {
 		}
 
 		pass := fmt.Sprintf("Pass %d", i+1)
-		errorUpdate := updatePass(timestampMap[firstCoordinates[0]], timestampMap[lastCoordinates[0]], pass)
+		errorUpdate := postpro.DATABASE.UpdatePass(timestampMap[firstCoordinates[0]], timestampMap[lastCoordinates[0]], pass, beamID)
 		if errorUpdate != nil {
 			return
 		}

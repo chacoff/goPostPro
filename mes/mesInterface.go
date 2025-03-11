@@ -14,15 +14,16 @@ package mes
 import (
 	"encoding/hex"
 	"goPostPro/global"
+	"goPostPro/postpro"
+	"goPostPro/tcpServer"
 	"log"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-	"goPostPro/tcpServer"
 )
 
-var(
+var (
 	CurrentRollingProfile string = ""
 )
 
@@ -67,6 +68,15 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+
+		// quick fix for reRun ---
+		currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
+		// global.ProcessID = currentBeamProfile
+		// fmt.Println(global.ProcessID)
+		_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
+		// fmt.Println(currentBeamProfile)
+		// quick fix for reRun ---
+
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
 		tcpServer.StopRecording(CurrentRollingProfile)
 
