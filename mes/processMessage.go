@@ -81,6 +81,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	beginStamp = global.PreviousLastTimeStamp
 	endStamp = lastTimeStamp
 
+	fmt.Printf("-- Calling a new reCluster between %s and %s\n", beginStamp, endStamp)
 	klusters.ReClusterPasses(beginStamp, endStamp, 3)
 
 	for i := 0; i < int(passCounter); i++ {
@@ -147,7 +148,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
 		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100) //TO DO : Add rerun offset
-		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)//TO DO : Add rerun offset
+		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)   //TO DO : Add rerun offset
 		display_query_informations(newData)
 
 	}

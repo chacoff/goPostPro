@@ -84,8 +84,6 @@ func ReClusterPasses(beginTS string, endTS string, k int) {
 	var firstCoordinates clusters.Coordinates
 	var lastCoordinates clusters.Coordinates
 
-	fmt.Printf("Cluster between %s and %s\n", beginTS, endTS)
-
 	timestamps, errorGetData := getData(beginTS, endTS)
 	if errorGetData != nil {
 		fmt.Println("Error getting data from DB to start clustering")
@@ -108,7 +106,6 @@ func ReClusterPasses(beginTS string, endTS string, k int) {
 
 	// Output results
 	for i, c := range clustersPasses {
-		fmt.Printf("Cluster %d:\n", i+1)
 
 		if len(c.Observations) > 0 {
 			firstObs := c.Observations[0]
@@ -118,7 +115,7 @@ func ReClusterPasses(beginTS string, endTS string, k int) {
 			lastCoordinates = lastObs.(clusters.Coordinates)
 		}
 
-		pass := fmt.Sprintf("Pass %d:\n", i+1)
+		pass := fmt.Sprintf("Pass %d", i+1)
 		errorUpdate := updatePass(timestampMap[firstCoordinates[0]], timestampMap[lastCoordinates[0]], pass)
 		if errorUpdate != nil {
 			return
