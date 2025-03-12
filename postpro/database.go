@@ -463,7 +463,7 @@ func (calculationsDatabase *CalculationsDatabase) UpdateProcessID(processID uint
 		return err
 	}
 
-	fmt.Printf("[info] affected %d rows\n", rowsAffected)
+	fmt.Printf("Beam %d re-assigned, affected %d rows\n", processID, rowsAffected)
 
 	return nil
 }

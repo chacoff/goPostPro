@@ -72,7 +72,7 @@ func getData(beginTS string, endTS string, beamID uint32) ([]string, error) {
 func updatePass(beginTS string, endTS string, pass string, beamID uint32) error {
 
 	db, _ := getDB()
-	fmt.Printf("Updating %s between %s and %s for Beam %d\n", pass, beginTS, endTS, beamID)
+	fmt.Printf("-- Updating %s between %s and %s for Beam %d\n", pass, beginTS, endTS, beamID)
 
 	sqlQuery := `UPDATE Measures SET Cluster = ? WHERE Timestamp BETWEEN ? AND ? AND ProcessID = ?`
 	_, err := db.Exec(sqlQuery, pass, beginTS, endTS, beamID)

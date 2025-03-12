@@ -41,6 +41,7 @@ type Config struct {
 	MaxBufferSize int    `xml:"maxBufferSize"`
 	HeaderSize    int    `xml:"headerSize"`
 	Verbose       bool   `xml:"verbose"`
+	ReRun         bool   `xml:"reRun"`
 }
 
 type LogParams struct {
@@ -59,7 +60,7 @@ type PostPro struct {
 	GradientFactor          float64 `xml:"gradientFactor"`
 	MinWidth                int64   `xml:"minWidth"`
 	Cage12Split             bool    `xml:"cage12split"`
-	LtcOffset				int		`xml:"ltcOffset"`
+	LtcOffset               int     `xml:"ltcOffset"`
 }
 
 type DataBase struct {
@@ -70,17 +71,17 @@ type DataBase struct {
 }
 
 type Graphics struct {
-	ImageHeight       int 	 `xml:"imageHeight"`
-	ImageWidth        int 	 `xml:"imageWidth"`
-	ThermalScaleStart int 	 `xml:"thermalScaleStart"`
-	ThermalScaleEnd   int 	 `xml:"thermalScaleEnd"`
-	Savingfolder	  string `xml:"savingFolder"`
+	ImageHeight       int    `xml:"imageHeight"`
+	ImageWidth        int    `xml:"imageWidth"`
+	ThermalScaleStart int    `xml:"thermalScaleStart"`
+	ThermalScaleEnd   int    `xml:"thermalScaleEnd"`
+	Savingfolder      string `xml:"savingFolder"`
 }
 
 type Profiles struct {
-	Default string	`xml:"default"`
-	AS500 	string	`xml:"AS500"`
-	E870NAZ	string	`xml:"3870NAZ"`	// 3870NAZ
+	Default string `xml:"default"`
+	AS500   string `xml:"AS500"`
+	E870NAZ string `xml:"3870NAZ"` // 3870NAZ
 }
 
 func LoadConfig() (Parameters, error) {

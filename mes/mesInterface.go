@@ -70,11 +70,10 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
 		// quick fix for reRun ---
-		currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
-		// global.ProcessID = currentBeamProfile
-		// fmt.Println(global.ProcessID)
-		_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
-		// fmt.Println(currentBeamProfile)
+		if global.AppParams.ReRun {
+			currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
+			_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
+		}
 		// quick fix for reRun ---
 
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
