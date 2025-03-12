@@ -69,12 +69,13 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
-		// quick fix for reRun ---
+		// --- quick bug-fix for reRun, when clustering and no LTC in recording
 		if global.AppParams.ReRun {
 			currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
+			global.ProcessID = currentBeamProfile
 			_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
 		}
-		// quick fix for reRun ---
+		// --- quick fix for reRun ---
 
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
 		tcpServer.StopRecording(CurrentRollingProfile)
