@@ -50,4 +50,8 @@ cage 4      10.28.100.0:4604
     <thermalScaleEnd>1050</thermalScaleEnd>
     <savingFolder>C:\\data\\results</savingFolder>
   </graphics>
+  <cluster>
+    <k>3</k>
+    <delta>0.05</delta>
+  </cluster>
 </parameters>

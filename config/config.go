@@ -25,6 +25,7 @@ type Parameters struct {
 	DataBase DataBase  `xml:"database"`
 	Logs     LogParams `xml:"logger"`
 	Graphics Graphics  `xml:"graphics"`
+	Cluster  Cluster   `xml:"cluster"`
 	Profiles Profiles  `xml:"profiles"`
 }
 
@@ -76,6 +77,11 @@ type Graphics struct {
 	ThermalScaleStart int    `xml:"thermalScaleStart"`
 	ThermalScaleEnd   int    `xml:"thermalScaleEnd"`
 	Savingfolder      string `xml:"savingFolder"`
+}
+
+type Cluster struct {
+	K     int     `xml:"k"`
+	Delta float64 `xml:"delta"`
 }
 
 type Profiles struct {

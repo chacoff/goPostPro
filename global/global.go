@@ -27,6 +27,7 @@ var (
 	DBParams      config.DataBase
 	LogParams     config.LogParams
 	Graphics      config.Graphics
+	Cluster       config.Cluster
 )
 
 var PreviousPassNumber int = 0
@@ -35,7 +36,7 @@ var CurrentPass string = "Pass undefined"
 var PreviousLastTimeStamp string = "20220124080500"
 var ProcessID uint32 = 997788
 var LTCpass int = 0
-var ReRunSynchDifference time.Duration = time.Duration(time.Second*0)
+var ReRunSynchDifference time.Duration = time.Duration(time.Second * 0)
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {
@@ -51,6 +52,7 @@ func ConfigInit() {
 	DBParams = Appconfig.DataBase
 	LogParams = Appconfig.Logs
 	Graphics = Appconfig.Graphics
+	Cluster = Appconfig.Cluster
 
 	errLogger := loggerInit()
 	if errLogger != nil {
