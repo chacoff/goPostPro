@@ -18,7 +18,7 @@ cage 4      10.28.100.0:4604
     <maxBufferSize>4096</maxBufferSize>
     <headerSize>40</headerSize>
     <verbose>false</verbose>
-    <reRun>false</reRun>
+    <reRun>true</reRun>
   </config>
   <logger>
     <fileName>logs/livePostPro.log</fileName>
