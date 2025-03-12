@@ -11,7 +11,7 @@ cage 4      10.28.100.0:4604
     <type>alpha</type>
   </build>
   <config>
-    <cage>goPostPro - Cage4</cage>
+    <cage>goPostPro - devCage</cage>
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <addressDias>127.0.0.1:2002</addressDias>
@@ -34,13 +34,13 @@ cage 4      10.28.100.0:4604
     <gradientFactor>3</gradientFactor>
     <minwidth>2</minwidth>
     <cage12split>false</cage12split>
-    <ltcOffset>-40</ltcOffset>
+    <ltcOffset>40</ltcOffset>
   </postpro>
   <database>
     <path>./processed.db</path>
     <timeFormatRequest>20060102150405</timeFormatRequest>
-    <cleaningHoursKept>48</cleaningHoursKept>
-    <cleaningPeriod>1000</cleaningPeriod>
+    <cleaningHoursKept>4800</cleaningHoursKept>
+    <cleaningPeriod>1000000</cleaningPeriod>
   </database>
   <graphics>
     <imageHeight>2000</imageHeight>

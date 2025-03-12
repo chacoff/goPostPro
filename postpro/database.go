@@ -441,6 +441,7 @@ func (calculationsDatabase *CalculationsDatabase) UpdateTreated(beginStr string,
 	return rowsAffected, nil
 }
 
+// UpdateProcessID updates the process ID on DB if this one is missing from LTC message but available in process message
 func (calculationsDatabase *CalculationsDatabase) UpdateProcessID(processID uint32) error {
 
 	query := `
