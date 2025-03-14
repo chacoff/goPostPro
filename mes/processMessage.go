@@ -94,7 +94,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		// Standard post processing data
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, beginStamp, endStamp)
-		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i) //TO DO : Add rerun offset
+		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i, beamId) //TO DO : Add rerun offset
 
 		if err != nil {
 			log.Println("ERROR : ", err)
@@ -119,7 +119,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d partial PostPro answer: %v", beamId, i+1, passCounter, _bodyAns)
 
 		log.Println("[PostPro LTC Cage3-4] Calling FindLTCRow with:", beginStamp, endStamp)
-		ltcTimestamp = postpro.DATABASE.FindLTCRow(beginStamp, endStamp, i)
+		ltcTimestamp = postpro.DATABASE.FindLTCRow(beginStamp, endStamp, i, beamId)
 
 		if ltcTimestamp == "" {
 			ltcTimestamp = listOfStamps[i] // if no LTC is found, it uses the original method of MES timestamp
@@ -130,7 +130,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
-		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i)
+		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i, beamId)
 
 		if errLtc != nil {
 			log.Println("ERROR : ", errLtc)
@@ -160,6 +160,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// @jaime: TODO, marked as Treated all rows between first and last timestamp
 	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
 
+	fmt.Printf("[PostPro] BeamID %d Final PostPro answer: %v\n", beamId, _bodyAns)
 	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
 	global.PreviousLastTimeStamp = lastTimeStamp
 	return _bodyAns

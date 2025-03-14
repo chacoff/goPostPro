@@ -188,7 +188,7 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 }
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
-func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
+func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int, processID uint32) (PostProData, error) {
 	passF := passFormater(pass)
 
 	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
@@ -235,11 +235,11 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
 		end_timestamp.Format(global.PostProParams.TimeFormat),
 		passF,
-		global.ProcessID,
+		processID,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
 		end_timestamp.Format(global.PostProParams.TimeFormat),
 		passF,
-		global.ProcessID)
+		processID)
 
 	if query_error != nil {
 		return post_pro_data, query_error
@@ -295,7 +295,7 @@ func passFormater(pass int) string {
 }
 
 // FindLTCRow finds the LTC row in within the timestamps of the passes
-func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int) string {
+func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timestamp string, end_string_timestamp string, pass int, processID uint32) string {
 	// @jaime: pay attention the 'pass' here is actually the counter of the passes to process, the counter starts from 0, that's why later is pass+1
 	time.Sleep(5 * time.Millisecond)
 
@@ -315,7 +315,7 @@ func (calculationsDatabase *CalculationsDatabase) FindLTCRow(begin_string_timest
 		passF,
 		begin_timestamp.Format(global.PostProParams.TimeFormat),
 		end_timestamp.Format(global.PostProParams.TimeFormat),
-		global.ProcessID).Scan(&timestampLTC)
+		processID).Scan(&timestampLTC)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

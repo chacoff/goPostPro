@@ -39,6 +39,7 @@ type LineProcessing struct {
 	gradient_limit               float64
 	isMoving                     int
 	cluster                      string
+	ProcessID                    uint32
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {

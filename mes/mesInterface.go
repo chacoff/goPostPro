@@ -72,7 +72,8 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		// --- quick bug-fix for reRun, when clustering and no LTC in recording
 		if global.AppParams.ReRun {
 			currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
-			global.ProcessID = currentBeamProfile
+			lp := postpro.LineProcessing{}
+			lp.ProcessID = currentBeamProfile
 			_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
 		}
 		// --- quick fix for reRun ---
