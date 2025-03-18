@@ -182,6 +182,17 @@ func DrawHLineAtTimestamp(timestamp_string string, label string, label_offset in
 func saveImage() error {
 	var filename string
 	var savingFolder string = global.Graphics.Savingfolder
+	savingFolder += time.Now().Format("2006/01/02")
+
+	// Check if folder exists else create it
+	if _, err := os.Stat(savingFolder); os.IsNotExist(err) {
+		err := os.MkdirAll(savingFolder, 0755)
+		if err != nil {
+			log.Println("[GRAPHIC RECORD] : Error ", err)
+			return err
+		}
+		log.Println("[GRAPHIC RECORD] Created folder", savingFolder)
+	}
 
 	//Create the file
 	final_image.Rect = image.Rectangle{image.Point{0, 0}, image.Point{final_image.Rect.Dx(), max(800, image_line)}}
@@ -247,7 +258,7 @@ func ChangeName(beam_id_string string) error {
 
 // ChangeImage
 func ChangeImage() error {
-	tcpServer.StartRecording()
+	tcpServer.RecordAll()
 	saving_error := saveImage()
 	if saving_error != nil {
 		log.Println(saving_error)

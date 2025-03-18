@@ -13,13 +13,14 @@ package mes
 
 import (
 	"encoding/hex"
+	"fmt"
 	"goPostPro/global"
+	"goPostPro/tcpServer"
 	"log"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
-	"goPostPro/tcpServer"
 )
 
 var(
@@ -68,7 +69,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
-		tcpServer.StopRecording(CurrentRollingProfile)
+		tcpServer.ChangeRecording(time.Now().Format("2006/01/02"), fmt.Sprint(bodyValuesStatic[1].(string))+"___"+fmt.Sprint(bodyValuesStatic[0].(uint32)))
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -144,7 +145,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES Unknown] Unknown message", messageType, messageCounter)
 		echo = false
 	}
-	tcpServer.CheckToStopRecording("limit")
+	tcpServer.CheckToStopRecording(time.Now().Format("2006/01/02"))
 
 	return echo, response, dataLTC, messageType, messageCounter
 }
