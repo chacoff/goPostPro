@@ -150,7 +150,10 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
 
-		firstLtc, errFirst := postpro.DATABASE.QueryDatabase(ltcTimestamp, ltcTimestamp, i)
+		ltcTimestampFirst := addOffsetToTimestamp(ltcTimestamp, 0)
+		ltcTimestampFirstOffset := addOffsetToTimestamp(ltcTimestamp, 1)
+		log.Printf("[First LTC row] BeamID %d Pass: %d/%d - First LTC between: %s - %s", beamId, i+1, passCounter, ltcTimestampFirst, ltcTimestampFirstOffset)
+		firstLtc, errFirst := postpro.DATABASE.QueryDatabase(ltcTimestampFirst, ltcTimestampFirstOffset, i)
 
 		if errFirst != nil {
 			log.Println("ERROR : ", errFirst)
