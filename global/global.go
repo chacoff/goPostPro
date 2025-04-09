@@ -34,8 +34,9 @@ var SaveImage bool = false
 var CurrentPass string = "Pass undefined"
 var PreviousLastTimeStamp string = "20220124080500"
 var ProcessID uint32 = 997788
+var FirstLTCrows int = 2
 var LTCpass int = 0
-var ReRunSynchDifference time.Duration = time.Duration(time.Second*0)
+var ReRunSynchDifference time.Duration = time.Duration(time.Second * 0)
 
 // ConfigInit public method that initialize the config variables and the logger
 func ConfigInit() {

@@ -27,19 +27,19 @@ import (
 var insert_since_cleaning int = 0
 
 type PostProData struct {
-	PassNumber   uint32
-	PassDate     string
-	Dummy        string
-	MaxTempMill3 uint32
-	AvgTempMill3 float64
-	MaxTempMill1 uint32
-	AvgTempMill1 float64
-	MinTempWeb   uint32
-	AvgTempWeb   float64
-	AvgStdTemp   float64
-	PixWidth     float64
+	PassNumber             uint32
+	PassDate               string
+	Dummy                  string
+	MaxTempMill3           uint32
+	AvgTempMill3           float64
+	MaxTempMill1           uint32
+	AvgTempMill1           float64
+	MinTempWeb             uint32
+	AvgTempWeb             float64
+	AvgStdTemp             float64
+	PixWidth               float64
 	FirstTimestampDatabase string
-	LastTimeStampDatabase string
+	LastTimeStampDatabase  string
 }
 
 type CalculationsDatabase struct {
@@ -183,10 +183,10 @@ func (calculationsDatabase *CalculationsDatabase) cleanTable() error {
 }
 
 // QueryDatabase will fetch data from the database to calculate the post-processing information
-func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int) (PostProData, error) {
+func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_timestamp string, end_string_timestamp string, pass int, isFirstLTC bool) (PostProData, error) {
 	passF := passFormater(pass)
 
-	log.Printf("[DATABASE] Processing pass: %s for process ID %d", passF, global.ProcessID)
+	log.Printf("[DATABASE] Processing pass: %s for process ID %d. isFirstLTC: %t", passF, global.ProcessID, isFirstLTC)
 
 	post_pro_data := PostProData{}
 
@@ -242,6 +242,8 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	defer rows.Close()
 
 	// Iterate on the result and print it
+	rowCount := 0
+	rowLimit := global.FirstLTCrows
 	for rows.Next() {
 		Query_Threshold_Mean := float64(0)
 
@@ -264,6 +266,11 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 		}
 		graphic.AddInformation("Mean Threshold : " + fmt.Sprintf("%.2f", Query_Threshold_Mean))
 
+		rowCount++
+		if rowCount >= rowLimit && isFirstLTC {
+			break
+		}
+
 	}
 
 	post_pro_data.AvgStdTemp = math.Sqrt(post_pro_data.AvgStdTemp)
@@ -271,7 +278,6 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 	if row_error := rows.Err(); row_error != nil {
 		return post_pro_data, row_error
 	}
-	
 
 	return post_pro_data, nil
 }

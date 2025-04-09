@@ -95,7 +95,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		// Standard post processing data
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, beginStamp, endStamp)
-		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i) //TO DO : Add rerun offset
+		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i, false) // TODO : Add rerun offset
 
 		if err != nil {
 			log.Println("ERROR : ", err)
@@ -132,7 +132,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
 
-		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i)
+		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i, false)
 
 		if errLtc != nil {
 			log.Println("ERROR : ", errLtc)
@@ -153,7 +153,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		ltcTimestampFirst := addOffsetToTimestamp(ltcTimestamp, 0)
 		ltcTimestampFirstOffset := addOffsetToTimestamp(ltcTimestamp, 1)
 		log.Printf("[First LTC row] BeamID %d Pass: %d/%d - First LTC between: %s - %s", beamId, i+1, passCounter, ltcTimestampFirst, ltcTimestampFirstOffset)
-		firstLtc, errFirst := postpro.DATABASE.QueryDatabase(ltcTimestampFirst, ltcTimestampFirstOffset, i)
+		firstLtc, errFirst := postpro.DATABASE.QueryDatabase(ltcTimestampFirst, ltcTimestampFirstOffset, i, true)
 
 		if errFirst != nil {
 			log.Println("ERROR : ", errFirst)
