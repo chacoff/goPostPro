@@ -214,15 +214,6 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 			return computing_error
 		}
 
-		line_processing.filename = passname
-		line_processing.isMoving = isMoving
-
-		insertion_error := DATABASE.Insert_line_processing(line_processing)
-		if insertion_error != nil {
-			return insertion_error
-		}
-		graphic.NewLine(line_processing.timestamp.Add(-global.ReRunSynchDifference))
-
 	}
 
 	return nil
