@@ -49,7 +49,8 @@ func encodeProcess(_values []interface{}) []byte {
 	_buffer := make([]byte, 0, global.AppParams.MaxBufferSize)
 
 	// See protocol to have a better understanding what are Strings or Uint32: processType()
-	rawWrite := []int{1, 2, 6, 7, 25, 26, 44, 45, 63, 64, 82, 83, 101, 102, 120, 121, 139, 140, 158, 159, 177, 178, 196, 197, 215, 216, 234, 235}
+	// rawWrite := []int{1, 2, 6, 7, 25, 26, 44, 45, 63, 64, 82, 83, 101, 102, 120, 121, 139, 140, 158, 159, 177, 178, 196, 197, 215, 216, 234, 235}
+	rawWrite := []int{1, 2, 6, 7, 31, 32, 56, 57, 81, 82, 106, 107, 131, 132, 156, 157, 181, 182, 206, 207, 231, 232, 256, 257, 281, 282, 306, 307}
 
 	j := 0 // Little and Big endian are mixed - only identification in big, the rest in little
 	for _, value := range _values {

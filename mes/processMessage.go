@@ -21,8 +21,8 @@
  *		3	Roll stand number				UINT32	3
  *		4	Pass counter					UINT32	4
  *		5	Pass number n					UINT32 	5 LOOP STARTS HERE
- * 		6	Pass date n						STRING 	6 25 44 63 82 101 120 139 158 177 196 215 234
- *		7	Dummy							STRING 	7 26 45 64 83 102 121 140 159 178 197 216 235
+ * 		6	Pass date n						STRING 	6 31 56 81 106 131 156 181 206 231 256 281 306
+ *		7	Dummy							STRING 	7 32 57 82 107 132 157 182 207 232 257 282 307
  *		8	Max Temp mill3 pass n			UINT32	8
  *		9	Avg Temp mill3 pass n			UINT32	9
  *		10	Max Temp mill1 pass n			UINT32	10
@@ -39,6 +39,12 @@
  *		21	Avg Temp web pass n LTC			UINT32	21
  *		22	LTC Pass number pass n			UINT32	22
  *		23	LTC Realized pass n				UINT32	23
+ *      24 Max Temp mill3 pass n FirstLTC   UINT32	24
+ *      25 Avg Temp mill3 pass n FirstLTC   UINT32	25
+ *      26 Max Temp mill1 pass n FirstLTC   UINT32	26
+ *      27 Avg Temp mill1 pass n FirstLTC   UINT32	27
+ *      28 Min Temp web pass n FirstLTC     UINT32	28
+ *      29 Avg Temp web pass n FirstLTC     UINT32	29
  */
 
 package mes
@@ -77,7 +83,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
 
 	for i := 0; i < int(passCounter); i++ {
-		graphic.SetPassColor(i+1)
+		graphic.SetPassColor(i + 1)
 
 		if global.PostProParams.Cage12Split {
 			beginStamp = listOfStamps[i]
@@ -89,7 +95,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		// Standard post processing data
 		log.Printf("[PostPro] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, beginStamp, endStamp)
-		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i) //TO DO : Add rerun offset
+		newData, err = postpro.DATABASE.QueryDatabase(beginStamp, endStamp, i, false) // TODO : Add rerun offset
 
 		if err != nil {
 			log.Println("ERROR : ", err)
@@ -125,7 +131,8 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
-		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i)
+
+		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i, false)
 
 		if errLtc != nil {
 			log.Println("ERROR : ", errLtc)
@@ -138,19 +145,34 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, ltcData.MinTempWeb)
 		_bodyAns = append(_bodyAns, uint32(ltcData.AvgTempWeb))
 
-		_bodyAns = append(_bodyAns, newData.PassNumber)   // LTC request
-		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC request
+		_bodyAns = append(_bodyAns, newData.PassNumber)   // LTC Realized
+		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC Realized
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
+
+		ltcTimestampFirst := addOffsetToTimestamp(ltcTimestamp, 0)
+		ltcTimestampFirstOffset := addOffsetToTimestamp(ltcTimestamp, 1)
+		log.Printf("[First LTC row] BeamID %d Pass: %d/%d - First LTC between: %s - %s", beamId, i+1, passCounter, ltcTimestampFirst, ltcTimestampFirstOffset)
+		firstLtc, errFirst := postpro.DATABASE.QueryDatabase(ltcTimestampFirst, ltcTimestampFirstOffset, i, true)
+
+		if errFirst != nil {
+			log.Println("ERROR : ", errFirst)
+		}
+
+		_bodyAns = append(_bodyAns, firstLtc.MaxTempMill3)
+		_bodyAns = append(_bodyAns, uint32(firstLtc.AvgTempMill3))
+		_bodyAns = append(_bodyAns, firstLtc.MaxTempMill1)
+		_bodyAns = append(_bodyAns, uint32(firstLtc.AvgTempMill1))
+		_bodyAns = append(_bodyAns, firstLtc.MinTempWeb)
+		_bodyAns = append(_bodyAns, uint32(firstLtc.AvgTempWeb))
+
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC and First LTC: %v", beamId, i+1, passCounter, _bodyAns)
+
 		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100) //TO DO : Add rerun offset
-		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)//TO DO : Add rerun offset
+		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)   //TO DO : Add rerun offset
 		display_query_informations(newData)
 
 	}
-
-	// LTC realized, calculated at the of the sheetpile in the cage
-	// var LTCRealized uint32 = postpro.DATABASE.FindLTCrealized(global.PreviousLastTimeStamp, lastTimeStamp, global.LTCpass)
-	// _bodyAns = append(_bodyAns, LTCRealized)
 
 	// @jaime: TODO, marked as Treated all rows between first and last timestamp
 	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
