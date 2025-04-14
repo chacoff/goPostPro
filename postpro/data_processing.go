@@ -38,6 +38,8 @@ type LineProcessing struct {
 	threshold                    float64
 	gradient_limit               float64
 	isMoving                     int
+	cluster                      string
+	ProcessID                    uint32
 }
 
 func (line_processing *LineProcessing) clean_int_received(int_array []int16) error {
@@ -216,6 +218,7 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 
 		line_processing.filename = passname
 		line_processing.isMoving = isMoving
+		line_processing.cluster = "unknown"
 
 		insertion_error := DATABASE.Insert_line_processing(line_processing)
 		if insertion_error != nil {

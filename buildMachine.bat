@@ -50,8 +50,8 @@ go build -ldflags "-s -w" -o "%target_folder%-%buildNumber%\%executable_name%"
 rem Copy the config file and external libs to complete the release -----------
 copy "config\%config_file%" "%target_folder%-%buildNumber%\%config_file%"
 copy "_ExternalLibs\WindowsService\nssm.exe" "%target_folder%-%buildNumber%"
-copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
-copy "_Resources\golang.ico" "%target_folder%-%buildNumber%\golang.ico"
+rem copy "_Resources\beam.ico" "%target_folder%-%buildNumber%\beam.ico"
+rem copy "_Resources\golang.ico" "%target_folder%-%buildNumber%\golang.ico"
 copy "_Resources\Poppins-SemiBold.ttf" "%target_folder%-%buildNumber%\Poppins-SemiBold.ttf"
 
 rem update config XML using xmlstarlet --------------------------------------

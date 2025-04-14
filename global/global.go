@@ -27,6 +27,7 @@ var (
 	DBParams      config.DataBase
 	LogParams     config.LogParams
 	Graphics      config.Graphics
+	Cluster       config.Cluster
 )
 
 var PreviousPassNumber int = 0
@@ -52,6 +53,7 @@ func ConfigInit() {
 	DBParams = Appconfig.DataBase
 	LogParams = Appconfig.Logs
 	Graphics = Appconfig.Graphics
+	Cluster = Appconfig.Cluster
 
 	errLogger := loggerInit()
 	if errLogger != nil {
