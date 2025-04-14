@@ -13,7 +13,7 @@ package mes
 
 import (
 	"encoding/hex"
-	"fmt"
+	"goPostPro/api"
 	"goPostPro/global"
 	"goPostPro/tcpServer"
 	"log"
@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-var(
+var (
 	CurrentRollingProfile string = ""
 )
 
@@ -69,7 +69,8 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
-		tcpServer.ChangeRecording(time.Now().Format("2006/01/02"), fmt.Sprint(bodyValuesStatic[1].(string))+"___"+fmt.Sprint(bodyValuesStatic[0].(uint32)))
+
+		api.HandlePostproMessageReceived(bodyValuesStatic)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -93,6 +94,8 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
+
+		api.HandleLTCMessageReceived(bodyValuesStatic)
 
 		// Reset the Sheetpile passes since LTC marks the beginning of a new up coming sheetpile
 		global.PreviousPassNumber = 3

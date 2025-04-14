@@ -186,13 +186,6 @@ func (line_processing *LineProcessing) compute_calculations() error {
 func Process_live_line(int_array_received []int16, passname string, isMoving int) error {
 	var line_processing LineProcessing
 
-	if passname == "Pass 1" && global.SaveImage {
-		image_error := graphic.ChangeImage()
-		if image_error != nil {
-			return image_error
-		}
-	}
-
 	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
 		return parsing_error

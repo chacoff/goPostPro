@@ -199,7 +199,7 @@ func determine_passname() (string, error) {
 
 	if Outputs.Pass1 && !Outputs.Pass2 && !Outputs.Pass3 {
 		if global.PreviousPassNumber == 3 {
-			global.SaveImage = true
+			api.SendToApi(api.Api_Auto_Beam_Start{Start_timestamp: time.Now()})
 		}
 		global.PreviousPassNumber = 1
 		global.CurrentPass = "Pass 1"

@@ -23,7 +23,9 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
+	"goPostPro/api"
 	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
 	"goPostPro/graphic"
@@ -38,7 +40,6 @@ import (
 
 // LTC default if there is no MES message, i.e., no data from the MES-DIAS channel
 var LTC []uint16 = []uint16{500, 501, 500, 502, 44, 55, 66, 77}
-
 
 // init function starts Logger and DataBase
 func init() {
@@ -121,7 +122,7 @@ func main() {
 			log.Printf("[MES] received message from %s with length %d: %s", msg.From, _len, _payload)
 
 			header, hexBody := mesHelpers.HandleMesData(msg.Payload)
-			tcpServer.WritePayload(msg.Payload, "MES = "+global.AppParams.Address)
+			api.SendToApi(api.Api_MES_Communication{Timestamp: time.Now(), Message: hex.EncodeToString(msg.Payload)})
 			echo, response, dataLTC, msgType, msgCounter := mesHelpers.HandleAnswerToMes(header, hexBody)
 
 			// LTC producer

@@ -51,6 +51,7 @@ package mes
 
 import (
 	"fmt"
+	"goPostPro/api"
 	"goPostPro/global"
 	"goPostPro/graphic"
 	"goPostPro/postpro"
@@ -168,9 +169,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC and First LTC: %v", beamId, i+1, passCounter, _bodyAns)
 
-		graphic.DrawHLineAtTimestamp(newData.FirstTimestampDatabase, "start", 100) //TO DO : Add rerun offset
-		graphic.DrawHLineAtTimestamp(newData.LastTimeStampDatabase, "end", -100)   //TO DO : Add rerun offset
-		display_query_informations(newData)
+		//api.SendToApi(api.Beam_PostPro_result{BeamID: fmt.Sprint(beamId), PassNumber: i+1, PostProStartTimestamp: newData.FirstTimestampDatabase, })
 
 	}
 

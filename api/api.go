@@ -24,19 +24,35 @@ type Api_Beam_Info struct {
 	RollNumber                    string
 }
 
-type Api_Beam_PostPro_result struct {
-	BeamID              string `gorm:"primaryKey"`
-	PasseNumber         int    `gorm:"primaryKey"`
-	PasseStartTimestamp time.Time
-	PasseEndTimestamp   time.Time
-	Tr1Max              int
-	Tr1Mean             int
-	WebMean             int
-	WebMin              int
-	Tr3Max              int
-	Tr3Mean             int
-	Width               int
-	Threshold           int
+type Beam_PostPro_result struct {
+	BeamID                   string `gorm:"primaryKey"`
+	PassNumber               int    `gorm:"primaryKey"`
+	PostProStartTimestamp    time.Time
+	PostProEndTimestamp      time.Time
+	PostProTr1Max            int
+	PostProTr1Mean           int
+	PostProWebMean           int
+	PostProWebMin            int
+	PostProTr3Max            int
+	PostProTr3Mean           int
+	PostProWidth             int
+	PostProThreshold         int
+	LongLtcStartTimestamp    time.Time
+	LongLtcEndTimestamp      time.Time
+	LongLtcTr1Max            int
+	LongLtcTr1Mean           int
+	LongLtcWebMean           int
+	LongLtcWebMin            int
+	LongLtcTr3Max            int
+	LongLtcTr3Mean           int
+	InstantLtcStartTimestamp time.Time
+	InstantLtcEndTimestamp   time.Time
+	InstantLtcTr1Max         int
+	InstantLtcTr1Mean        int
+	InstantLtcWebMean        int
+	InstantLtcWebMin         int
+	InstantLtcTr3Max         int
+	InstantLtcTr3Mean        int
 }
 
 type Api_DIAS_Communication struct {
@@ -106,7 +122,7 @@ func HandlePostproMessageReceived(BodyValues []interface{}) {
 	case "ltc":
 		if BodyValues[0].(uint32) == lastMESMessageBody[0].(uint32) { // Case if everything went good
 			SendToApi(Api_Beam_Info{BeamID: BodyValues[0].(uint32), Start_LTC_message_timestamp: lastMESMessageTimestamp, End_Postpro_message_timestamp: time.Now(), RollProfile: BodyValues[1].(string), RollNumber: BodyValues[2].(string)})
-		} else { // LTC message and postpro have different beams ID -> We insert the 2 beams in the database
+		} else { // LTC message and postpro have different beams ID -> We insert the 2 beams in the database in case
 			SendToApi(Api_Beam_Info{BeamID: BodyValues[0].(uint32), Start_LTC_message_timestamp: lastMESMessageTimestamp, End_Postpro_message_timestamp: time.Now(), RollProfile: BodyValues[1].(string), RollNumber: BodyValues[2].(string)})
 			SendToApi(Api_Beam_Info{BeamID: lastMESMessageBody[0].(uint32), Start_LTC_message_timestamp: lastMESMessageTimestamp, End_Postpro_message_timestamp: time.Now(), RollProfile: lastMESMessageBody[1].(string), RollNumber: lastMESMessageBody[2].(string)})
 		}
