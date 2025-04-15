@@ -23,6 +23,8 @@
  *		5	Pass number n					UINT32 	5 LOOP STARTS HERE
  * 		6	Pass date n						STRING 	6 31 56 81 106 131 156 181 206 231 256 281 306
  *		7	Dummy							STRING 	7 32 57 82 107 132 157 182 207 232 257 282 307
+
+	POST PROCESSING (ALL DATA OF THE PASS)
  *		8	Max Temp mill3 pass n			UINT32	8
  *		9	Avg Temp mill3 pass n			UINT32	9
  *		10	Max Temp mill1 pass n			UINT32	10
@@ -31,21 +33,27 @@
  *		13	Avg Temp web pass n				UINT32	13
  *		14	Avg STD pass n					UINT32	14
  *		15	Pix width pass n				UINT32	15
+
+	LTC POST PROCESSING (POST PROCESSING FROM MOVING FLAG, all the bar after waiting (+40))
  *		16	Max Temp mill3 pass n LTC		UINT32	16
  *		17	Avg Temp mill3 pass n LTC		UINT32	17
  *		18	Max Temp mill1 pass n LTC		UINT32	18
  *		19	Avg Temp mill1 pass n LTC		UINT32	19
  *		20	Min Temp web pass n LTC			UINT32	20
  *		21	Avg Temp web pass n LTC			UINT32	21
+
+	LTC REALIZED WHICH IS MAX TEMP MILL3 LTC (position 23 is the same as position 16)
  *		22	LTC Pass number pass n			UINT32	22
  *		23	LTC Realized pass n				UINT32	23
+
+	FIRST LTC ROWS (2 measures)
  *      24 Max Temp mill3 pass n FirstLTC   UINT32	24
  *      25 Avg Temp mill3 pass n FirstLTC   UINT32	25
  *      26 Max Temp mill1 pass n FirstLTC   UINT32	26
  *      27 Avg Temp mill1 pass n FirstLTC   UINT32	27
  *      28 Min Temp web pass n FirstLTC     UINT32	28
  *      29 Avg Temp web pass n FirstLTC     UINT32	29
- */
+*/
 
 package mes
 
