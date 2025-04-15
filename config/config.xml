@@ -11,13 +11,14 @@ cage 4      10.28.100.0:4604
     <type>alpha</type>
   </build>
   <config>
-    <cage>goPostPro - Cage4</cage>
+    <cage>goPostPro - test</cage>
     <netType>tcp</netType>
     <address>127.0.0.1:4600</address>
     <addressDias>127.0.0.1:2002</addressDias>
     <maxBufferSize>4096</maxBufferSize>
     <headerSize>40</headerSize>
     <verbose>false</verbose>
+    <reRun>false</reRun>
   </config>
   <logger>
     <fileName>logs/livePostPro.log</fileName>

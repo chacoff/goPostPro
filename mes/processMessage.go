@@ -53,6 +53,7 @@ import (
 	"fmt"
 	"goPostPro/global"
 	"goPostPro/graphic"
+	"goPostPro/klusters"
 	"goPostPro/postpro"
 	"log"
 	"strconv"
@@ -91,6 +92,9 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		} else {
 			beginStamp = global.PreviousLastTimeStamp
 			endStamp = lastTimeStamp
+
+			fmt.Printf("- Calling a new reCluster between %s and %s for Beam %d\n", beginStamp, endStamp, beamId)
+			klusters.ReClusterPasses(beginStamp, endStamp, beamId)
 		}
 
 		// Standard post processing data

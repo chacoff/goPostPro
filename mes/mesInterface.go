@@ -15,6 +15,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"goPostPro/global"
+	"goPostPro/postpro"
 	"goPostPro/tcpServer"
 	"log"
 	"reflect"
@@ -23,7 +24,7 @@ import (
 	"time"
 )
 
-var(
+var (
 	CurrentRollingProfile string = ""
 )
 
@@ -68,6 +69,16 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
+
+		// --- quick bug-fix for reRun, when clustering and no LTC in recording
+		if global.AppParams.ReRun {
+			currentBeamProfile, _ := bodyValuesStatic[0].(uint32)
+			lp := postpro.LineProcessing{}
+			lp.ProcessID = currentBeamProfile
+			_ = postpro.DATABASE.UpdateProcessID(currentBeamProfile)
+		}
+		// --- quick fix for reRun ---
+
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
 		tcpServer.ChangeRecording(time.Now().Format("2006/01/02"), fmt.Sprint(bodyValuesStatic[1].(string))+"___"+fmt.Sprint(bodyValuesStatic[0].(uint32)))
 

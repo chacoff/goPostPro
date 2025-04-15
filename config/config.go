@@ -42,6 +42,7 @@ type Config struct {
 	MaxBufferSize int    `xml:"maxBufferSize"`
 	HeaderSize    int    `xml:"headerSize"`
 	Verbose       bool   `xml:"verbose"`
+	ReRun         bool   `xml:"reRun"`
 }
 
 type LogParams struct {
