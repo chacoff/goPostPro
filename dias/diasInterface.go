@@ -96,7 +96,8 @@ func ProcessDiasData(payload []byte) {
 
 		isMoving = btoi(Outputs.Free3) // Moving Presence flag from DIAS
 
-		processError := postpro.Process_live_line(measures, passname, isMoving)
+		lineTimestamp := time.Now()
+		processError := postpro.Process_live_line(measures, passname, isMoving, lineTimestamp)
 
 		if errors.Is(processError, postpro.NoBeamError) {
 			continue
@@ -104,7 +105,8 @@ func ProcessDiasData(payload []byte) {
 		if processError != nil {
 			log.Printf("[PROCESSING] error: %s\n", processError)
 		} else {
-			api.SendToApi(api.Api_DIAS_Communication{Timestamp: time.Now(), Message: hex.EncodeToString(payload)})
+			api.SendToApi(api.Api_DIAS_Communication{Timestamp: lineTimestamp, Message: hex.EncodeToString(payload)})
+			api.SendToApi(api.Api_Line_PostPro_result{Timestamp: lineTimestamp, BeamIndexLeftBorder: postpro.BeamIndexLeftBorder, BeamIndexRightBorder: postpro.BeamIndexRightBorder, BeamIndexLeftWeb: postpro.BeamIndexLeftWeb, BeamIndexRightWeb: postpro.BeamIndexRightWeb})
 		}
 	}
 

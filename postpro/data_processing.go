@@ -22,6 +22,13 @@ import (
 var DATABASE CalculationsDatabase = CalculationsDatabase{}
 var NoBeamError error = errors.New("error : not enough measures for calculation")
 
+var (
+	BeamIndexLeftBorder  int
+	BeamIndexRightBorder int
+	BeamIndexLeftWeb     int
+	BeamIndexRightWeb    int
+)
+
 type LineProcessing struct {
 	// Reduce sizes for efficiency ?
 	filename                     string
@@ -126,6 +133,8 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 	graphic.DrawBorders(lower_index_crop, higher_index_crop)
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.gradient_temperatures_array = line_processing.gradient_temperatures_array[lower_index_crop:higher_index_crop]
+	BeamIndexLeftBorder = lower_index_crop
+	BeamIndexRightBorder = higher_index_crop
 	line_processing.width = int64(len(line_processing.processed_temperatures_array))
 	return nil
 }
@@ -179,11 +188,13 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	}
 	line_processing.min_Web = min_Web
 	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
-	graphic.DrawRegions(int(max_index_Tr1), int(max_index_Tr3))
+
+	BeamIndexLeftWeb = BeamIndexLeftBorder + int(max_index_Tr1)
+	BeamIndexRightWeb = BeamIndexLeftBorder + int(max_index_Tr3)
 	return nil
 }
 
-func Process_live_line(int_array_received []int16, passname string, isMoving int) error {
+func Process_live_line(int_array_received []int16, passname string, isMoving int, lineTimestamp time.Time) error {
 	var line_processing LineProcessing
 
 	parsing_error := line_processing.clean_int_received(int_array_received)
@@ -207,6 +218,14 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 			return computing_error
 		}
 
+	}
+
+	line_processing.filename = passname
+	line_processing.isMoving = isMoving
+
+	insertion_error := DATABASE.Insert_line_processing(line_processing)
+	if insertion_error != nil {
+		return insertion_error
 	}
 
 	return nil

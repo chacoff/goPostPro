@@ -24,7 +24,7 @@ type Api_Beam_Info struct {
 	RollNumber                    string
 }
 
-type Beam_PostPro_result struct {
+type Api_Beam_PostPro_result struct {
 	BeamID                   string `gorm:"primaryKey"`
 	PassNumber               int    `gorm:"primaryKey"`
 	PostProStartTimestamp    time.Time
@@ -107,6 +107,10 @@ func SendToApi(apiObject any) {
 }
 
 func HandleLTCMessageReceived(BodyValues []interface{}) {
+	if len(BodyValues) < 3 {
+		return
+	}
+	
 	switch lastMESMessageType {
 	case "ltc": // 2 consecutive LTC message = mistake to handle
 		SendToApi(Api_Beam_Info{BeamID: BodyValues[0].(uint32), Start_LTC_message_timestamp: lastMESMessageTimestamp, End_Postpro_message_timestamp: time.Now(), RollProfile: BodyValues[1].(string), RollNumber: BodyValues[2].(string)})
