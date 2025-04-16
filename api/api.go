@@ -101,7 +101,8 @@ func SendToApi(apiObject any) {
 	jsonData, _ := json.Marshal(apiObject)
 	_, err := http.Post(api_destination, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		log.Println("[API] Error while trying to send an object to the API : ", err)
+		//
+		// log.Println("[API] Error while trying to send an object to the API : ", err)
 	}
 
 }
@@ -110,7 +111,7 @@ func HandleLTCMessageReceived(BodyValues []interface{}) {
 	if len(BodyValues) < 3 {
 		return
 	}
-	
+
 	switch lastMESMessageType {
 	case "ltc": // 2 consecutive LTC message = mistake to handle
 		SendToApi(Api_Beam_Info{BeamID: BodyValues[0].(uint32), Start_LTC_message_timestamp: lastMESMessageTimestamp, End_Postpro_message_timestamp: time.Now(), RollProfile: BodyValues[1].(string), RollNumber: BodyValues[2].(string)})
