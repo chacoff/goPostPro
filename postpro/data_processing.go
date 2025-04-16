@@ -14,7 +14,6 @@ package postpro
 import (
 	"errors"
 	"goPostPro/global"
-	"goPostPro/graphic"
 	"math"
 	"time"
 )
@@ -81,8 +80,6 @@ func (line_processing *LineProcessing) clean_int_received(int_array []int16) err
 		line_processing.processed_temperatures_array[index] = temperature_float
 	}
 
-	graphic.DrawBeforeProcessing(line_processing.processed_temperatures_array)
-
 	// Calcul the threshold that will be used
 	line_processing.threshold = math.Max(
 		min_temperature*(1-global.PostProParams.AdaptativeFactor)+max_temperature*global.PostProParams.AdaptativeFactor,
@@ -113,7 +110,7 @@ func (line_processing *LineProcessing) threshold_compute_gradient() error {
 	if global.PostProParams.GradientFactor <= 0 {
 		return errors.New("error : the gradient limit factor is not valid")
 	}
-	graphic.DrawGradient(line_processing.gradient_temperatures_array)
+
 	line_processing.gradient_limit = max_gradient / global.PostProParams.GradientFactor
 	return nil
 }
@@ -131,8 +128,6 @@ func (line_processing *LineProcessing) gradient_cropping() error {
 		}
 	}
 
-	graphic.DrawAfterProcessing(line_processing.processed_temperatures_array)
-	graphic.DrawBorders(lower_index_crop, higher_index_crop)
 	line_processing.processed_temperatures_array = line_processing.processed_temperatures_array[lower_index_crop:higher_index_crop]
 	line_processing.gradient_temperatures_array = line_processing.gradient_temperatures_array[lower_index_crop:higher_index_crop]
 	BeamIndexLeftBorder = lower_index_crop
@@ -223,7 +218,7 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 
 	line_processing.filename = passname
 	line_processing.isMoving = isMoving
-  line_processing.cluster = "unknown"
+	line_processing.cluster = "unknown"
 
 	insertion_error := DATABASE.Insert_line_processing(line_processing)
 	if insertion_error != nil {

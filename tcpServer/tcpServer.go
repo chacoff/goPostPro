@@ -12,14 +12,11 @@
 package tcpServer
 
 import (
-	"encoding/hex"
 	"io"
 	"log"
 	"net"
 	"os"
-	"path/filepath"
 	"time"
-	"strings"
 
 	"goPostPro/global"
 )
@@ -116,99 +113,5 @@ func (s *Server) readLoop(conn net.Conn) {
 		}
 
 		// conn.Write([]byte("Message ECHO\n"))
-	}
-}
-
-// Start the communication recording, it will only record MES for the moment
-func StartRecording() {
-	if recordingOn {
-		return
-	}
-	file, err := os.OpenFile(global.Graphics.Savingfolder+"/recording.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	recordingFile = file
-	if err != nil {
-		log.Println("[RERUN RECORD] : Error ", err)
-		return
-	}
-	recordingOn = true
-	recordingOnlyMES = true
-	timestampRecording = time.Now()
-}
-
-// Change the boolean to record all the communication (DIAS + MES)
-func RecordAll(){
-	recordingOnlyMES=false
-}
-
-// Local function, stop the recording file and save it
-func stopRecording(resultFolder string, name string) {
-	if !recordingOn {
-		return
-	}
-	err := recordingFile.Close()
-	if err != nil {
-		log.Println("[RERUN RECORD] : Error ", err)
-		return
-	}
-	recordingOn = false
-
-	saveRecording(resultFolder, name)
-
-}
-
-// Change the recording file
-func ChangeRecording(resultFolder string, name string){
-	stopRecording(resultFolder, name)
-	StartRecording()
-}
-
-
-// Save the recording file in the given folder (type of beam)
-func saveRecording(resultFolder string, name string) {
-
-	sourceFile := global.Graphics.Savingfolder + "/recording.txt"
-	targetDir := global.Graphics.Savingfolder + "/" + resultFolder
-	targetFile := filepath.Join(targetDir, timestampRecording.Format("02-01-06___15h04m05s"))+ "___"+name+ ".txt"
-
-	// Check if folder exists else create it
-	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
-		err := os.MkdirAll(targetDir, 0755)
-		if err != nil {
-			log.Println("[RERUN RECORD] : Error ", err)
-			return
-		}
-		log.Println("[RERUN RECORD] ", targetDir)
-	}
-
-	// Move the file in the given folder
-	err := os.Rename(sourceFile, targetFile)
-	if err != nil {
-		log.Println("[RERUN RECORD] : Error ", err)
-		return
-	}
-
-}
-
-// Function to test if the recording is longer than 5 minutes and stop it if it's the case
-func CheckToStopRecording(resultFolder string) {
-	diff := time.Since(timestampRecording)
-
-	if diff > 5*time.Minute {
-		ChangeRecording(resultFolder, "limit")
-	}
-}
-
-// Write the payload in the communication recording file using the name of sender given
-func WritePayload(payload []byte, sender string) {
-	if !recordingOn {
-		return
-	}
-	if recordingOnlyMES && !strings.Contains(sender, "MES") {
-		return
-	}
-	_, err := recordingFile.WriteString("\n" + time.Now().Format("2006-01-02 15:04:05,999") + " | " + sender + " | " + hex.EncodeToString(payload))
-	if err != nil {
-		log.Println("[RERUN RECORD] : Error ", err)
-		return
 	}
 }

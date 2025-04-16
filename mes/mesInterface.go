@@ -16,7 +16,6 @@ import (
 	"goPostPro/api"
 	"goPostPro/global"
 	"goPostPro/postpro"
-	"goPostPro/tcpServer"
 	"log"
 	"reflect"
 	"strconv"
@@ -165,7 +164,6 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		log.Println("[MES Unknown] Unknown message", messageType, messageCounter)
 		echo = false
 	}
-	tcpServer.CheckToStopRecording(time.Now().Format("2006/01/02"))
 
 	return echo, response, dataLTC, messageType, messageCounter
 }

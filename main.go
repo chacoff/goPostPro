@@ -28,10 +28,8 @@ import (
 	"goPostPro/api"
 	diasHelpers "goPostPro/dias"
 	"goPostPro/global"
-	"goPostPro/graphic"
 	mesHelpers "goPostPro/mes"
 	"goPostPro/postpro"
-	"goPostPro/tcpServer"
 	server "goPostPro/tcpServer"
 	"log"
 	"sync"
@@ -50,7 +48,6 @@ func init() {
 	log.Printf("[livePostPro] init at %s\n", time.Now().Format("2006-01-02 15:04:05"))
 
 	errPostPro := postpro.StartDatabase()
-	graphic.GraphicInit()
 	if errPostPro != nil {
 		log.Panicln("error initializing DataBase")
 	}
@@ -79,7 +76,6 @@ func main() {
 				_msg, _length := diasHelpers.DataScope(msg.Payload)
 
 				diasHelpers.ProcessDiasData(msg.Payload)
-				tcpServer.WritePayload(msg.Payload, "DIAS = "+global.AppParams.AddressDias)
 
 				if global.AppParams.Verbose {
 					log.Printf("[DIAS] received message length %d from (%s): %s\n", _length, msg.From, _msg)

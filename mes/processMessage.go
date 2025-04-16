@@ -61,11 +61,9 @@ import (
 	"fmt"
 	"goPostPro/api"
 	"goPostPro/global"
-	"goPostPro/graphic"
 	"goPostPro/klusters"
 	"goPostPro/postpro"
 	"log"
-	"strconv"
 )
 
 // processType return the real values to answer process messages according the number of passes
@@ -90,10 +88,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	_bodyAns = append(_bodyAns, _bodyStatic[3]) // roll stand number
 	_bodyAns = append(_bodyAns, _bodyStatic[4]) // pass counter
 
-	graphic.ChangeName(strconv.FormatUint(uint64(beamId), 10))
-
 	for i := 0; i < int(passCounter); i++ {
-		graphic.SetPassColor(i + 1)
 
 		if global.PostProParams.Cage12Split {
 			beginStamp = listOfStamps[i]
@@ -198,17 +193,4 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
 	global.PreviousLastTimeStamp = lastTimeStamp
 	return _bodyAns
-}
-
-func display_query_informations(post_pro_data postpro.PostProData) {
-	graphic.AddInformation("Max Tr1 : " + fmt.Sprintf("%d", post_pro_data.MaxTempMill1))
-	graphic.AddInformation("Avg Tr1 : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempMill1))
-	graphic.AddInformation("Avg Web : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempWeb))
-	graphic.AddInformation("Min Web : " + fmt.Sprintf("%d", post_pro_data.MinTempWeb))
-	graphic.AddInformation("Max Tr3 : " + fmt.Sprintf("%d", post_pro_data.MaxTempMill3))
-	graphic.AddInformation("Avg Tr3 : " + fmt.Sprintf("%.2f", post_pro_data.AvgTempMill3))
-	graphic.AddInformation("Avg Std : " + fmt.Sprintf("%.2f", post_pro_data.AvgStdTemp))
-	graphic.AddInformation("Avg Width : " + fmt.Sprintf("%.2f", post_pro_data.PixWidth))
-	graphic.AddInformation("First Timestamp : " + post_pro_data.FirstTimestampDatabase)
-	graphic.AddInformation("Last Timestamp : " + post_pro_data.LastTimeStampDatabase)
 }
