@@ -13,7 +13,7 @@ package mes
 
 import (
 	"encoding/hex"
-	"fmt"
+	"goPostPro/api"
 	"goPostPro/global"
 	"goPostPro/postpro"
 	"goPostPro/tcpServer"
@@ -68,6 +68,7 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 	case 4702, 4712, 4722: // process message: header + body >> WHEN WE DO THE POST PROCESSING
 		bodyValuesStatic, bodyValueDynamic := decodeBody(_hexBytesBody, messageType)
+
 		log.Println("[MES Process] >> Decoded Body values:", bodyValuesStatic, bodyValueDynamic)
 
 		// --- quick bug-fix for reRun, when clustering and no LTC in recording
@@ -80,7 +81,8 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 		// --- quick fix for reRun ---
 
 		CurrentRollingProfile = bodyValuesStatic[1].(string)
-		tcpServer.ChangeRecording(time.Now().Format("2006/01/02"), fmt.Sprint(bodyValuesStatic[1].(string))+"___"+fmt.Sprint(bodyValuesStatic[0].(uint32)))
+
+		api.HandlePostproMessageReceived(bodyValuesStatic)
 
 		_bodyAns := encodeProcess(processType(bodyValuesStatic, bodyValueDynamic, lastTimestamp)) // processType actually does the processing
 		_length := uint32(40 + len(_bodyAns))
@@ -104,6 +106,13 @@ func HandleAnswerToMes(_headerValues []uint32, _hexBytesBody []byte) (bool, []by
 
 		bodyValuesStatic, _ := decodeBody(_hexBytesBody, messageType)
 		log.Println("[MES LTC]  LTC received:", bodyValuesStatic)
+
+		if len(bodyValuesStatic) < 9 {
+			log.Println("[MES LTC] Error : Not enough values in the body")
+			return echo, response, dataLTC, messageType, messageCounter
+		}
+
+		api.HandleLTCMessageReceived(bodyValuesStatic)
 
 		// Reset the Sheetpile passes since LTC marks the beginning of a new up coming sheetpile
 		global.PreviousPassNumber = 3

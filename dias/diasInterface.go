@@ -16,9 +16,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"goPostPro/api"
 	"goPostPro/global"
 	"goPostPro/postpro"
 	"log"
+	"time"
 
 	"strconv"
 	"strings"
@@ -77,7 +79,7 @@ func ProcessDiasData(payload []byte) {
 		cage12 := append(array[:500], array[502:]...)
 		processing_list = append(processing_list, cage12)
 	} else { // else is cage 3 or cage4
-		array = full_array[0:len(full_array)-3]                      // 0:767 are the measurements array block
+		array = full_array[0 : len(full_array)-3]                 // 0:767 are the measurements array block
 		Analogs.updateAnalogsVOIs(full_array[len(full_array)-2:]) // last 2 elements are VOIs
 		processing_list = append(processing_list, array)
 	}
@@ -94,13 +96,17 @@ func ProcessDiasData(payload []byte) {
 
 		isMoving = btoi(Outputs.Free3) // Moving Presence flag from DIAS
 
-		processError := postpro.Process_live_line(measures, passname, isMoving)
+		lineTimestamp := time.Now()
+		processError := postpro.Process_live_line(measures, passname, isMoving, lineTimestamp)
 
 		if errors.Is(processError, postpro.NoBeamError) {
 			continue
 		}
 		if processError != nil {
 			log.Printf("[PROCESSING] error: %s\n", processError)
+		} else {
+			api.SendToApi(api.Api_DIAS_Communication{Timestamp: lineTimestamp, Message: hex.EncodeToString(payload)})
+			api.SendToApi(api.Api_Line_PostPro_result{Timestamp: lineTimestamp, BeamIndexLeftBorder: postpro.BeamIndexLeftBorder, BeamIndexRightBorder: postpro.BeamIndexRightBorder, BeamIndexLeftWeb: postpro.BeamIndexLeftWeb, BeamIndexRightWeb: postpro.BeamIndexRightWeb})
 		}
 	}
 
@@ -142,7 +148,7 @@ func DecodeDiasData(payload []byte) ([]int16, int16, error) {
 		ui := hex.EncodeToString(payload)
 		log.Println(ui)
 		fmt.Println(len(measurementArray))
-		fmt.Println(measurementArray[0])   // element 0 is AO_01
+		fmt.Println(measurementArray[0]) // element 0 is AO_01
 		///fmt.Println(measurementArray[768]) // element 768 is AO_769
 		fmt.Println(digitalOutput)
 	}
@@ -195,7 +201,7 @@ func determine_passname() (string, error) {
 
 	if Outputs.Pass1 && !Outputs.Pass2 && !Outputs.Pass3 {
 		if global.PreviousPassNumber == 3 {
-			global.SaveImage = true
+			api.SendToApi(api.Api_Auto_Beam_Start{Start_timestamp: time.Now()})
 		}
 		global.PreviousPassNumber = 1
 		global.CurrentPass = "Pass 1"

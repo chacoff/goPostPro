@@ -195,6 +195,10 @@ func decodeLTC(data []byte) []interface{} {
 		_data := data[index:endIndex] // Extract bytes according to the pattern
 
 		if j == 0 || j == 3 || j == 7 || j == 8 {
+			if len(_data) < 4 {
+				log.Println("Error in decoding the LTC : the lenght is <4")
+				return _values
+			}
 			value = binary.LittleEndian.Uint32(_data)
 			_values = append(_values, value)
 		} else {
