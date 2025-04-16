@@ -181,19 +181,12 @@ func (line_processing *LineProcessing) compute_calculations() error {
 	}
 	line_processing.min_Web = min_Web
 	line_processing.mean_Web = sum_Web / float64(max_index_Tr3-max_index_Tr1+1)
-	graphic.DrawRegions(int(max_index_Tr1), int(max_index_Tr3))
+
 	return nil
 }
 
-func Process_live_line(int_array_received []int16, passname string, isMoving int) error {
+func Process_live_line(int_array_received []int16, passname string, isMoving int, lineTimestamp time.Time) error {
 	var line_processing LineProcessing
-
-	if passname == "Pass 1" && global.SaveImage {
-		image_error := graphic.ChangeImage()
-		if image_error != nil {
-			return image_error
-		}
-	}
 
 	parsing_error := line_processing.clean_int_received(int_array_received)
 	if parsing_error != nil {
@@ -224,7 +217,6 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 		if insertion_error != nil {
 			return insertion_error
 		}
-		graphic.NewLine(line_processing.timestamp.Add(-global.ReRunSynchDifference))
 
 	}
 
