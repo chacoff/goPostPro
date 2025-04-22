@@ -210,19 +210,23 @@ func Process_live_line(int_array_received []int16, passname string, isMoving int
 	}
 
 	if line_processing.width > global.PostProParams.MinWidth {
+
 		computing_error := line_processing.compute_calculations()
+
 		if computing_error != nil {
 			return computing_error
 		}
-	}
 
-	line_processing.filename = passname
-	line_processing.isMoving = isMoving
-	line_processing.cluster = "unknown"
+		line_processing.filename = passname
+		line_processing.isMoving = isMoving
+		line_processing.cluster = "unknown"
 
-	insertion_error := DATABASE.Insert_line_processing(line_processing)
-	if insertion_error != nil {
-		return insertion_error
+		insertion_error := DATABASE.Insert_line_processing(line_processing)
+
+		if insertion_error != nil {
+			return insertion_error
+		}
+
 	}
 
 	return nil
