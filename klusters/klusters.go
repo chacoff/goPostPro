@@ -17,6 +17,7 @@ import (
 	"github.com/muesli/clusters"
 	"github.com/muesli/kmeans"
 	"goPostPro/global"
+	"log"
 	"sort"
 )
 
@@ -30,7 +31,7 @@ func ReClusterPasses(beginTS string, endTS string, beamID uint32) {
 	timestamps, errorGetData := getData(beginTS, endTS, beamID)
 
 	if errorGetData != nil {
-		fmt.Println("Error getting data from DB to start clustering")
+		log.Println("[CLUSTER] Error getting data from DB to start clustering")
 		return
 	}
 	unixTimes, timestampMap := returnUnixTS(timestamps)
@@ -47,7 +48,7 @@ func ReClusterPasses(beginTS string, endTS string, beamID uint32) {
 
 	clustersPasses, err := km.Partition(observations, k)
 	if err != nil {
-		fmt.Println("Error partitioning data: ", err)
+		log.Println("[CLUSTER] Error partitioning data: ", err)
 	}
 
 	sort.Slice(clustersPasses, func(i, j int) bool {

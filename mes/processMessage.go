@@ -88,17 +88,17 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	_bodyAns = append(_bodyAns, _bodyStatic[3]) // roll stand number
 	_bodyAns = append(_bodyAns, _bodyStatic[4]) // pass counter
 
+	beginStamp = global.PreviousLastTimeStamp
+	endStamp = lastTimeStamp
+
+	log.Printf("[CLUSTER] Calling a new reCluster between %s and %s for Beam %d\n", beginStamp, endStamp, beamId)
+	klusters.ReClusterPasses(beginStamp, endStamp, beamId)
+
 	for i := 0; i < int(passCounter); i++ {
 
 		if global.PostProParams.Cage12Split {
 			beginStamp = listOfStamps[i]
 			endStamp = listOfStamps[i+1]
-		} else {
-			beginStamp = global.PreviousLastTimeStamp
-			endStamp = lastTimeStamp
-
-			fmt.Printf("- Calling a new reCluster between %s and %s for Beam %d\n", beginStamp, endStamp, beamId)
-			klusters.ReClusterPasses(beginStamp, endStamp, beamId)
 		}
 
 		// Standard post processing data
@@ -125,7 +125,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, uint32(newData.AvgStdTemp))
 		_bodyAns = append(_bodyAns, uint32(newData.PixWidth))
 
-		log.Printf("[PostPro] BeamID %d Pass: %d/%d partial PostPro answer: %v", beamId, i+1, passCounter, _bodyAns)
+		log.Printf("[PostPro] BeamID %d Pass: %d/%d partial PostPro answer: %v\n", beamId, i+1, passCounter, _bodyAns)
 
 		log.Println("[PostPro LTC Cage3-4] Calling FindLTCRow with:", beginStamp, endStamp)
 		ltcTimestamp = postpro.DATABASE.FindLTCRow(beginStamp, endStamp, i)
@@ -138,7 +138,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		ltcTimestamp_begin := addOffsetToTimestamp(ltcTimestamp, min(0, global.PostProParams.LtcOffset))
 		ltcTimestamp_end := addOffsetToTimestamp(ltcTimestamp, max(0, global.PostProParams.LtcOffset))
 
-		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d between timestamps %s - %s\n", beamId, i+1, passCounter, ltcTimestamp_begin, ltcTimestamp_end)
 
 		ltcData, errLtc := postpro.DATABASE.QueryDatabase(ltcTimestamp_begin, ltcTimestamp_end, i, false)
 
@@ -156,7 +156,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, newData.PassNumber)   // LTC Realized
 		_bodyAns = append(_bodyAns, ltcData.MaxTempMill3) // LTC Realized
 
-		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v", beamId, i+1, passCounter, _bodyAns)
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC: %v\n", beamId, i+1, passCounter, _bodyAns)
 
 		ltcTimestampFirst := addOffsetToTimestamp(ltcTimestamp, 0)
 		ltcTimestampFirstOffset := addOffsetToTimestamp(ltcTimestamp, 1)
@@ -174,7 +174,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 		_bodyAns = append(_bodyAns, firstLtc.MinTempWeb)
 		_bodyAns = append(_bodyAns, uint32(firstLtc.AvgTempWeb))
 
-		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC and First LTC: %v", beamId, i+1, passCounter, _bodyAns)
+		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC and First LTC: %v\n", beamId, i+1, passCounter, _bodyAns)
 
 		// Send the postpro result to the API
 		api_object_postpro_result := api.Api_Beam_PostPro_result{
@@ -190,7 +190,7 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 	// @jaime: TODO, marked as Treated all rows between first and last timestamp
 	// _, _ = postpro.DATABASE.UpdateTreated(listOfStamps[i], listOfStamps[i+1])
 
-	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v", beamId, _bodyAns)
+	log.Printf("[PostPro] BeamID %d Final PostPro answer: %v\n", beamId, _bodyAns)
 	global.PreviousLastTimeStamp = lastTimeStamp
 	return _bodyAns
 }

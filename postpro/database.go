@@ -273,6 +273,7 @@ func (calculationsDatabase *CalculationsDatabase) QueryDatabase(begin_string_tim
 
 		rowCount++
 		if rowCount >= rowLimit && isFirstLTC {
+			log.Printf("[First LTC] FirstLTC average of %d rows\n: ", global.FirstLTCrows)
 			break
 		}
 
@@ -472,17 +473,17 @@ func (calculationsDatabase *CalculationsDatabase) UpdateProcessID(processID uint
 	result, err := calculationsDatabase.database.Exec(query, processID)
 
 	if err != nil {
-		log.Println("[DATABASE] error updating Traited status:", err)
+		log.Println("[RERUN FIX] error updating Traited status:", err)
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Println("[DATABASE] error getting rows affected:", err)
+		log.Println("[RERUN FIX] error getting rows affected:", err)
 		return err
 	}
 
-	fmt.Printf("Beam %d re-assigned, affected %d rows\n", processID, rowsAffected)
+	log.Printf("[RERUN FIX] Beam %d re-assigned, affected %d rows\n", processID, rowsAffected)
 
 	return nil
 }
