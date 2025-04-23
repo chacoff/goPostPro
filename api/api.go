@@ -29,6 +29,8 @@ type Api_Beam_PostPro_result struct {
 	PassNumber               int    `gorm:"primaryKey"`
 	PostProStartTimestamp    time.Time
 	PostProEndTimestamp      time.Time
+	PostProStartCluster      time.Time
+	PostProEndCluster        time.Time
 	PostProTr1Max            int
 	PostProTr1Mean           int
 	PostProWebMean           int

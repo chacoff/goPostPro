@@ -77,3 +77,29 @@ func updatePass(beginTS string, endTS string, pass string, beamID uint32) error 
 
 	return nil
 }
+
+func GetTimestampsPerCluster(beginTS string, endTS string, cluster string, beamID uint32) (time.Time, time.Time, error) {
+
+	db, _ := getDB()
+
+	sqlQuery := `SELECT COALESCE(MIN(Timestamp), 0) AS First_timestamp, COALESCE(MAX(Timestamp), 0) AS Last_timestamp FROM Measures WHERE Timestamp BETWEEN ? AND ? AND Cluster = ? AND ProcessID = ?`
+	rows, queryError := db.Query(sqlQuery, beginTS, endTS, cluster, beamID)
+
+	if queryError != nil {
+		return time.Time{}, time.Time{}, queryError
+	}
+	defer rows.Close()
+
+	var firstTimestamp, lastTimestamp time.Time
+	for rows.Next() {
+		var firstTimestampStr, lastTimestampStr string
+		if err := rows.Scan(&firstTimestampStr, &lastTimestampStr); err != nil {
+			return time.Time{}, time.Time{}, err
+		}
+
+		firstTimestamp, _ = time.Parse(global.PostProParams.TimeFormat, firstTimestampStr)
+		lastTimestamp, _ = time.Parse(global.PostProParams.TimeFormat, lastTimestampStr)
+	}
+
+	return firstTimestamp, lastTimestamp, nil
+}

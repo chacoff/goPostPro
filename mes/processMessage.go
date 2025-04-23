@@ -176,12 +176,41 @@ func processType(_bodyStatic []interface{}, _bodyDynamic []interface{}, lastTime
 
 		log.Printf("[PostPro LTC] BeamID %d Pass: %d/%d partial PostPro answer with LTC and First LTC: %v\n", beamId, i+1, passCounter, _bodyAns)
 
+		pass := fmt.Sprintf("Pass %d", i+1)
+		beginCluster, endCluster, _ := klusters.GetTimestampsPerCluster(beginStamp, endStamp, pass, beamId)
+
 		// Send the postpro result to the API
 		api_object_postpro_result := api.Api_Beam_PostPro_result{
-			BeamID: fmt.Sprint(beamId), PassNumber: i + 1,
-			PostProStartTimestamp: newData.FirstTimestampDatabaseTimeObject, PostProEndTimestamp: newData.LastTimeStampDatabaseTimeObject, PostProTr1Max: int(newData.MaxTempMill1), PostProTr1Mean: int(newData.AvgTempMill1), PostProWebMean: int(newData.AvgTempWeb), PostProWebMin: int(newData.MinTempWeb), PostProTr3Max: int(newData.MaxTempMill3), PostProTr3Mean: int(newData.AvgTempMill3), PostProWidth: int(newData.PixWidth), PostProThreshold: int(newData.MeanThreshold),
-			LongLtcStartTimestamp: ltcData.FirstTimestampDatabaseTimeObject, LongLtcEndTimestamp: ltcData.LastTimeStampDatabaseTimeObject, LongLtcTr1Max: int(ltcData.MaxTempMill1), LongLtcTr1Mean: int(ltcData.AvgTempMill1), LongLtcWebMean: int(ltcData.AvgTempWeb), LongLtcWebMin: int(ltcData.MinTempWeb), LongLtcTr3Max: int(ltcData.MaxTempMill3), LongLtcTr3Mean: int(ltcData.AvgTempMill3),
-			InstantLtcStartTimestamp: firstLtc.FirstTimestampDatabaseTimeObject, InstantLtcEndTimestamp: firstLtc.LastTimeStampDatabaseTimeObject, InstantLtcTr1Max: int(firstLtc.MaxTempMill1), InstantLtcTr1Mean: int(firstLtc.AvgTempMill1), InstantLtcWebMean: int(firstLtc.AvgTempWeb), InstantLtcWebMin: int(firstLtc.MinTempWeb), InstantLtcTr3Max: int(firstLtc.MaxTempMill3), InstantLtcTr3Mean: int(firstLtc.AvgTempMill3),
+			BeamID:                   fmt.Sprint(beamId),
+			PassNumber:               i + 1,
+			PostProStartTimestamp:    newData.FirstTimestampDatabaseTimeObject,
+			PostProEndTimestamp:      newData.LastTimeStampDatabaseTimeObject,
+			PostProStartCluster:      beginCluster,
+			PostProEndCluster:        endCluster,
+			PostProTr1Max:            int(newData.MaxTempMill1),
+			PostProTr1Mean:           int(newData.AvgTempMill1),
+			PostProWebMean:           int(newData.AvgTempWeb),
+			PostProWebMin:            int(newData.MinTempWeb),
+			PostProTr3Max:            int(newData.MaxTempMill3),
+			PostProTr3Mean:           int(newData.AvgTempMill3),
+			PostProWidth:             int(newData.PixWidth),
+			PostProThreshold:         int(newData.MeanThreshold),
+			LongLtcStartTimestamp:    ltcData.FirstTimestampDatabaseTimeObject,
+			LongLtcEndTimestamp:      ltcData.LastTimeStampDatabaseTimeObject,
+			LongLtcTr1Max:            int(ltcData.MaxTempMill1),
+			LongLtcTr1Mean:           int(ltcData.AvgTempMill1),
+			LongLtcWebMean:           int(ltcData.AvgTempWeb),
+			LongLtcWebMin:            int(ltcData.MinTempWeb),
+			LongLtcTr3Max:            int(ltcData.MaxTempMill3),
+			LongLtcTr3Mean:           int(ltcData.AvgTempMill3),
+			InstantLtcStartTimestamp: firstLtc.FirstTimestampDatabaseTimeObject,
+			InstantLtcEndTimestamp:   firstLtc.LastTimeStampDatabaseTimeObject,
+			InstantLtcTr1Max:         int(firstLtc.MaxTempMill1),
+			InstantLtcTr1Mean:        int(firstLtc.AvgTempMill1),
+			InstantLtcWebMean:        int(firstLtc.AvgTempWeb),
+			InstantLtcWebMin:         int(firstLtc.MinTempWeb),
+			InstantLtcTr3Max:         int(firstLtc.MaxTempMill3),
+			InstantLtcTr3Mean:        int(firstLtc.AvgTempMill3),
 		}
 		api.SendToApi(api_object_postpro_result)
 
